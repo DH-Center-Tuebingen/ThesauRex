@@ -27,7 +27,7 @@ class TreeController extends BaseController
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
-        $thBroader = 'th_concept_broader';
+        $thBroader = 'th_broaders';
         if($isExport == 'clone') {
             $thConcept .= '_export';
             $thLabel .= '_export';
@@ -107,7 +107,7 @@ class TreeController extends BaseController
                         }
                     }
                 }
-                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lbl, ['intree' => $which]);
+                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), get_object_vars($lbl[0]), ['intree' => $which]);
             }
         }
         return response()->json([
@@ -131,7 +131,7 @@ class TreeController extends BaseController
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
-        $thBroader = 'th_concept_broader';
+        $thBroader = 'th_broaders';
         if($isExport == 'clone') {
             $thConcept .= '_export';
             $thLabel .= '_export';
@@ -139,28 +139,29 @@ class TreeController extends BaseController
         }
 
         // narrower
-        $narrower = DB::table($thConcept)
+        $narrower = DB::table($thConcept . ' as c')
             ->select('*',
-                DB::raw("public.\"getLabelForId\"(id, '".$lang."') as label")
+                DB::raw("public.\"getLabelForId\"(c.id, '".$lang."') as label")
             )
-            ->join($thBroader .' as broad', 'id', '=', 'broad.narrower_id')
+            ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
             ->where('broad.broader_id', '=', $id)
             ->get();
         // broader
-        $broaderIds = DB::table($thConcept)
+        $broaderIds = DB::table($thConcept . ' as c')
             ->select('broad.broader_id')
-            ->join($thBroader . ' as broad', 'id', '=', 'broad.narrower_id')
-            ->where('id', '=', $id)
+            ->join($thBroader . ' as broad', 'c.id', '=', 'broad.narrower_id')
+            ->where('c.id', '=', $id)
             ->get();
         $broader = array();
         foreach($broaderIds as $bid) {
             if($bid->broader_id == -1) continue;
-            $broader[] = DB::table($thConcept)
+            $br = DB::table($thConcept . ' as c')
                 ->select('*',
-                    DB::raw("public.\"getLabelForId\"(id, '".$lang."') as label")
+                    DB::raw("public.\"getLabelForId\"(c.id, '".$lang."') as label")
                 )
-                ->where('id', '=', $bid->broader_id)
+                ->where('c.id', '=', $bid->broader_id)
                 ->get();
+            foreach($br as $b) $broader[] = $b;
         }
         return response()->json([
             'broader' => $broader,
@@ -178,7 +179,7 @@ class TreeController extends BaseController
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
-        $thBroader = 'th_concept_broader';
+        $thBroader = 'th_broaders';
         if($isExport == 'clone') {
             $thConcept .= '_export';
             $thLabel .= '_export';
@@ -240,7 +241,7 @@ class TreeController extends BaseController
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
-        $thBroader = 'th_concept_broader';
+        $thBroader = 'th_broaders';
         if($isExport == 'clone') {
             $thConcept .= '_export';
             $thLabel .= '_export';
@@ -343,7 +344,7 @@ class TreeController extends BaseController
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
-        $thBroader = 'th_concept_broader';
+        $thBroader = 'th_broaders';
         if($src == 'clone') {
             $thConceptSrc = $thConcept.'_export';
             $thLabelSrc = $thLabel.'_export';
@@ -426,7 +427,7 @@ class TreeController extends BaseController
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
-        $thBroader = 'th_concept_broader';
+        $thBroader = 'th_broaders';
         if($isExport) {
             $thConcept .= '_export';
             $thLabel .= '_export';
