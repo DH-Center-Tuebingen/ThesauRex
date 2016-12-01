@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="242" height="200" viewBox="0 0 242 200" preserveAspectRatio="none">
+    <defs>
+        <style type="text/css">
+            <![CDATA[#holder_155e93a6d5d text { fill:#AAAAAA;font-weight:bold;font-family:Arial, Helvetica, Open Sans, sans-serif, monospace;font-size:12pt } ]]>
+        </style>
+    </defs>
+    <g id="holder_155e93a6d5d">
+        <rect width="242" height="200" fill="#EEEEEE"/>
+        <g>
+            <text x="89.5" y="105.1">242x200</text>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,285 @@
+#langSwitch {
+    text-align: right;
+}
+
+.activeLang {
+    filter: grayscale(0.75);
+}
+
+#navigation {
+    padding-bottom: 20px;
+}
+
+.link-icon {
+    color: #333;
+    margin-right: 10px;
+}
+
+.navbar-inverse .link-icon {
+    color: #9d9d9d;
+}
+
+.marker-point {
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.5);
+}
+
+.ui-select-bootstrap > .ui-select-choices, .ui-select-bootstrap > .ui-select-no-choice {
+    min-width: 100%;
+    width: auto;
+}
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+.uib-datepicker-popup.dropdown-menu {
+    padding: 10px;
+}
+
+.list-group-item {
+    word-wrap: break-word;
+}
+
+.list-item-edit {
+    width: 60%;
+}
+
+.item-edit-tab {
+    display: inline;
+}
+
+.edit-entry {
+    cursor: pointer;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.inline-list {
+    margin-bottom: 0;
+    margin-top: 8px;
+}
+
+ol li.list-group-item {
+    list-style: decimal inside;
+    display: list-item;
+}
+
+ul {
+    margin-top: 10px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.nowrap {
+    white-space: nowrap;
+    overflow-x: hidden;
+}
+
+.spinner-container {
+    width: 25px;
+    height: 25px; /*added*/
+}
+
+.spinner-container::before {
+    content: '';
+    display: block;
+    /*padding-top: 100%;*/
+}
+
+.circle-img-path {
+    animation: rotate 2s infinite linear;
+    height: 25px;
+    width: 25px;
+    transform-origin: center center;
+}
+
+.circle-path {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+    animation: dash 1.5s ease-in-out infinite, color 6s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 89, 200;
+        stroke-dashoffset: -35px;
+    }
+    100% {
+        stroke-dasharray: 89, 200;
+        stroke-dashoffset: -124px;
+    }
+}
+
+@keyframes color {
+    100%,
+    0% {
+        stroke: red;
+    }
+    40% {
+        stroke: blue;
+    }
+    66% {
+        stroke: green;
+    }
+    80%,
+    90% {
+        stroke: orange;
+    }
+}
+
+.left {
+    text-align: left;
+}
+
+.lang {
+    float: right;
+}
+
+.light {
+    opacity: 0.6;
+}
+
+.delete-icon {
+    font-size: 0.75em;
+}
+
+.delete-icon, .delete-icon-l {
+    color: gray;
+    cursor: pointer;
+    float: right;
+    padding-left: 10px;
+}
+
+.pages {
+    float: right;
+    margin-right: 20px;
+}
+
+.navbar {
+    border-radius: 0;
+}
+
+.ui-select-container, .ui-select-multiple.ui-select-bootstrap {
+    height: 34px;
+    font-size: 14px;
+    line-height: 1.42857;
+}
+
+/* use the 'Open Sans' font */
+/*h1, h2, h3, h4, h5, h6, p, div*/body {
+    font-family: 'Segoe UI', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* use mozilla's 'Fira Sans' font */
+/*h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fira Sans';
+    text-transform: uppercase;
+    font-weight: 400;
+}
+p, div {
+    font-family: 'Fira Sans';
+}*/
+
+.selected-leaf {
+    color: red;
+}
+
+.selected {
+    font-weight: bold;
+}
+
+.angular-ui-tree-handle {
+    cursor:pointer;
+    font-weight: 500;
+}
+
+li .angular-ui-tree-placeholder {
+    background-color: rgba(0, 50, 120, 0.25);
+}
+
+.tree-level-leaf {
+    background-color: inherit !important;
+    color: #337ab7 !important;
+    padding: inherit !important;
+    border-radius: inherit !important;
+}
+
+.tree-level-0 {
+    background-color: rgba(129, 122, 204, 0.75);
+    color: white;
+    border-radius: 3px;
+    padding: 0 5px;
+}
+
+.tree-level-1 {
+    background-color: rgba(41, 150, 58, 0.75);
+    color: white;
+    border-radius: 3px;
+    padding: 0 5px;
+}
+
+.tree-level-2 {
+    background-color: rgba(221, 125, 47, 0.75);
+    color: white;
+    border-radius: 3px;
+    padding: 0 5px;
+}
+
+.tree-level-3 {
+    background-color: rgba(212, 95, 95, 0.75);
+    color: white;
+    border-radius: 3px;
+    padding: 0 5px;
+}
+
+.tree-level-4 {
+    background-color: rgba(226, 204, 12, 0.75);
+    border-radius: 3px;
+    padding: 0 5px;
+}
+
+.tree-level-5, .tree-level-6, .tree-level-7, .tree-level-8, .tree-level-9, .tree-level-10 {
+    background-color: rgba(35, 35, 136, 0.75);
+    color: white;
+    border-radius: 3px;
+    padding: 0 5px;
+}
+
+.expandable-toggle {
+    cursor: zoom-in;
+}
+
+.disabled {
+    cursor: not-allowed;
+}
+
+/* font awesome styles */
+.fa-light {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.9em;
+}
+
+.green {
+    color: green;
+}
+
+.blue {
+    color: blue;
+}
+
+.orange {
+    color: orange;
+}
