@@ -1,0 +1,98 @@
+<!doctype html>
+<html ng-app="tutorialApp">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/png" href="favicon.png" sizes="32x32" />
+        <link rel="stylesheet" type="text/css" href="bower_components/world-flags-sprite/stylesheets/flags16.css" />
+        <link rel="stylesheet" type="text/css" href="bower_components/angular-ui-tree/dist/angular-ui-tree.min.css" />
+        <link rel="stylesheet" href="bower_components/angular-ui-select/dist/select.min.css" />
+        <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css" />
+        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+        <link rel="stylesheet" href="css/style.css" />
+        <title>ThesauRex - Thesaurus-Editor</title>
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse" role="navigation">
+            <div class="container-fluid" ng-controller="headerCtrl">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle"
+                     ng-click="isCollapsed = !isCollapsed" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#/">
+                        <img src="favicon.png" alt="spacialist logo" style="height: 20px; width: 20px; display: inline; vertical-align: top;"/>
+                        ThesauRex
+                    </a>
+                </div>
+                <div class="navbar-collapse" id="navbar-collapse" uib-collapse="isCollapsed">
+                    <ul class="nav navbar-nav">
+                        <li ng-class="{ active: isActive('/dates') }">
+                            <a href="#/dates">
+                                <span class="fa fa-th-list link-icon"></span>{{ 'dates_list' | translate }}
+                            </a>
+                        </li>
+                        <li class="dropdown" uib-dropdown>
+                            <a href="#" class="dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                {{ 'import_export' | translate }} <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" uib-dropdown-menu>
+                                <li ><a class="nav-link" href="#/file/import"><i class="fa fa-cloud-upload"></i> {{ 'import' | translate }}</a>
+                                </li>
+                                <li ><a class="nav-link" href="#/file/export"><i class="fa fa-cloud-download"></i> {{ 'export' | translate }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <img src="img/escience-logo-transparent.svg" style="width: 200px; padding: 10px;"/>
+                        </li>
+                      </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="col-md-12">
+            <ul ng-controller="LangCtrl" class="list-inline" id="langSwitch">
+              <li>
+                  <a href="" ng-click="switchLang('en_US')">
+                      <flag country="gb" size="16" ng-class="{ activeLang: langSet('en') }"></flag>
+                  </a>
+              </li>
+              <li>
+                  <a href="" ng-click="switchLang('de')">
+                      <flag country="de" size="16" ng-class="{ activeLang: langSet('de') }"></flag>
+                  </a>
+              </li>
+            </ul>
+        </div>
+        <div ng-view ui-view class="col-md-12"></div>
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="bower_components/lodash/dist/lodash.min.js"></script>
+        <script src="bower_components/angular/angular.min.js"></script>
+        <script src="bower_components/angular-animate/angular-animate.min.js"></script>
+        <script src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+        <script src="bower_components/angular-route/angular-route.min.js"></script>
+        <script src="bower_components/angular-messages/angular-messages.min.js"></script>
+        <script src="bower_components/angular-translate/angular-translate.min.js"></script>
+        <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
+        <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+        <script src="bower_components/ng-file-upload/ng-file-upload-all.min.js"></script>
+        <script src="bower_components/angular-ui-tree/dist/angular-ui-tree.min.js"></script>
+        <script src="bower_components/angular-simple-logger/dist/angular-simple-logger.min.js"></script>
+        <script src="bower_components/ng-infinite-scroll-npm-is-better-than-bower/build/ng-infinite-scroll.min.js"></script>
+        <script src="bower_components/angular-ui-select/dist/select.min.js"></script>
+        <script src="bower_components/ng-flags/src/directives/ng-flags.js"></script>
+        <script src="bower_components/angular-bootstrap-contextmenu/contextMenu.js"></script>
+        <script src="bower_components/satellizer/dist/satellizer.min.js"></script>
+        <script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+        <script src="bower_components/proj4/dist/proj4.js"></script>
+        <script src="app.js"></script>
+        <script src="controllers/langCtrl.js"></script>
+        <script src="controllers/headerCtrl.js"></script>
+        <script src="controllers/treeCtrl.js"></script>
+    </body>
+</html>
