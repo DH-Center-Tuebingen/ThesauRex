@@ -1,16 +1,16 @@
 # ThesauRex
-ThesaurRex is an leightweight, easy to use SKOS-Editor.
+ThesaurRex is a leightweight, easy to use [SKOS](https://www.w3.org/2004/02/skos/) editor.
 
 ## Features
-- Import/Export SKOS files in **`RDF`** (xml) format
-  - Import and export of the whole tree
-  - Import and export of subtrees as well
+- Import/export SKOS files in **RDF** (XML) format
+  - Import and export the whole thesaurus tree
+  - Import and export subtrees of the thesaurus tree
 - Create, edit and delete labels (**prefLabels**, **altLabels**) and **Narrower**/**Broader**
-- Drag&Drop-Support for **concepts**
-- Drag&Drop-Support to create a new thesaurus (tree)
+- Drag&drop support for **concepts**
+- Drag&drop support to create a new thesaurus
 
 ## Requirements
-- Database-Server (e.g. PostgreSQL, MySQL)
+- Database server (e.g. PostgreSQL, MySQL)
 - PHP (tested with PHP7)
 - Laravel (PHP-Framework) (WIP)
 - Python (v3+)
