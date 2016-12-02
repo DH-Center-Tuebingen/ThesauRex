@@ -1,4 +1,4 @@
-var spacialistApp = angular.module('tutorialApp', ['ngAnimate', 'ngRoute', 'ngMessages', 'nemLogging', 'ui.select', 'ngSanitize', 'pascalprecht.translate', 'ngFlag', 'ui.bootstrap', 'ngFileUpload', 'ui.tree', 'ui.bootstrap.contextMenu']);
+var spacialistApp = angular.module('tutorialApp', ['ngAnimate', 'ngRoute', 'ngMessages', 'nemLogging', 'ui.select', 'ngSanitize', 'ngFlag', 'ui.bootstrap', 'ngFileUpload', 'ui.tree', 'ui.bootstrap.contextMenu']);
 
 spacialistApp.directive('spinner', function() {
     return {
@@ -45,39 +45,6 @@ spacialistApp.directive("number", function() {
         }
     };
 });
-
-spacialistApp.filter('dateBcAc', ['$q', '$translate', function($q, $translate) {
-    var bcStr = null;
-    var adStr = null;
-    var translated = false;
-
-    function appendDate(date) {
-        if(date < 0) {
-            return Math.abs(date) + " " + bcStr;
-        } else {
-            return date + " " + adStr;
-        }
-    }
-
-    filterStub.$stateful = true;
-    function filterStub(date) {
-        if(bcStr === null || adStr === null) {
-            if(!translated) {
-                translated = true;
-                $translate('bc').then(function(bc) {
-                    bcStr = bc;
-                });
-                $translate('ad').then(function(ad) {
-                    adStr = ad;
-                });
-            }
-            return date;
-        } else {
-            return appendDate(date);
-        }
-    }
-    return filterStub;
-}]);
 
 spacialistApp.filter('bytes', function() {
 	return function(bytes, precision) {
@@ -196,17 +163,4 @@ spacialistApp.config(function($routeProvider, $locationProvider) {
         });
 
     //$locationProvider.html5Mode(true);
-});
-
-spacialistApp.config(function($translateProvider) {
-    $translateProvider.useStaticFilesLoader({
-        prefix: 'l10n/',
-        suffix: '.json'
-    });
-    $translateProvider.registerAvailableLanguageKeys(['en', 'de'], {
-        'en_*': 'en',
-        'de_*': 'de'
-    });
-    $translateProvider.determinePreferredLanguage();
-    $translateProvider.useSanitizeValueStrategy('escape');
 });
