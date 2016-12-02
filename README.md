@@ -1,5 +1,5 @@
 # ThesauRex
-ThesaurRex is a leightweight, easy to use [SKOS](https://www.w3.org/2004/02/skos/) editor.
+ThesauRex is a leightweight, easy to use [SKOS](https://www.w3.org/2004/02/skos/) editor.
 
 ## Features
 - Import/export SKOS files in **RDF** (XML) format
