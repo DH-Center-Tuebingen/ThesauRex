@@ -5,12 +5,12 @@
                 &times;
             </span>
         </button>
-        <h4 class="modal-title">{{ 'new concept' | translate }}</h4>
+        <h4 class="modal-title">New concept</h4>
     </div>
     <div class="modal-body">
         <form class="form-horizontal">
             <div class="form-group">
-                <label class="control-label col-md-6" for="conceptname"> Konzeptname:</label>
+                <label class="control-label col-md-6" for="conceptname"> Concept name:</label>
                 <div class="col-md-6">
                     <input class="form-control" type="text" placeholder="Name" id="conceptname" ng-model="newConceptName" autofocus/>
                 </div>
@@ -19,10 +19,10 @@
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-primary" ng-click="addConcept(newConceptName, newConcept, which)">
-            {{ 'add' | translate }}
+            Add
         </button>
         <button type="button" class="btn btn-default" ng-click="$dismiss()">
-            {{ 'close' | translate }}
+            Close
         </button>
     </div>
 </div>

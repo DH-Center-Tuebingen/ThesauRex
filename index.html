@@ -29,24 +29,6 @@
                     </a>
                 </div>
                 <div class="navbar-collapse" id="navbar-collapse" uib-collapse="isCollapsed">
-                    <ul class="nav navbar-nav">
-                        <li ng-class="{ active: isActive('/dates') }">
-                            <a href="#/dates">
-                                <span class="fa fa-th-list link-icon"></span>{{ 'dates_list' | translate }}
-                            </a>
-                        </li>
-                        <li class="dropdown" uib-dropdown>
-                            <a href="#" class="dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                {{ 'import_export' | translate }} <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu" uib-dropdown-menu>
-                                <li ><a class="nav-link" href="#/file/import"><i class="fa fa-cloud-upload"></i> {{ 'import' | translate }}</a>
-                                </li>
-                                <li ><a class="nav-link" href="#/file/export"><i class="fa fa-cloud-download"></i> {{ 'export' | translate }}</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li>
                             <img src="img/escience-logo-transparent.svg" style="width: 200px; padding: 10px;"/>
@@ -55,20 +37,6 @@
                 </div>
             </div>
         </nav>
-        <div class="col-md-12">
-            <ul ng-controller="LangCtrl" class="list-inline" id="langSwitch">
-              <li>
-                  <a href="" ng-click="switchLang('en_US')">
-                      <flag country="gb" size="16" ng-class="{ activeLang: langSet('en') }"></flag>
-                  </a>
-              </li>
-              <li>
-                  <a href="" ng-click="switchLang('de')">
-                      <flag country="de" size="16" ng-class="{ activeLang: langSet('de') }"></flag>
-                  </a>
-              </li>
-            </ul>
-        </div>
         <div ng-view ui-view class="col-md-12"></div>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
         <script src="bower_components/lodash/dist/lodash.min.js"></script>
@@ -77,8 +45,6 @@
         <script src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
         <script src="bower_components/angular-route/angular-route.min.js"></script>
         <script src="bower_components/angular-messages/angular-messages.min.js"></script>
-        <script src="bower_components/angular-translate/angular-translate.min.js"></script>
-        <script src="bower_components/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
         <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
         <script src="bower_components/ng-file-upload/ng-file-upload-all.min.js"></script>
         <script src="bower_components/angular-ui-tree/dist/angular-ui-tree.min.js"></script>
@@ -91,7 +57,6 @@
         <script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
         <script src="bower_components/proj4/dist/proj4.js"></script>
         <script src="app.js"></script>
-        <script src="controllers/langCtrl.js"></script>
         <script src="controllers/headerCtrl.js"></script>
         <script src="controllers/treeCtrl.js"></script>
     </body>

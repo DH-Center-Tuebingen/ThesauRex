@@ -1,4 +1,4 @@
-spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', '$translate', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, $translate, Upload, $timeout, $uibModal) {
+spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, Upload, $timeout, $uibModal) {
     var getLanguages = function() {
         httpGetFactory('api/get/languages', function(callback) {
             for(var i=0; i<callback.length; i++) {
@@ -167,7 +167,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         formData.append('narrower_id', narrower);
         formData.append('old_broader_id', oldBroader);
         formData.append('broader_id', newBroader);
-        formData.append('lang', $translate.use());
         formData.append('isExport', isExport);
         var promise = httpPostPromise.getData('api/update/relation', formData);
         return promise;
@@ -274,7 +273,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.getTree = function(isExport) {
         isExport = getTreeType(isExport);
         var formData = new FormData();
-        formData.append('lang', $translate.use());
         formData.append('tree', isExport);
         httpPostFactory('api/get/tree', formData, function(callback) {
             $scope.rdfTree[isExport] = [];
@@ -371,7 +369,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         isExport = getTreeType(isExport);
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('lang', $translate.use());
         formData.append('isExport', isExport);
         var promise = httpPostPromise.getData('api/get/relations', formData);
         return promise;
@@ -696,7 +693,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     var getChildrenRecursive = function(id, reclevel) {
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('lang', $translate.use());
         formData.append('reclevel', reclevel);
         var promise = httpPostPromise.getData('api/get/children', formData);
         return promise;
