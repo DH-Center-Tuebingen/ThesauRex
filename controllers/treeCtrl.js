@@ -118,9 +118,11 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         isExport = getTreeType(isExport);
         if(typeof $scope.currentModal !== 'undefined') $scope.currentModal.close('ok');
         var id = concept.id;
+        var ts = getFullTimestamp();
+        var projName = (isExport == 'master') ? 'intern' : '<user-project>';
         var urlName = name.replace(/ /g, '_');
         urlName = urlName.replace(/,/g, '');
-        var url = "https://spacialist.escience.uni-tuebingen.de/" + urlName + "#" + urlName;
+        var url = "https://spacialist.escience.uni-tuebingen.de/" + projName + "/" + urlName + "/" + ts;
         var scheme = "https://spacialist.escience.uni-tuebingen.de/schemata#newScheme";
         var reclevel = parseInt(concept.reclevel) + 1;
         var isTC = concept.is_project ? 't' : 'f';
@@ -798,6 +800,41 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var index = value.context + "_" + value.attr;
             $scope.attribData[attrDT][index] = value.value;
         });
+    };
+
+    var getFullTimestamp = function() {
+        var d = new Date();
+        var year = d.getUTCFullYear();
+        var month = d.getUTCMonth() + 1;
+        var day = d.getUTCDate();
+        var hours = d.getUTCHours() + 1;
+        var mins = d.getUTCMinutes() + 1;
+        var secs = d.getUTCSeconds() + 1;
+        return year +
+            getLeadingZero(month) +
+            getLeadingZero(day) +
+            getLeadingZero(hours) +
+            getLeadingZero(mins) +
+            getLeadingZero(secs);
+    };
+
+    var getLeadingZero = function(number, width) {
+        if(typeof width == 'undefined') width = 2;
+        else if(!Number.isInteger(width)) width = 2;
+        else if(width <= 0) width = 2;
+        var strRep = number.toString();
+        var lng = strRep.length;
+        if(lng > width) {
+            return strRep.substring(0, width);
+        } else if(lng < width) {
+            var filled = strRep;
+            for(var i=lng; i<width; i++) {
+                filled = '0' + filled;
+            }
+            return filled;
+        } else {
+            return strRep;
+        }
     };
 }]);
 
