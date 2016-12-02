@@ -1,32 +1,20 @@
 <div ng-controller="treeCtrl">
-    <div class="col-md-12">
-        <h1>Willkommen bei</h1>
-        <span class="col-md-2" style="text-align:center;">
-            <div style="z-index: -100; font-size: 11em; float: right; display: inline; margin-top: -50px;">
-                <i class="fa fa-paw" style="transform: rotate(-35deg); margin-left: -100px;"></i>
-            </div>
-            <div class="col-md-10">
-                <h2 style="z-index: 10; color: white; background-color: red;">Thesaurus</h2>
-                <h1 style="text-transform: uppercase; color: black; text-shadow: -1px 0px white, 1px 0px white, 0px -1px white, 0px 1px white; text-align: justify;">R&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x</h1>
-            </div>
-        </span>
-    </div>
     <div class="row">
         <div class="col-md-6">
             <div class="col-md-6" ng-init="getTree()">
-                <button type="file" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Select RDF file</button>
+                <h2>Master thesaurus</h2>
+                <button type="file" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Import (.rdf)</button>
                 {{ f.name }}
                 <span class="progress" ng-show="f.progress >= 0">
                     <div style="width: {{ f.progress }}%" ng-bind="f.progress + '%'">
                     </div>
                 </span>
-                <button type="button" class="btn btn-primary" ng-click="export()">Export</button>
+                <button type="button" class="btn btn-default" ng-click="export()">Export (.rdf)</button>
                 <div ng-show="waitingForFile">
                     <spinner />
                 </div>
-                <h2>Tree</h2>
                 <p>
-                    <input type="text" ng-model="treeSearchText['master']" ng-change="getSearchTree(treeSearchText['master'])" placeholder="{{ 'search_val' | translate }}"/>
+                    <input type="text" ng-model="treeSearchText['master']" ng-change="getSearchTree(treeSearchText['master'])" placeholder="Search"/>
                 </p>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop"/>Enable Drag & Drop</label>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing"/>Enable Editing</label>
@@ -38,14 +26,14 @@
                 </div>
             </div>
             <div class="col-md-6" ng-init="getTree('clone')">
-                <button type="file" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Select RDF file</button>
-                <button type="button" class="btn btn-primary" ng-click="export('clone')">Export</button>
+                <h2>Project thesaurus</h2>
+                <button type="file" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Import (.rdf)</button>
+                <button type="button" class="btn btn-default" ng-click="export('clone')">Export (.rdf)</button>
                 <div ng-show="waitingForFile">
                     <spinner />
                 </div>
-                <h2>Export-Tree</h2>
                 <p>
-                    <input type="text" ng-model="treeSearchText['clone']" ng-change="getSearchTree(treeSearchText['clone'], 'clone')" placeholder="{{ 'search_val' | translate }}"/>
+                    <input type="text" ng-model="treeSearchText['clone']" ng-change="getSearchTree(treeSearchText['clone'], 'clone')" placeholder="Search"/>
                 </p>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop"/>Enable Drag & Drop</label>
                 <div style="max-height: 500px; overflow: auto;" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="250" data-expand-on-hover="true">
@@ -58,11 +46,11 @@
         </div>
         <div class="col-md-6" ng-if="!informations">
             <p class="alert alert-warning">
-                Bitte wählen Sie auf der linken Seite ein Element aus, um dessen Eigenschaften anzuzeigen.
+                Please choose one element from the tree on the left to display it's properties.
             </p>
         </div>
         <div class="col-md-6" ng-if="informations">
-            <h2>{{ informations.label }} <small>Informationen</small></h2>
+            <h2>{{ informations.label }} <small>Informations</small></h2>
             <div class="col-md-12">
                 <p ng-show="informations.url.length > 0">
                     <strong>Concept URL:</strong> {{ informations.url }}
@@ -87,7 +75,7 @@
                         {{ br.url }}
                     </li>
                     <li class="alert alert-warning" ng-if="!informations.broaderConcepts || informations.broaderConcepts.length == 0">
-                        Keine Broader-Konzepte vorhanden.
+                        No broader concepts found.
                     </li>
                 </ul>
                 <h3>Narrower concepts</h3>
@@ -109,12 +97,12 @@
                         {{ na.url }}
                     </li>
                     <li class="alert alert-warning" ng-if="!informations.narrowerConcepts || informations.narrowerConcepts.length == 0">
-                        Keine Narrower-Konzepte vorhanden.
+                        No narrower concepts found.
                     </li>
                 </ul>
             </div>
             <div class="col-md-6">
-                <h3>prefLabels</h3>
+                <h3>Preferred labels</h3>
                 <div ng-if="informations.prefLabels.loading">
                     <spinner/>
                 </div>
@@ -160,11 +148,11 @@
                             </div>
                         </li>
                         <li class="alert alert-warning" ng-if="!informations.prefLabels || informations.prefLabels.length == 0">
-                            Keine prefLabels vorhanden.
+                            No preferred labels found.
                         </li>
                     </ul>
                 </div>
-                <h3>altLabels</h3>
+                <h3>Alternative labels</h3>
                 <div ng-if="informations.altLabels.loading">
                     <spinner/>
                 </div>
@@ -210,7 +198,7 @@
                             </div>
                         </li>
                         <li class="alert alert-warning" ng-if="!informations.altLabels || informations.altLabels.length == 0">
-                            Keine altLabels vorhanden.
+                            No alternative labels found.
                         </li>
                     </ul>
                 </div>
