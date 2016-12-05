@@ -42,7 +42,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var id = srcNodeScope.$modelValue.id;
             srcNodeScope.$modelValue.children = $scope.roots[isExport][id].slice();
             angular.forEach(srcNodeScope.$modelValue.children, function(child, key) {
-                child.hasChildren = hasChildren(child.id);
+                child.hasChildren = hasChildren(child.id, isExport);
             });
         } else {
             //remove children
@@ -51,8 +51,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     var dropped = function(event, isExportTree) {
-        var oldParent = event.source.nodesScope.$parent.$modelValue;
-        var newParent = event.dest.nodesScope.$parent.$modelValue;
+        var oldParent = event.source.nodesScope.$modelValue;
+        var newParent = event.dest.nodesScope.$modelValue;
         var isFromAnotherTree = false;
         if(typeof event.source.cloneModel !== 'undefined') {
             isFromAnotherTree = true;
@@ -63,21 +63,24 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if((isFromAnotherTree && !isExportTree) || isExportTree) isExport = 'clone';
         if(isFromAnotherTree) {
             elem.is_top_concept = 'f';
-            if(typeof newParent === 'undefined' || newParent.id == -1) {
-                newParent.id = -1;
+            var id = -1;
+            if(typeof newParent == 'undefined' || newParent.id == -1) {
                 elem.is_top_concept = 't';
                 elem.broader_id = -1;
-                $scope.roots[isExport]['-1'].push(elem);
+            } else {
+                id = newParent.id;
             }
             var src = isExportTree ? 'clone' : 'master';
             var formData = new FormData();
             formData.append('id', elem.id);
-            formData.append('new_broader', newParent.id);
+            formData.append('new_broader', id);
             formData.append('src', src);
             formData.append('is_top_concept', elem.is_top_concept == 't');
             var promise = httpPostPromise.getData('api/copy', formData);
             promise.then(function(data) {
                 console.log(data.toSource());
+                $scope.completeTree[isExport].push(elem);
+                $scope.rdfTree[isExport].push(elem);
             });
         }
         var outerPromise = updateRelation(elem.id, oldParent.id, newParent.id, isExportTree);
@@ -117,30 +120,42 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.addConcept = function(name, concept, isExport) {
         isExport = getTreeType(isExport);
         if(typeof $scope.currentModal !== 'undefined') $scope.currentModal.close('ok');
-        var id = concept.id;
         var ts = getFullTimestamp();
         var projName = (isExport == 'master') ? 'intern' : '<user-project>';
         var urlName = name.replace(/ /g, '_');
         urlName = urlName.replace(/,/g, '');
         var url = "https://spacialist.escience.uni-tuebingen.de/" + projName + "/" + urlName + "/" + ts;
         var scheme = "https://spacialist.escience.uni-tuebingen.de/schemata#newScheme";
-        var reclevel = parseInt(concept.reclevel) + 1;
-        var isTC = concept.is_project ? 't' : 'f';
+        var isTC = false;
+        var reclevel = 0;
+        var id = -1;
+        if(typeof concept == 'undefined') {
+            isTC = true;
+        } else {
+            reclevel = parseInt(concept.reclevel) + 1;
+            id = concept.id;
+        }
         var promise = addConcept(url, scheme, id, isTC, name, 1);
         promise.then(function(newId) {
-            $scope.roots[isExport][id].push({
+            var newElem = {
                 id: newId.toString(),
                 concept_url: url,
                 concept_scheme: scheme,
-                broader_id: id.toString(),
                 is_top_concept: isTC,
                 label: name,
                 reclevel: reclevel,
                 hasChildren: false
-            });
-            if(typeof $scope.roots[isExport][newId] === 'undefined') $scope.roots[isExport][newId] = [];
-            concept.children = getChildren(id, isExport);
-            concept.hasChildren = hasChildren(id, isExport);
+            };
+            if(id > 0) {
+                newElem.broader_id = id.toString();
+                concept.children = getChildren(id, isExport);
+                concept.hasChildren = hasChildren(id, isExport);
+                if(typeof $scope.roots[isExport][newId] == 'undefined') $scope.roots[isExport][newId] = [];
+                $scope.roots[isExport][id].push(newElem);
+            } else {
+                $scope.rdfTree[isExport].push(newElem);
+                $scope.completeTree[isExport].push(newElem);
+            }
         });
     };
 
@@ -154,7 +169,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var formData = new FormData();
         formData.append('concept_url', url);
         formData.append('concept_scheme', scheme);
-        formData.append('broader_id', broader);
+        if(broader > 0) formData.append('broader_id', broader);
         formData.append('is_top_concept', tc);
         formData.append('prefLabel', label);
         formData.append('lang', languageId);
@@ -184,6 +199,20 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return promise;
     };
 
+    $scope.createNewConceptModal = function(which, model) {
+        createNewConceptModal(model, which);
+    };
+
+    var createNewConceptModal = function(model, which) {
+        $scope.newConcept = model;
+        $scope.which = which;
+        var modalInstance = $uibModal.open({
+            templateUrl: 'templates/newConceptModal.html',
+            scope: $scope
+        });
+        $scope.currentModal = modalInstance;
+    };
+
     $scope.conceptMenu = [[
             function($itemScope, $event) {
                 return $itemScope.$modelValue.label + '&hellip;';
@@ -197,13 +226,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 if($itemScope.$modelValue.is_project) return '<i class="fa fa-plus-circle fa-fw light green"></i> Neues Topkonzept';
                 else return '<i class="fa fa-plus-circle fa-fw light green"></i> Neues Konzept';
             }, function($itemScope, $event) {
-                $scope.newConcept = $itemScope.$modelValue;
-                $scope.which = 'master';
-                var modalInstance = $uibModal.open({
-                    templateUrl: 'templates/newConceptModal.html',
-                    scope: $scope
-                });
-                $scope.currentModal = modalInstance;
+                createNewConceptModal($itemScope.$modelValue, 'master');
             }
         ], null, [
             '<i class="fa fa-cloud-upload fa-fw light blue"></i> Import', function($itemScope, $event) {
@@ -229,13 +252,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 if($itemScope.$modelValue.is_project) return '<i class="fa fa-plus-circle fa-fw light green"></i> Neues Topkonzept';
                 else return '<i class="fa fa-plus-circle fa-fw light green"></i> Neues Konzept';
             }, function($itemScope, $event) {
-                $scope.newConcept = $itemScope.$modelValue;
-                $scope.which = 'clone';
-                var modalInstance = $uibModal.open({
-                    templateUrl: 'templates/newConceptModal.html',
-                    scope: $scope
-                });
-                $scope.currentModal = modalInstance;
+                createNewConceptModal($itemScope.$modelValue, 'clone');
             }
         ], null, [
             '<i class="fa fa-cloud-upload fa-fw light blue"></i> Import', function($itemScope, $event) {
@@ -285,24 +302,11 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             for(var k in topConcepts) {
                 if(topConcepts.hasOwnProperty(k)) {
                     var curr = topConcepts[k];
-                    curr.children = getChildren(curr.id);
-                    curr.hasChildren = hasChildren(curr.id);
+                    curr.children = getChildren(curr.id, isExport);
+                    curr.hasChildren = hasChildren(curr.id, isExport);
                     $scope.rdfTree[isExport].push(curr);
                 }
             }
-            $scope.roots[isExport]['-1'] = $scope.rdfTree[isExport].slice();
-            $scope.rdfTree[isExport] = [{
-                id: -1,
-                concept_url: 'no concept',
-                concept_scheme: 'no scheme',
-                broader_id: -2,
-                is_top_concept: 'f',
-                is_project: true,
-                label: isExport + '.rdf',
-                reclevel: -1,
-                hasChildren: true,
-                intree: isExport
-            }];
             $scope.completeTree[isExport] = $scope.rdfTree[isExport].slice();
         });
     };
