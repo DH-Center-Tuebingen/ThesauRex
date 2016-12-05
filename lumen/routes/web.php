@@ -27,3 +27,4 @@ $app->post('add/concept', 'TreeController@addConcept');
 $app->post('add/label', 'TreeController@addLabel');
 $app->post('copy', 'TreeController@copy');
 $app->post('update/relation', 'TreeController@updateRelation');
+$app->post('search', 'TreeController@search');

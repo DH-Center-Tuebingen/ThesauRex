@@ -33,7 +33,12 @@
                     <spinner />
                 </div>
                 <p>
-                    <input type="text" ng-model="treeSearchText['clone']" ng-change="getSearchTree(treeSearchText['clone'], 'clone')" placeholder="Search"/>
+                    <ui-select ng-model="treeSearchText['clone']">
+                      <ui-select-match placeholder="Search">{{ $select.selected.label }}</ui-select-match>
+                      <ui-select-choices repeat="result in searchResults['clone']" refresh="getSearchTree($select.search, 'clone')">
+                        <span ng-bind-html="result.label | highlight: $select.search"></span>
+                      </ui-select-choices>
+                    </ui-select>
                 </p>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop"/>Enable Drag & Drop</label>
                 <div style="max-height: 500px; overflow: auto;" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="250" data-expand-on-hover="true">

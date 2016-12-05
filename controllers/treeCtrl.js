@@ -15,6 +15,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         });
     };
 
+    $scope.searchResults = {};
     $scope.rdfTree = {};
     $scope.roots = {
         clone: {},
@@ -718,29 +719,18 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
 
     $scope.getSearchTree = function(searchString, isExport) {
         isExport = getTreeType(isExport);
-        if(searchString.length < 3) {
-            $scope.rdfTree[isExport] = $scope.completeTree[isExport].slice();
+        if(typeof searchString == 'undefined' || searchString.length < 3) {
+            $scope.searchResults[isExport] = [];
             return;
         }
-        var tree = [];
-        searchInTree($scope.completeTree[isExport].slice(), searchString.toLowerCase(), tree);
-        $scope.rdfTree[isExport] = tree;
-    };
-
-    var searchInTree = function(children, ss, result) {
-        if(typeof children === 'undefined') return;
-        for(var i=0; i<children.length; i++) {
-            var child = children[i];
-            if(child.label.toLowerCase().indexOf(ss) > -1) {
-                if(!elementAlreadyInTree(child, result)) {
-                    result.push(child);
-                }
-                continue;
-            }
-            if(child.hasChildren) {
-                searchInTree(getChildren(child.id), ss, result);
-            }
-        }
+        var formData = new FormData();
+        formData.append('val', searchString);
+        formData.append('tree', isExport);
+        //formData.append('lang', 'de');
+        httpPostFactory('api/search', formData, function(results) {
+            console.log(results);
+            $scope.searchResults[isExport] = results;
+        });
     };
 
     $scope.export = function(isExport, id) {
