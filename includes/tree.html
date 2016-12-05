@@ -14,15 +14,27 @@
                     <spinner />
                 </div>
                 <p>
-                    <input type="text" ng-model="treeSearchText['master']" ng-change="getSearchTree(treeSearchText['master'])" placeholder="Search"/>
+                    <input type="text" ng-model="treeSearchText['master']" ng-change="getSearchTree(treeSearchText['master'])" placeholder="Search" ng-disabled="!rdfTree['master']"/>
                 </p>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop"/>Enable Drag & Drop</label>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing"/>Enable Editing</label>
-                <div style="max-height: 500px; overflow: auto;" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="2500" data-expand-on-hover="true">
+                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!rdfTree['master']"/>Enable Drag & Drop</label>
+                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing" ng-disabled="!rdfTree['master']"/>Enable Editing</label>
+                <div style="max-height: 500px; overflow: auto;" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="rdfTree['master']">
                     <ul ui-tree-nodes ng-model="rdfTree['master']" style="margin-bottom: 8px;">
+                        <li class="new-concept-dummy" ng-click="createNewConceptModal('master')">
+                            <i class="fa fa-fw"></i>
+                            Create new top concept
+                        </li>
                         <li ng-repeat="parent in rdfTree['master']" context-menu="conceptMenu" ui-tree-node ng-include="'includes/subTree.html'">
                         </li>
+                        <li class="new-concept-dummy" ng-click="createNewConceptModal('master')">
+                            <i class="fa fa-fw"></i>
+                            Create new top concept
+                        </li>
                     </ul>
+                </div>
+                <div ng-hide="rdfTree['master']">
+                    <spinner>
+                    </spinner>
                 </div>
             </div>
             <div class="col-md-6" ng-init="getTree('clone')">

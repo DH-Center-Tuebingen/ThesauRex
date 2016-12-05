@@ -21,18 +21,30 @@ class TreeController extends BaseController
         }
     }
 
+    public function getLabel($thesaurus_url, $suffix = '', $lang = 'de') {
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+        $label = DB::table($thLabel .' as lbl')
+            ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
+            ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
+            ->where([
+                ['con.concept_url', '=', $thesaurus_url],
+                ['lang.short_name', '=', $lang]
+            ])
+            ->orderBy('lbl.concept_label_type', 'asc')
+            ->first();
+        return $label;
+    }
+
     public function getLabels(Request $request) {
         $id = $request->get('id');
         $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
 
-        $thConcept = 'th_concept';
-        $thLabel = 'th_concept_label';
-        $thBroader = 'th_broaders';
-        if($isExport == 'clone') {
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-        }
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         $labels = DB::table($thLabel .' as lbl')
             ->select('lbl.id', 'label', 'concept_id', 'language_id', 'concept_label_type', 'lang.display_name', 'lang.short_name', 'lang.id')
@@ -56,24 +68,25 @@ class TreeController extends BaseController
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        $thConcept = 'th_concept';
-        $thLabel = 'th_concept_label';
-        $thBroader = 'th_broaders';
-        if($which == 'clone') {
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-        }
+        $suffix = $which == 'clone' ? '_export' : '';
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         $topConcepts = DB::table($thConcept)
             ->select('id', 'concept_url', 'concept_scheme', 'is_top_concept',
-                DB::raw("public.\"getLabelForId\"(id, '".$lang."') as label, 0 as reclevel, '$which' as intree"))
+                DB::raw("0 as reclevel, '$which' as intree"))
             ->where('is_top_concept', '=', true)
             ->get();
 
+        foreach($topConcepts as &$tC) {
+            $lbl = $this->getLabel($tC->concept_url, $suffix, $lang);
+            $tC->label = $lbl->label;
+        }
+
         $rows = DB::select("
             WITH RECURSIVE
-            q(id, lasteditor, concept_url, concept_scheme, is_top_concept, created_at, updated_at, broader_id, reclevel) AS
+            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, reclevel) AS
                 (
                     SELECT  conc.*, -1, 0
                     FROM    $thConcept conc
@@ -95,8 +108,8 @@ class TreeController extends BaseController
         $conceptNames = array();
         foreach($rows as $row) {
             if(empty($row)) continue;
-            $lbl = DB::select(DB::raw("select public.\"getLabelForId\"(".$row->id.", '".$lang."') as label"));
-            $conceptNames[] = array('label' => $lbl[0]->label, 'url' => $row->concept_url, 'id' => $row->id);
+            $lbl = $this->getLabel($row->concept_url, $suffix, $lang);
+            $conceptNames[] = array('label' => $lbl->label, 'url' => $row->concept_url, 'id' => $row->id);
             if($row->broader_id > 0) {
                 $alreadySet = false;
                 if(isset($concepts[$row->broader_id])) {
@@ -107,7 +120,8 @@ class TreeController extends BaseController
                         }
                     }
                 }
-                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), get_object_vars($lbl[0]), ['intree' => $which]);
+                $lblArr = [ 'label' => $lbl->label ];
+                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lblArr, ['intree' => $which]);
             }
         }
         return response()->json([
@@ -129,23 +143,20 @@ class TreeController extends BaseController
         else $lang = 'de';
         $isExport = $request->get('isExport');
 
-        $thConcept = 'th_concept';
-        $thLabel = 'th_concept_label';
-        $thBroader = 'th_broaders';
-        if($isExport == 'clone') {
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-        }
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         // narrower
         $narrower = DB::table($thConcept . ' as c')
-            ->select('*',
-                DB::raw("public.\"getLabelForId\"(c.id, '".$lang."') as label")
-            )
             ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
             ->where('broad.broader_id', '=', $id)
             ->get();
+        foreach($narrower as &$n) {
+            $n->label = $this->getLabel($n->concept_url, $suffix, $lang)->label;
+        }
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
             ->select('broad.broader_id')
@@ -156,12 +167,12 @@ class TreeController extends BaseController
         foreach($broaderIds as $bid) {
             if($bid->broader_id == -1) continue;
             $br = DB::table($thConcept . ' as c')
-                ->select('*',
-                    DB::raw("public.\"getLabelForId\"(c.id, '".$lang."') as label")
-                )
                 ->where('c.id', '=', $bid->broader_id)
                 ->get();
-            foreach($br as $b) $broader[] = $b;
+            foreach($br as &$b) {
+                $b->label = $this->getLabel($b->concept_url, $suffix, $lang)->label;
+                $broader[] = $b;
+            }
         }
         return response()->json([
             'broader' => $broader,
@@ -177,14 +188,11 @@ class TreeController extends BaseController
         $id = $request->get('id');
         $isExport = $request->get('isExport');
 
-        $thConcept = 'th_concept';
-        $thLabel = 'th_concept_label';
-        $thBroader = 'th_broaders';
-        if($isExport == 'clone') {
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-        }
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         if($request->has('broaderId')) { //is broader
             $broaderId = $request->get('broaderId');
@@ -239,14 +247,11 @@ class TreeController extends BaseController
         $broader = $request->get('broader_id');
         $isExport = $request->get('isTmp');
 
-        $thConcept = 'th_concept';
-        $thLabel = 'th_concept_label';
-        $thBroader = 'th_broaders';
-        if($isExport == 'clone') {
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-        }
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         DB::table($thBroader)
             ->insert([
@@ -258,29 +263,41 @@ class TreeController extends BaseController
     public function addConcept(Request $request) {
         $url = $request->get('concept_url');
         $scheme = $request->get('concept_scheme');
-        $broader = $request->get('broader_id');
         $tc = $request->get('is_top_concept');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
+
+        if($request->has('broader_id') && $request->has('is_top_concept') && $request->get('is_top_concept')) {
+            return response()->json([
+                'error' => 'Can not add top concept with broader. Please remove broader from the request or set is_top_concept to false'
+            ]);
+        }
 
         $id = DB::table('th_concept')
             ->insertGetId([
                 'concept_url' => $url,
                 'concept_scheme' => $scheme,
-                'is_top_concept' => $tc == 't'
+                'is_top_concept' => $tc,
+                'lasteditor' => 'postgres'
             ]);
 
-        DB::table('th_broaders')
-            ->insert([
-                'broader_id' => $broader,
-                'narrower_id' => $id
-            ]);
+        if($request->has('broader_id')) {
+            $broader = $request->get('broader_id');
+            if($broader > 0) {
+                DB::table('th_broaders')
+                    ->insert([
+                        'broader_id' => $broader,
+                        'narrower_id' => $id
+                    ]);
+            }
+        }
 
         DB::table('th_concept_label')
             ->insert([
                 'label' => $label,
                 'concept_id' => $id,
-                'language_id' => $lang
+                'language_id' => $lang,
+                'lasteditor' => 'postgres'
             ]);
         return response()->json($id);
     }
@@ -360,7 +377,7 @@ class TreeController extends BaseController
 
         $rows = DB::select("
         WITH RECURSIVE
-        q(id, lasteditor, concept_url, concept_scheme, last_modif, created_at, updated_at, is_top_concept, broader_id) AS
+        q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id) AS
             (
                 SELECT  conc.*, -1
                 FROM    $thConceptSrc conc
@@ -377,44 +394,53 @@ class TreeController extends BaseController
         FROM    q
         ORDER BY concept_url ASC
         ");
+        $tmpBroaders = [];
         foreach($rows as $row) {
             $tmpRow = $row;
             $id = $row->id;
             $broaderId = $row->broader_id;
-            unset($tmpRow->id);
             unset($tmpRow->broader_id);
-            $tmpRow->id_th_concept = $id;
-            DB::table($thConcept)
-                ->insert(get_object_vars($tmpRow)); //TODO stdclass
+            unset($tmpRow->id);
+            if($tmpRow->created_at == '') unset($tmpRow->created_at);
+            if($tmpRow->updated_at == '') unset($tmpRow->updated_at);
+            $newId = DB::table($thConcept)
+                ->insertGetId(get_object_vars($tmpRow));
             $labels = DB::table($thLabelSrc)
                 ->where('concept_id', '=', $id)
                 ->get();
             foreach($labels as $l) {
                 unset($l->id);
+                $l->concept_id = $newId;
                 DB::table($thLabel)
-                    ->insert(get_object_vars($l)); //TODO stdclass
+                    ->insert(get_object_vars($l));
             }
-            $broader = DB::table($thBroaderSrc)
+            if($id == $elemId) continue;
+            $broader = DB::table($thBroaderSrc . ' as b')
+                ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
                 ->where('narrower_id', '=', $id)
-                ->get();
-            foreach($broader as $b) {
+                ->value('c.concept_url');
+            if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
+            $tmpBroaders[$newId][] = $broader;
+        }
+        foreach($tmpBroaders as $k => $v) {
+            foreach($v as $b) {
+                $bId = DB::table($thConcept)
+                    ->where('concept_url', '=', $b)
+                    ->value('id');
                 DB::table($thBroader)
-                    ->insert(get_object_vars($b)); //TODO stdclass
+                    ->insert([
+                        'broader_id' => $bId,
+                        'narrower_id' => $k
+                    ]);
             }
         }
-        DB::table($thBroader)
-            ->where('narrower_id', '=', $elemId)
-            ->delete();
-        DB::table($thBroader)
-            ->insert([
-                'broader_id' => $newBroader,
-                'narrower_id' => $elemId
-            ]);
-        DB::table($thConcept)
-            ->where('id', '=', $elemId)
-            ->update([
-                'is_top_concept' => $isTopConcept
-            ]);
+        if($thBroader != null) {
+            DB::table($thBroader)
+                ->insert([
+                    'broader_id' => $newBroader,
+                    'narrower_id' => $newId
+                ]);
+        }
         return response()->json($rows);
     }
 
@@ -425,14 +451,11 @@ class TreeController extends BaseController
         $lang = $request->get('lang');
         $isExport = $request->get('isExport');
 
-        $thConcept = 'th_concept';
-        $thLabel = 'th_concept_label';
-        $thBroader = 'th_broaders';
-        if($isExport) {
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-        }
+        $suffix = $isExport ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         DB::table($thBroader)
             ->where([
@@ -452,7 +475,7 @@ class TreeController extends BaseController
 
         $rows = DB::select("
             WITH RECURSIVE
-                q(id, lasteditor, concept_url, concept_scheme, is_top_concept, updated_at, created_at, broader_id, reclevel) AS
+                q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, reclevel) AS
                 (
                     SELECT  conc.*, -1, 0
                     FROM    $thConcept conc
@@ -474,8 +497,8 @@ class TreeController extends BaseController
         $conceptNames = array();
         foreach($rows as $row) {
             if(empty($row)) continue;
-            $lbl = DB::select(DB::raw("select public.\"getLabelForId\"(".$row->id.", '".$lang."') as label"));
-            $conceptNames[] = array('label' => $lbl[0]->label, 'url' => $row->concept_url, 'id' => $row->id);
+            $lbl = $this->getLabel($row->concept_url, $suffix, $lang);
+            $conceptNames[] = array('label' => $lbl->label, 'url' => $row->concept_url, 'id' => $row->id);
             $bid = $row->broader_id;
             if($bid > 0 && ($bid == $oldBroader || $bid == $broader)) {
                 $alreadySet = false;
