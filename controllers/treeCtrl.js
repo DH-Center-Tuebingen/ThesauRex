@@ -720,7 +720,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 broader_id: self
             });
             $scope.$broadcast('angular-ui-tree:collapse-all');
-            var t = angular.element(document.getElementById('clone-tree')).scope();
+            var t = angular.element(document.getElementById(isExport + '-tree')).scope();
             var nodesScope = t.$nodesScope;
             var children = nodesScope.childNodes();
             recursiveExpansion(parents, children);
