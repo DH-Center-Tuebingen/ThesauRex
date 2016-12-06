@@ -13,12 +13,19 @@
                 <div ng-show="waitingForFile">
                     <spinner />
                 </div>
-                <p>
-                    <input type="text" ng-model="treeSearchText['master']" ng-change="getSearchTree(treeSearchText['master'])" placeholder="Search" ng-disabled="!rdfTree['master']"/>
-                </p>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="selectedSearchVal['master']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label for result in getSearchTree($viewValue, 'master')" typeahead-min-length="3" typeahead-select-on-exact="true" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'master')" typeahead-loading="loadingResults['master']" typeahead-no-results="noResults['master']">
+                        <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
+                    </div>
+                    <i ng-show="loadingResults['master']" class="glyphicon glyphicon-refresh"></i>
+                    <div ng-show="noResults['master']">
+                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    </div>
+                </div>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!rdfTree['master']"/>Enable Drag & Drop</label>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing" ng-disabled="!rdfTree['master']"/>Enable Editing</label>
-                <div style="max-height: 500px; overflow: auto;" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="rdfTree['master']">
+                <div style="max-height: 500px; overflow: auto;" id="master-tree" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="rdfTree['master']">
                     <ul ui-tree-nodes ng-model="rdfTree['master']" style="margin-bottom: 8px;">
                         <li class="new-concept-dummy" ng-click="createNewConceptModal('master')">
                             <i class="fa fa-fw"></i>
@@ -44,16 +51,18 @@
                 <div ng-show="waitingForFile">
                     <spinner />
                 </div>
-                <p>
-                    <ui-select ng-model="treeSearchText['clone']">
-                      <ui-select-match placeholder="Search">{{ $select.selected.label }}</ui-select-match>
-                      <ui-select-choices repeat="result in searchResults['clone']" refresh="getSearchTree($select.search, 'clone')">
-                        <span ng-bind-html="result.label | highlight: $select.search"></span>
-                      </ui-select-choices>
-                    </ui-select>
-                </p>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop"/>Enable Drag & Drop</label>
-                <div style="max-height: 500px; overflow: auto;" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="250" data-expand-on-hover="true">
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="selectedSearchVal['clone']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label for result in getSearchTree($viewValue, 'clone')" typeahead-min-length="3" typeahead-select-on-exact="true" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'clone')" typeahead-loading="loadingResults['clone']" typeahead-no-results="noResults['clone']">
+                        <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
+                    </div>
+                    <i ng-show="loadingResults['clone']" class="glyphicon glyphicon-refresh"></i>
+                    <div ng-show="noResults['clone']">
+                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    </div>
+                </div>
+                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop" ng-disabled="!rdfTree['clone']"/>Enable Drag & Drop</label>
+                <div style="max-height: 500px; overflow: auto;" id="clone-tree" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="1000" data-expand-on-hover="true">
                     <ul ui-tree-nodes ng-model="rdfTree['clone']" style="margin-bottom: 8px;">
                         <li ng-repeat="parent in rdfTree['clone']" context-menu="conceptMenuExport" ui-tree-node ng-include="'includes/subTree.html'">
                         </li>
