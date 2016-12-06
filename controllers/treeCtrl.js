@@ -9,7 +9,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     id: lg.id_th_language
                 });
             }
-            console.log($scope.possibleLanguages);
             $scope.selectedPrefLabelLanguage = $scope.possibleLanguages[0];
             $scope.selectedAltLabelLanguage = $scope.possibleLanguages[0];
         });
@@ -35,21 +34,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.matchingNarrowerConcepts = [];
     $scope.possibleLanguages = [];
     getLanguages();
-
-    var toggle = function(collapsed, srcNodeScope, isExport) {
-        isExport = getTreeType(isExport);
-        if(!collapsed) {
-            //get children
-            var id = srcNodeScope.$modelValue.id;
-            srcNodeScope.$modelValue.children = $scope.roots[isExport][id].slice();
-            angular.forEach(srcNodeScope.$modelValue.children, function(child, key) {
-                child.hasChildren = hasChildren(child.id, isExport);
-            });
-        } else {
-            //remove children
-            delete srcNodeScope.$modelValue.children;
-        }
-    };
 
     var dropped = function(event, isExportTree) {
         var oldParent = event.source.nodesScope.$modelValue;
@@ -91,24 +75,17 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     $scope.roots[isExport][k] = concepts.concepts[k];
                 }
             }
-            //$scope.roots = angular.extend({}, concepts.concepts);
             $scope.conceptNames = concepts.conceptNames.slice();
         });
     };
 
     $scope.treeOptions = {
-        toggle: function(collapsed, srcNodeScope) {
-            toggle(collapsed, srcNodeScope, 'master');
-        },
         dropped: function(event) {
             dropped(event, false);
         }
     };
 
     $scope.exportTreeOptions = {
-        toggle: function(collapsed, srcNodeScope) {
-            toggle(collapsed, srcNodeScope, 'clone');
-        },
         dropped: function(event) {
             dropped(event, true);
         }
@@ -290,6 +267,17 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         }
     };
 
+    var getChildrenFromArray = function(elem, isExport) {
+        if (typeof $scope.roots[isExport][elem.id] === 'undefined') return [];
+        var children = $scope.roots[isExport][elem.id].slice();
+        delete $scope.roots[isExport][elem.id];
+        for(var i=0; i<children.length; i++) {
+            children[i].children = getChildrenFromArray(children[i], isExport);
+            children[i].hasChildren = children[i].children.length > 0;
+        }
+        return children;
+    };
+
     $scope.getTree = function(isExport) {
         isExport = getTreeType(isExport);
         var formData = new FormData();
@@ -303,8 +291,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             for(var k in topConcepts) {
                 if(topConcepts.hasOwnProperty(k)) {
                     var curr = topConcepts[k];
-                    curr.children = getChildren(curr.id, isExport);
-                    curr.hasChildren = hasChildren(curr.id, isExport);
+                    curr.children = getChildrenFromArray(curr, isExport);
+                    curr.hasChildren = curr.children.length > 0;
                     $scope.rdfTree[isExport].push(curr);
                 }
             }
@@ -721,19 +709,55 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return false;
     };
 
+    var expandElement = function(id, isExport) {
+        isExport = getTreeType(isExport);
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('tree', isExport);
+        httpPostFactory('api/get/parents/all', formData, function(parents) {
+            var self = parents[parents.length-1].narrower_id;
+            parents.push({
+                broader_id: self
+            });
+            $scope.$broadcast('angular-ui-tree:collapse-all');
+            var t = angular.element(document.getElementById('clone-tree')).scope();
+            var nodesScope = t.$nodesScope;
+            var children = nodesScope.childNodes();
+            recursiveExpansion(parents, children);
+        });
+    };
+
+    var recursiveExpansion = function(parents, children) {
+        recursiveExpansionHelper(parents, children, 0);
+    };
+
+    var recursiveExpansionHelper = function(parents, children, lvl) {
+        for(var i=0; i<children.length; i++) {
+            var currParent = parents[lvl];
+            var currChild = children[i];
+            if(currChild.$modelValue.id == currParent.broader_id) {
+                currChild.expand();
+                if(lvl+1 == parents.length) {
+                    $scope.displayInformation(currChild.$modelValue);
+                } else {
+                    recursiveExpansionHelper(parents, currChild.childNodes(), lvl+1);
+                }
+                break;
+            }
+        }
+    };
+
+    $scope.expandElement = function($item, $model, $label, $event, isExport) {
+        expandElement($item.id, isExport);
+    };
+
     $scope.getSearchTree = function(searchString, isExport) {
         isExport = getTreeType(isExport);
-        if(typeof searchString == 'undefined' || searchString.length < 3) {
-            $scope.searchResults[isExport] = [];
-            return;
-        }
         var formData = new FormData();
         formData.append('val', searchString);
         formData.append('tree', isExport);
-        //formData.append('lang', 'de');
-        httpPostFactory('api/search', formData, function(results) {
-            console.log(results);
-            $scope.searchResults[isExport] = results;
+        return httpPostPromise.getData('api/search', formData).then(function(result) {
+            return result;
         });
     };
 
