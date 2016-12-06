@@ -20,7 +20,7 @@ class LanguageTableSeeder extends Seeder
         DB::table('th_language')->insert(array(
             'lasteditor'    => 'postgres',
             'display_name'  => 'English',
-            'short_name'    => 'en'
+            'short_name'    => 'gb'
         ));
         DB::table('th_language')->insert(array(
            'lasteditor'    => 'postgres',
