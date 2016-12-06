@@ -28,3 +28,4 @@ $app->post('add/label', 'TreeController@addLabel');
 $app->post('copy', 'TreeController@copy');
 $app->post('update/relation', 'TreeController@updateRelation');
 $app->post('search', 'TreeController@search');
+$app->post('get/parents/all', 'TreeController@getAllParents');

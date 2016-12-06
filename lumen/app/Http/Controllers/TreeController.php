@@ -548,4 +548,32 @@ class TreeController extends BaseController
         }
         return response()->json($labels);
     }
+
+    public function getAllParents(Request $request) {
+        if(!$request->has('id')) return response()->json();
+        $id = $request->get('id');
+        if($request->has('tree')) $which = $request->get('tree');
+        else $which = 'master';
+
+        $suffix = $which == 'clone' ? '_export' : '';
+        $thBroader = 'th_broaders' . $suffix;
+
+        $parents = DB::select("
+            WITH RECURSIVE
+                q (broader_id, narrower_id, lvl) AS
+                (
+                    SELECT b1.*, 0
+                    FROM $thBroader b1
+                    WHERE narrower_id = $id
+                    UNION ALL
+                    SELECT b2.*, lvl + 1
+                    FROM th_broaders_export b2
+                    JOIN q ON q.broader_id = b2.narrower_id
+                )
+            SELECT q.*
+            FROM q
+            ORDER BY lvl DESC
+        ");
+        return response()->json($parents);
+    }
 }
