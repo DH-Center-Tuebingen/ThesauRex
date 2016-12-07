@@ -9,6 +9,10 @@ use \DB;
 class TreeController extends BaseController
 {
     //
+    private function removeIllegalChars($input) {
+        return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
+    }
+
     public function exportDefault() {
         $this->export('local');
     }
@@ -19,6 +23,19 @@ class TreeController extends BaseController
         } else if($format === 'js') {
 
         }
+    }
+
+    public function getAnyLabel($thesaurus_url, $suffix = '') {
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+        $label = DB::table($thLabel .' as lbl')
+            ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
+            ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
+            ->where('con.concept_url', '=', $thesaurus_url)
+            ->orderBy('lbl.concept_label_type', 'asc')
+            ->first();
+        return $label;
     }
 
     public function getLabel($thesaurus_url, $suffix = '', $lang = 'de') {
@@ -81,6 +98,10 @@ class TreeController extends BaseController
 
         foreach($topConcepts as &$tC) {
             $lbl = $this->getLabel($tC->concept_url, $suffix, $lang);
+            if($lbl == null || !property_exists($lbl, 'label')) {
+                $lbl = $this->getAnyLabel($tC->concept_url, $suffix);
+                if($lbl == null || !property_exists($lbl, 'label')) continue;
+            }
             $tC->label = $lbl->label;
         }
 
@@ -109,6 +130,10 @@ class TreeController extends BaseController
         foreach($rows as $row) {
             if(empty($row)) continue;
             $lbl = $this->getLabel($row->concept_url, $suffix, $lang);
+            if($lbl == null || !property_exists($lbl, 'label')) {
+                $lbl = $this->getAnyLabel($row->concept_url, $suffix);
+                if($lbl == null || !property_exists($lbl, 'label')) continue;
+            }
             $conceptNames[] = array('label' => $lbl->label, 'url' => $row->concept_url, 'id' => $row->id);
             if($row->broader_id > 0) {
                 $alreadySet = false;
@@ -155,7 +180,12 @@ class TreeController extends BaseController
             ->where('broad.broader_id', '=', $id)
             ->get();
         foreach($narrower as &$n) {
-            $n->label = $this->getLabel($n->concept_url, $suffix, $lang)->label;
+            $lbl = $this->getLabel($n->concept_url, $suffix, $lang);
+            if($lbl == null || !property_exists($lbl, 'label')) {
+                $lbl = $this->getAnyLabel($n->concept_url, $suffix);
+                if($lbl == null || !property_exists($lbl, 'label')) continue;
+            }
+            $n->label = $lbl->label;
         }
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
@@ -170,7 +200,12 @@ class TreeController extends BaseController
                 ->where('c.id', '=', $bid->broader_id)
                 ->get();
             foreach($br as &$b) {
-                $b->label = $this->getLabel($b->concept_url, $suffix, $lang)->label;
+                $lbl = $this->getLabel($b->concept_url, $suffix, $lang);
+                if($lbl == null || !property_exists($lbl, 'label')) {
+                    $lbl = $this->getAnyLabel($b->concept_url, $suffix);
+                    if($lbl == null || !property_exists($lbl, 'label')) continue;
+                }
+                $b->label = $lbl->label;
                 $broader[] = $b;
             }
         }
@@ -261,11 +296,19 @@ class TreeController extends BaseController
     }
 
     public function addConcept(Request $request) {
-        $url = $request->get('concept_url');
+        $projName = $request->get('projName');
         $scheme = $request->get('concept_scheme');
         $tc = $request->get('is_top_concept');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
+
+        $normalizedProjName = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $projName);
+        $normalizedLabelName = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $label);
+        $normalizedProjName = $this->removeIllegalChars($normalizedProjName);
+        $normalizedLabelName = $this->removeIllegalChars($normalizedLabelName);
+        $ts = date("YmdHis");
+
+        $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName/$ts";
 
         if($request->has('broader_id') && $request->has('is_top_concept') && $request->get('is_top_concept')) {
             return response()->json([
@@ -299,7 +342,10 @@ class TreeController extends BaseController
                 'language_id' => $lang,
                 'lasteditor' => 'postgres'
             ]);
-        return response()->json($id);
+        return response()->json([
+            'newId' => $id,
+            'url' => $url
+        ]);
     }
 
     public function addLabel(Request $request) {
@@ -498,6 +544,10 @@ class TreeController extends BaseController
         foreach($rows as $row) {
             if(empty($row)) continue;
             $lbl = $this->getLabel($row->concept_url, $suffix, $lang);
+            if($lbl == null || !property_exists($lbl, 'label')) {
+                $lbl = $this->getAnyLabel($row->concept_url, $suffix);
+                if($lbl == null || !property_exists($lbl, 'label')) continue;
+            }
             $conceptNames[] = array('label' => $lbl->label, 'url' => $row->concept_url, 'id' => $row->id);
             $bid = $row->broader_id;
             if($bid > 0 && ($bid == $oldBroader || $bid == $broader)) {

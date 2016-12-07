@@ -10,15 +10,30 @@
     <div class="modal-body">
         <form class="form-horizontal">
             <div class="form-group">
-                <label class="control-label col-md-6" for="conceptname"> Concept name:</label>
-                <div class="col-md-6">
-                    <input class="form-control" type="text" placeholder="Name" id="conceptname" ng-model="newConceptName" autofocus/>
+                <label class="control-label col-md-3" for="conceptname"> Concept name:</label>
+                <div class="col-md-9">
+                    <div class="input-group">
+                        <div class="input-group-btn" uib-dropdown>
+                            <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <flag country="{{ preferredLanguage.langShort }}" size="16"></flag><span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" uib-dropdown-menu>
+                                <li ng-repeat="lang in possibleLanguages">
+                                    <a href="" ng-click="selectPreferredLanguage($index)">
+                                        <flag class="lang" country="{{ lang.langShort }}" size="16"></flag>
+                                        <span style="color: gray;">{{ lang.langName }} ({{ lang.langShort }})</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <input class="form-control" type="text" placeholder="Name" id="conceptname" ng-model="newConceptName" autofocus/>
+                    </div>
                 </div>
             </div>
         </form>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-primary" ng-click="addConcept(newConceptName, newConcept, which)">
+        <button type="button" class="btn btn-primary" ng-click="addConcept(newConceptName, newConcept, preferredLanguage, which)">
             Add
         </button>
         <button type="button" class="btn btn-default" ng-click="$dismiss()">

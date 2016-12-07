@@ -6,12 +6,12 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 $scope.possibleLanguages.push({
                     langShort: lg.short_name,
                     langName: lg.display_name,
-                    id: lg.id_th_language
+                    id: lg.id
                 });
             }
-            console.log($scope.possibleLanguages);
             $scope.selectedPrefLabelLanguage = $scope.possibleLanguages[0];
             $scope.selectedAltLabelLanguage = $scope.possibleLanguages[0];
+            $scope.preferredLanguage = $scope.possibleLanguages[0];
         });
     };
 
@@ -117,14 +117,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return (typeof isExport === 'undefined' || isExport != 'clone') ? 'master' : 'clone';
     };
 
-    $scope.addConcept = function(name, concept, isExport) {
+    $scope.addConcept = function(name, concept, lang, isExport) {
         isExport = getTreeType(isExport);
         if(typeof $scope.currentModal !== 'undefined') $scope.currentModal.close('ok');
-        var ts = getFullTimestamp();
         var projName = (isExport == 'master') ? 'intern' : '<user-project>';
-        var urlName = name.replace(/ /g, '_');
-        urlName = urlName.replace(/,/g, '');
-        var url = "https://spacialist.escience.uni-tuebingen.de/" + projName + "/" + urlName + "/" + ts;
         var scheme = "https://spacialist.escience.uni-tuebingen.de/schemata#newScheme";
         var isTC = false;
         var reclevel = 0;
@@ -135,11 +131,12 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             reclevel = parseInt(concept.reclevel) + 1;
             id = concept.id;
         }
-        var promise = addConcept(url, scheme, id, isTC, name, 1);
-        promise.then(function(newId) {
+        var promise = addConcept(scheme, id, isTC, name, projName, lang.id);
+        promise.then(function(retElem) {
+            var newId = retElem.newId;
             var newElem = {
                 id: newId.toString(),
-                concept_url: url,
+                concept_url: retElem.url,
                 concept_scheme: scheme,
                 is_top_concept: isTC,
                 label: name,
@@ -159,15 +156,15 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         });
     };
 
-    var addPromisedConcept = function(name, concept, isExport) {
+    var addPromisedConcept = function(name, concept, lang, isExport) {
         isExport = getTreeType(isExport);
-        $scope.addConcept(name, concept, isExport);
+        $scope.addConcept(name, concept, lang.id, isExport);
         return $timeout(function(){}, 50);
     };
 
-    var addConcept = function(url, scheme, broader, tc, label, languageId) {
+    var addConcept = function(scheme, broader, tc, label, proj, languageId) {
         var formData = new FormData();
-        formData.append('concept_url', url);
+        formData.append('projName', proj);
         formData.append('concept_scheme', scheme);
         if(broader > 0) formData.append('broader_id', broader);
         formData.append('is_top_concept', tc);
@@ -429,6 +426,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         });
     };
 
+    $scope.selectPreferredLanguage = function(index) {
+        $scope.preferredLanguage = $scope.possibleLanguages[index];
+    };
+
     $scope.selectAltLabelLanguage = function(index) {
         $scope.selectedAltLabelLanguage = $scope.possibleLanguages[index];
     };
@@ -644,7 +645,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         isExport = getTreeType(isExport);
         var promise;
         if(n.isNew) {
-            promise = addPromisedConcept(n.label, $scope.currentEntry, isExport);
+            promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, isExport);
         } else {
             promise = updateConcept(n.id, $scope.currentEntry.id, isExport);
         }
@@ -804,41 +805,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var index = value.context + "_" + value.attr;
             $scope.attribData[attrDT][index] = value.value;
         });
-    };
-
-    var getFullTimestamp = function() {
-        var d = new Date();
-        var year = d.getUTCFullYear();
-        var month = d.getUTCMonth() + 1;
-        var day = d.getUTCDate();
-        var hours = d.getUTCHours() + 1;
-        var mins = d.getUTCMinutes() + 1;
-        var secs = d.getUTCSeconds() + 1;
-        return year +
-            getLeadingZero(month) +
-            getLeadingZero(day) +
-            getLeadingZero(hours) +
-            getLeadingZero(mins) +
-            getLeadingZero(secs);
-    };
-
-    var getLeadingZero = function(number, width) {
-        if(typeof width == 'undefined') width = 2;
-        else if(!Number.isInteger(width)) width = 2;
-        else if(width <= 0) width = 2;
-        var strRep = number.toString();
-        var lng = strRep.length;
-        if(lng > width) {
-            return strRep.substring(0, width);
-        } else if(lng < width) {
-            var filled = strRep;
-            for(var i=lng; i<width; i++) {
-                filled = '0' + filled;
-            }
-            return filled;
-        } else {
-            return strRep;
-        }
     };
 }]);
 
