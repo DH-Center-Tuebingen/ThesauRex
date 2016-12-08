@@ -85,56 +85,59 @@ class TreeController extends BaseController
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        $suffix = $which == 'clone' ? '_export' : '';
+        if($which === 'clone') {
+            $suffix = '_export';
+            $labelView = 'getFirstLabelForLanguagesFromExport';
+        } else {
+            $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
+        }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        $topConcepts = DB::table($thConcept)
-            ->select('id', 'concept_url', 'concept_scheme', 'is_top_concept',
+        $topConcepts = DB::table($thConcept . ' as c')
+            ->select('id', 'c.concept_url', 'concept_scheme', 'is_top_concept', 'f.label',
                 DB::raw("0 as reclevel, '$which' as intree"))
-            ->where('is_top_concept', '=', true)
+            ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
+            ->where([
+                ['is_top_concept', '=', true],
+                ['f.lang', '=', $lang]
+            ])
             ->get();
-
-        foreach($topConcepts as &$tC) {
-            $lbl = $this->getLabel($tC->concept_url, $suffix, $lang);
-            if($lbl == null || !property_exists($lbl, 'label')) {
-                $lbl = $this->getAnyLabel($tC->concept_url, $suffix);
-                if($lbl == null || !property_exists($lbl, 'label')) continue;
-            }
-            $tC->label = $lbl->label;
-        }
 
         $rows = DB::select("
             WITH RECURSIVE
-            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, reclevel) AS
+            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
                 (
-                    SELECT  conc.*, -1, 0
+                    SELECT  conc.*, f.label, -1, 0
                     FROM    $thConcept conc
+                    JOIN    \"$labelView\" as f
+                    ON      conc.concept_url = f.concept_url
                     WHERE   is_top_concept = true
+                    AND     f.lang = '$lang'
                     UNION ALL
-                    SELECT  conc2.*, broad.broader_id, reclevel + 1
+                    SELECT  conc2.*, f.label, broad.broader_id, reclevel + 1
                     FROM    $thConcept conc2
                     JOIN    $thBroader broad
                     ON      conc2.id = broad.narrower_id
                     JOIN    q
                     ON      broad.broader_id = q.id
+                    JOIN    \"$labelView\" as f
+                    ON      conc2.concept_url = f.concept_url
                     WHERE   conc2.is_top_concept = false
+                    AND     f.lang = '$lang'
                 )
             SELECT  q.*
             FROM    q
             ORDER BY concept_url ASC
         ");
+
         $concepts = array();
         $conceptNames = array();
         foreach($rows as $row) {
             if(empty($row)) continue;
-            $lbl = $this->getLabel($row->concept_url, $suffix, $lang);
-            if($lbl == null || !property_exists($lbl, 'label')) {
-                $lbl = $this->getAnyLabel($row->concept_url, $suffix);
-                if($lbl == null || !property_exists($lbl, 'label')) continue;
-            }
-            $conceptNames[] = array('label' => $lbl->label, 'url' => $row->concept_url, 'id' => $row->id);
+            $conceptNames[] = array('label' => $row->label, 'url' => $row->concept_url, 'id' => $row->id);
             if($row->broader_id > 0) {
                 $alreadySet = false;
                 if(isset($concepts[$row->broader_id])) {
@@ -145,7 +148,7 @@ class TreeController extends BaseController
                         }
                     }
                 }
-                $lblArr = [ 'label' => $lbl->label ];
+                $lblArr = [ 'label' => $row->label ];
                 if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lblArr, ['intree' => $which]);
             }
         }
@@ -168,25 +171,24 @@ class TreeController extends BaseController
         else $lang = 'de';
         $isExport = $request->get('isExport');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
 
+        if($isExport === 'clone') {
+            $suffix = '_export';
+            $labelView = 'getFirstLabelForLanguagesFromExport';
+        } else {
+            $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
+        }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
         // narrower
         $narrower = DB::table($thConcept . ' as c')
+            ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
             ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
             ->where('broad.broader_id', '=', $id)
             ->get();
-        foreach($narrower as &$n) {
-            $lbl = $this->getLabel($n->concept_url, $suffix, $lang);
-            if($lbl == null || !property_exists($lbl, 'label')) {
-                $lbl = $this->getAnyLabel($n->concept_url, $suffix);
-                if($lbl == null || !property_exists($lbl, 'label')) continue;
-            }
-            $n->label = $lbl->label;
-        }
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
             ->select('broad.broader_id')
@@ -197,15 +199,10 @@ class TreeController extends BaseController
         foreach($broaderIds as $bid) {
             if($bid->broader_id == -1) continue;
             $br = DB::table($thConcept . ' as c')
+                ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
                 ->where('c.id', '=', $bid->broader_id)
                 ->get();
             foreach($br as &$b) {
-                $lbl = $this->getLabel($b->concept_url, $suffix, $lang);
-                if($lbl == null || !property_exists($lbl, 'label')) {
-                    $lbl = $this->getAnyLabel($b->concept_url, $suffix);
-                    if($lbl == null || !property_exists($lbl, 'label')) continue;
-                }
-                $b->label = $lbl->label;
                 $broader[] = $b;
             }
         }
@@ -497,8 +494,14 @@ class TreeController extends BaseController
         $lang = $request->get('lang');
         $isExport = $request->get('isExport');
 
-        $suffix = $isExport ? '_export' : '';
 
+        if($isExport === 'clone') {
+            $suffix = '_export';
+            $labelView = 'getFirstLabelForLanguagesFromExport';
+        } else {
+            $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
+        }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -521,19 +524,25 @@ class TreeController extends BaseController
 
         $rows = DB::select("
             WITH RECURSIVE
-                q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, reclevel) AS
+                q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
                 (
-                    SELECT  conc.*, -1, 0
+                    SELECT  conc.*, f.label, -1, 0
                     FROM    $thConcept conc
+                    JOIN    \"$labelView\" as f
+                    ON      conc.concept_url = f.concept_url
                     WHERE   id = $broader OR id = $oldBroader
+                    AND     f.lang = '$lang'
                     UNION ALL
-                    SELECT  conc2.*, broad.broader_id, reclevel + 1
+                    SELECT  conc2.*, f.label, broad.broader_id, reclevel + 1
                     FROM    $thConcept conc2
                     JOIN    $thBroader broad
                     ON      conc2.id = broad.narrower_id
                     JOIN    q
                     ON      broad.broader_id = q.id
+                    JOIN    \"$labelView\" as f
+                    ON      conc2.concept_url = f.concept_url
                     WHERE   conc2.is_top_concept = false
+                    AND     f.lang = '$lang'
                 )
             SELECT  q.*
             FROM    q
@@ -543,12 +552,7 @@ class TreeController extends BaseController
         $conceptNames = array();
         foreach($rows as $row) {
             if(empty($row)) continue;
-            $lbl = $this->getLabel($row->concept_url, $suffix, $lang);
-            if($lbl == null || !property_exists($lbl, 'label')) {
-                $lbl = $this->getAnyLabel($row->concept_url, $suffix);
-                if($lbl == null || !property_exists($lbl, 'label')) continue;
-            }
-            $conceptNames[] = array('label' => $lbl->label, 'url' => $row->concept_url, 'id' => $row->id);
+            $conceptNames[] = array('label' => $row->label, 'url' => $row->concept_url, 'id' => $row->id);
             $bid = $row->broader_id;
             if($bid > 0 && ($bid == $oldBroader || $bid == $broader)) {
                 $alreadySet = false;
