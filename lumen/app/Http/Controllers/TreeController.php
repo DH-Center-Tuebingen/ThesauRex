@@ -298,9 +298,15 @@ class TreeController extends BaseController
     public function addConcept(Request $request) {
         $projName = $request->get('projName');
         $scheme = $request->get('concept_scheme');
-        $tc = $request->get('is_top_concept');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
+
+        $tc = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
+        if($request->has('broader_id') && $tc) {
+            return response()->json([
+                'error' => 'Can not add top concept with broader. Please remove broader from the request or set is_top_concept to false'
+            ]);
+        }
 
         $normalizedProjName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $projName);
         $normalizedLabelName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $label);
@@ -309,12 +315,6 @@ class TreeController extends BaseController
         $ts = date("YmdHis");
 
         $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
-
-        if($request->has('broader_id') && $request->has('is_top_concept') && $request->get('is_top_concept')) {
-            return response()->json([
-                'error' => 'Can not add top concept with broader. Please remove broader from the request or set is_top_concept to false'
-            ]);
-        }
 
         $id = DB::table('th_concept')
             ->insertGetId([
