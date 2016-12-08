@@ -302,8 +302,8 @@ class TreeController extends BaseController
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
 
-        $normalizedProjName = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $projName);
-        $normalizedLabelName = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $label);
+        $normalizedProjName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $projName);
+        $normalizedLabelName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $label);
         $normalizedProjName = $this->removeIllegalChars($normalizedProjName);
         $normalizedLabelName = $this->removeIllegalChars($normalizedLabelName);
         $ts = date("YmdHis");
