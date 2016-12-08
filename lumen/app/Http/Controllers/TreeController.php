@@ -308,7 +308,7 @@ class TreeController extends BaseController
         $normalizedLabelName = $this->removeIllegalChars($normalizedLabelName);
         $ts = date("YmdHis");
 
-        $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName/$ts";
+        $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
 
         if($request->has('broader_id') && $request->has('is_top_concept') && $request->get('is_top_concept')) {
             return response()->json([
