@@ -570,4 +570,64 @@ class TreeController extends BaseController
             'conceptNames' => $conceptNames
         ]);
     }
+
+    public function search(Request $request) {
+        if(!$request->has('val')) return response()->json();
+        $val = $request->get('val');
+        if($request->has('tree')) $which = $request->get('tree');
+        else $which = 'master';
+        if($request->has('lang')) $lang = $request->get('lang');
+        else $lang = 'de';
+
+        $suffix = $which == 'clone' ? '_export' : '';
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+
+        $matchedConcepts = DB::table($thLabel . ' as l')
+            ->select('c.concept_url', 'c.id')
+            ->join($thConcept . ' as c', 'c.id', '=', 'l.concept_id')
+            ->join('th_language as lng', 'l.language_id', '=', 'lng.id')
+            ->where([
+                ['label', 'ilike', '%' . $val . '%'],
+                ['lng.short_name', '=', $lang]
+            ])
+            ->groupBy('c.id')
+            ->get();
+        $labels = [];
+        foreach($matchedConcepts as $concept) {
+            $labels[] = [
+                'label' => $this->getLabel($concept->concept_url)->label,
+                'id' => $concept->id
+            ];
+        }
+        return response()->json($labels);
+    }
+
+    public function getAllParents(Request $request) {
+        if(!$request->has('id')) return response()->json();
+        $id = $request->get('id');
+        if($request->has('tree')) $which = $request->get('tree');
+        else $which = 'master';
+
+        $suffix = $which == 'clone' ? '_export' : '';
+        $thBroader = 'th_broaders' . $suffix;
+
+        $parents = DB::select("
+            WITH RECURSIVE
+                q (broader_id, narrower_id, lvl) AS
+                (
+                    SELECT b1.*, 0
+                    FROM $thBroader b1
+                    WHERE narrower_id = $id
+                    UNION ALL
+                    SELECT b2.*, lvl + 1
+                    FROM th_broaders_export b2
+                    JOIN q ON q.broader_id = b2.narrower_id
+                )
+            SELECT q.*
+            FROM q
+            ORDER BY lvl DESC
+        ");
+        return response()->json($parents);
+    }
 }
