@@ -189,7 +189,9 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         $scope.currentModal = modalInstance;
     };
 
-    var contextMenuMaster = [[
+    $scope.getContextMenu = function(item, isExport) {
+        var menu = [];
+        menu.push([
             function($itemScope, $event) {
                 return $itemScope.$modelValue.label + '&hellip;';
             }, function($itemScope, $event) {
@@ -197,128 +199,86 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             }, function($itemScope, $event) {
                 return false;
             }
-        ], null, [
+        ]);
+        menu.push(null);
+        menu.push([
             '<i class="fa fa-fw fa-plus-circle light green"></i> Add new concept', function($itemScope, $event) {
-                createNewConceptModal($itemScope.$modelValue, 'master');
+                createNewConceptModal($itemScope.$modelValue, isExport);
             }
-        ], null, [
-            '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;', function($itemScope, $event) {
-                console.log("delete!");
-            }, [
-                ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
+        ]);
+        menu.push(null);
+        if(!item.hasChildren || item.children.length === 0) {
+            menu.push([
+                '<i class="fa fa-fw fa-trash light red"></i> Delete',
+                function($itemScope) {
                     var formData = new FormData();
                     formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', 'master');
+                    formData.append('isExport', isExport);
                     httpPostFactory('api/delete/cascade', formData, function(result) {
                         $itemScope.remove();
                     });
-                }],
-                ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
-                    var formData = new FormData();
-                    formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', 'master');
-                    httpPostFactory('api/delete/oneup', formData, function(result) {
-                        var currChildren = $itemScope.$modelValue.children;
-                        for(var i=0; i<currChildren.length; i++) {
-                            $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
-                        }
-                        $itemScope.remove();
-                    });
-                }],
-                ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
-                    var t = angular.element(document.getElementById('master-tree')).scope();
-                    var nodesScope = t.$nodesScope;
-                    var formData = new FormData();
-                    formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', 'master');
-                    httpPostFactory('api/delete/totop', formData, function(result) {
-                        var currChildren = $itemScope.$modelValue.children;
-                        for(var i=0; i<currChildren.length; i++) {
-                            currChildren[i].is_top_concept = true;
-                            nodesScope.$modelValue.push(currChildren[i]);
-                        }
-                        $itemScope.remove();
-                    });
-                }]
-            ]
-        ], null, [
+                },
+                function($itemScope) {
+                    return !$itemScope.$modelValue.hasChildren || $itemScope.$modelValue.children.length === 0;
+                }
+            ]);
+        } else {
+            menu.push([
+                '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
+                [
+                    ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
+                        var formData = new FormData();
+                        formData.append('id', $itemScope.$modelValue.id);
+                        formData.append('isExport', isExport);
+                        httpPostFactory('api/delete/cascade', formData, function(result) {
+                            $itemScope.remove();
+                        });
+                    }],
+                    ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
+                        var formData = new FormData();
+                        formData.append('id', $itemScope.$modelValue.id);
+                        formData.append('isExport', isExport);
+                        httpPostFactory('api/delete/oneup', formData, function(result) {
+                            var currChildren = $itemScope.$modelValue.children;
+                            for(var i=0; i<currChildren.length; i++) {
+                                $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
+                            }
+                            $itemScope.remove();
+                        });
+                    }],
+                    ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
+                        var t = angular.element(document.getElementById(isExport + '-tree')).scope();
+                        var nodesScope = t.$nodesScope;
+                        var formData = new FormData();
+                        formData.append('id', $itemScope.$modelValue.id);
+                        formData.append('isExport', isExport);
+                        httpPostFactory('api/delete/totop', formData, function(result) {
+                            var currChildren = $itemScope.$modelValue.children;
+                            for(var i=0; i<currChildren.length; i++) {
+                                currChildren[i].is_top_concept = true;
+                                nodesScope.$modelValue.push(currChildren[i]);
+                            }
+                            $itemScope.remove();
+                        });
+                    }]
+                ],
+                function($itemScope) {
+                    return $itemScope.$modelValue.hasChildren && $itemScope.$modelValue.children.length > 0;
+                }
+            ]);
+        }
+        menu.push(null);
+        menu.push([
             '<i class="fa fa-fw fa-cloud-upload light blue"></i> Import', function($itemScope, $event) {
                 console.log("import!");
             }
-        ], [
+        ]);
+        menu.push([
             '<i class="fa fa-fw fa-cloud-download light orange"></i> Export', function($itemScope, $event) {
-                $scope.export('master', $itemScope.$modelValue.id);
+                $scope.export(isExport, $itemScope.$modelValue.id);
             }
-        ]
-    ];
-
-    var contextMenuExport = [[
-            function($itemScope, $event) {
-                return $itemScope.$modelValue.label + '&hellip;';
-            }, function($itemScope, $event) {
-                return;
-            }, function($itemScope, $event) {
-                return false;
-            }
-        ], null, [
-            '<i class="fa fa-fw fa-plus-circle light green"></i> Add new concept', function($itemScope, $event) {
-                createNewConceptModal($itemScope.$modelValue, 'clone');
-            }
-        ], null, [
-            '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;', function($itemScope, $event) {
-            }, [
-                ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
-                    var formData = new FormData();
-                    formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', 'clone');
-                    httpPostFactory('api/delete/cascade', formData, function(result) {
-                        $itemScope.remove();
-                    });
-                }],
-                ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
-                    var currChildren = $itemScope.$modelValue.children;
-                    var parentChildren = $itemScope.$parentNodesScope.$modelValue;
-                    var formData = new FormData();
-                    formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', 'clone');
-                    httpPostFactory('api/delete/oneup', formData, function(result) {
-                        var currChildren = $itemScope.$modelValue.children;
-                        for(var i=0; i<currChildren.length; i++) {
-                            $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
-                        }
-                        $itemScope.remove();
-                    });
-                }],
-                ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
-                    var t = angular.element(document.getElementById('clone-tree')).scope();
-                    var nodesScope = t.$nodesScope;
-                    var formData = new FormData();
-                    formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', 'clone');
-                    httpPostFactory('api/delete/totop', formData, function(result) {
-                        var currChildren = $itemScope.$modelValue.children;
-                        for(var i=0; i<currChildren.length; i++) {
-                            currChildren[i].is_top_concept = true;
-                            nodesScope.$modelValue.push(currChildren[i]);
-                        }
-                        $itemScope.remove();
-                    });
-                }]
-            ]
-        ], null, [
-            '<i class="fa fa-fw fa-cloud-upload light blue"></i> Import', function($itemScope, $event) {
-                console.log("import!");
-            }
-        ], [
-            '<i class="fa fa-fw fa-cloud-download light orange"></i> Export', function($itemScope, $event) {
-                $scope.export('clone', $itemScope.$modelValue.id);
-            }
-        ]
-    ];
-
-    $scope.contextMenus = {
-        'master': contextMenuMaster,
-        'clone': contextMenuExport
+        ]);
+        return menu;
     };
 
     $scope.uploadFile = function(file, errFiles, isExport) {

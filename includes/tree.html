@@ -31,7 +31,7 @@
                             <i class="fa fa-fw"></i>
                             Create new top concept
                         </li>
-                        <li ng-repeat="parent in rdfTree['master']" context-menu="contextMenus['master']" ui-tree-node ng-include="'includes/subTree.html'">
+                        <li ng-repeat="parent in rdfTree['master']" context-menu="getContextMenu(parent, 'master')" ui-tree-node ng-include="'includes/subTree.html'">
                         </li>
                         <li class="new-concept-dummy" ng-click="createNewConceptModal('master')">
                             <i class="fa fa-fw"></i>
@@ -64,7 +64,7 @@
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop" ng-disabled="!rdfTree['clone']"/>Enable Drag & Drop</label>
                 <div style="max-height: 500px; overflow: auto;" id="clone-tree" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="1000" data-expand-on-hover="true">
                     <ul ui-tree-nodes ng-model="rdfTree['clone']" style="margin-bottom: 8px;">
-                        <li ng-repeat="parent in rdfTree['clone']" context-menu="contextMenus['clone']" ui-tree-node ng-include="'includes/subTree.html'">
+                        <li ng-repeat="parent in rdfTree['clone']" context-menu="getContextMenu(parent, 'clone')" ui-tree-node ng-include="'includes/subTree.html'">
                         </li>
                     </ul>
                 </div>
