@@ -171,7 +171,6 @@ class TreeController extends BaseController
         else $lang = 'de';
         $isExport = $request->get('isExport');
 
-
         if($isExport === 'clone') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
@@ -377,6 +376,13 @@ class TreeController extends BaseController
         $scheme = $request->get('concept_scheme');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
+        $isExport = $request->get('isExport');
+
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         $tc = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
         if($request->has('broader_id') && $tc) {
@@ -393,7 +399,7 @@ class TreeController extends BaseController
 
         $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
 
-        $id = DB::table('th_concept')
+        $id = DB::table($thConcept)
             ->insertGetId([
                 'concept_url' => $url,
                 'concept_scheme' => $scheme,
@@ -404,7 +410,7 @@ class TreeController extends BaseController
         if($request->has('broader_id')) {
             $broader = $request->get('broader_id');
             if($broader > 0) {
-                DB::table('th_broaders')
+                DB::table($thBroader)
                     ->insert([
                         'broader_id' => $broader,
                         'narrower_id' => $id
@@ -412,7 +418,7 @@ class TreeController extends BaseController
             }
         }
 
-        DB::table('th_concept_label')
+        DB::table($thLabel)
             ->insert([
                 'label' => $label,
                 'concept_id' => $id,
