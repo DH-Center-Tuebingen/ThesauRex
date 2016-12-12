@@ -219,18 +219,25 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     formData.append('isExport', 'master');
                     httpPostFactory('api/delete/oneup', formData, function(result) {
                         var currChildren = $itemScope.$modelValue.children;
-                        $itemScope.remove();
-                        for(var i=0; i<currChildren; i++) {
+                        for(var i=0; i<currChildren.length; i++) {
                             $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
                         }
+                        $itemScope.remove();
                     });
                 }],
                 ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
+                    var t = angular.element(document.getElementById('master-tree')).scope();
+                    var nodesScope = t.$nodesScope;
                     var formData = new FormData();
                     formData.append('id', $itemScope.$modelValue.id);
                     formData.append('isExport', 'master');
                     httpPostFactory('api/delete/totop', formData, function(result) {
-                        console.log(result);
+                        var currChildren = $itemScope.$modelValue.children;
+                        for(var i=0; i<currChildren.length; i++) {
+                            currChildren[i].is_top_concept = true;
+                            nodesScope.$modelValue.push(currChildren[i]);
+                        }
+                        $itemScope.remove();
                     });
                 }]
             ]
@@ -275,16 +282,26 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     formData.append('id', $itemScope.$modelValue.id);
                     formData.append('isExport', 'clone');
                     httpPostFactory('api/delete/oneup', formData, function(result) {
-                        console.log(result);
-                        $itemScope.$parentNodesScope.$modelValue = parentChildren.concat(currChildren);
+                        var currChildren = $itemScope.$modelValue.children;
+                        for(var i=0; i<currChildren.length; i++) {
+                            $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
+                        }
+                        $itemScope.remove();
                     });
                 }],
                 ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
+                    var t = angular.element(document.getElementById('clone-tree')).scope();
+                    var nodesScope = t.$nodesScope;
                     var formData = new FormData();
                     formData.append('id', $itemScope.$modelValue.id);
                     formData.append('isExport', 'clone');
                     httpPostFactory('api/delete/totop', formData, function(result) {
-                        console.log(result);
+                        var currChildren = $itemScope.$modelValue.children;
+                        for(var i=0; i<currChildren.length; i++) {
+                            currChildren[i].is_top_concept = true;
+                            nodesScope.$modelValue.push(currChildren[i]);
+                        }
+                        $itemScope.remove();
                     });
                 }]
             ]
