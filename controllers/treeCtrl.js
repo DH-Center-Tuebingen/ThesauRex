@@ -202,9 +202,21 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 createNewConceptModal($itemScope.$modelValue, 'master');
             }
         ], null, [
-            '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;', function($itemScope, $event) {
-                console.log("delete!");
-            }, [
+            '<i class="fa fa-fw fa-trash light red"></i> Delete',
+            function($itemScope) {
+                var formData = new FormData();
+                formData.append('id', $itemScope.$modelValue.id);
+                formData.append('isExport', 'master');
+                httpPostFactory('api/delete/cascade', formData, function(result) {
+                    $itemScope.remove();
+                });
+            },
+            function($itemScope) {
+                return !$itemScope.$modelValue.hasChildren || $itemScope.$modelValue.children.length === 0;
+            }
+        ], [
+            '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
+            [
                 ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
                     var formData = new FormData();
                     formData.append('id', $itemScope.$modelValue.id);
@@ -240,7 +252,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                         $itemScope.remove();
                     });
                 }]
-            ]
+            ],
+            function($itemScope) {
+                return $itemScope.$modelValue.hasChildren && $itemScope.$modelValue.children.length > 0;
+            }
         ], null, [
             '<i class="fa fa-fw fa-cloud-upload light blue"></i> Import', function($itemScope, $event) {
                 console.log("import!");
@@ -265,8 +280,21 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 createNewConceptModal($itemScope.$modelValue, 'clone');
             }
         ], null, [
-            '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;', function($itemScope, $event) {
-            }, [
+            '<i class="fa fa-fw fa-trash light red"></i> Delete',
+            function($itemScope) {
+                var formData = new FormData();
+                formData.append('id', $itemScope.$modelValue.id);
+                formData.append('isExport', 'clone');
+                httpPostFactory('api/delete/cascade', formData, function(result) {
+                    $itemScope.remove();
+                });
+            },
+            function($itemScope) {
+                return !$itemScope.$modelValue.hasChildren || $itemScope.$modelValue.children.length === 0;
+            }
+        ], [
+            '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
+            [
                 ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
                     var formData = new FormData();
                     formData.append('id', $itemScope.$modelValue.id);
@@ -304,7 +332,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                         $itemScope.remove();
                     });
                 }]
-            ]
+            ],
+            function($itemScope) {
+                return $itemScope.$modelValue.hasChildren && $itemScope.$modelValue.children.length > 0;
+            }
         ], null, [
             '<i class="fa fa-fw fa-cloud-upload light blue"></i> Import', function($itemScope, $event) {
                 console.log("import!");
