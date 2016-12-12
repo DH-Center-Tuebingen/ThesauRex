@@ -277,6 +277,10 @@ li .angular-ui-tree-placeholder {
     font-size: 0.9em;
 }
 
+.red {
+    color: red;
+}
+
 .green {
     color: green;
 }
