@@ -126,6 +126,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             if(id > 0) {
                 newElem.broader_id = id;
                 concept.children.push(newElem);
+                if(!concept.hasChildren) concept.hasChildren = true;
             } else {
                 $scope.rdfTree[isExport].push(newElem);
                 $scope.completeTree[isExport].push(newElem);
