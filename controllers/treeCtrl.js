@@ -110,24 +110,22 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             reclevel = parseInt(concept.reclevel) + 1;
             id = concept.id;
         }
-        var promise = addConcept(scheme, id, isTC, name, projName, lang.id);
+        var promise = addConcept(scheme, id, isTC, name, projName, lang.id, isExport);
         promise.then(function(retElem) {
             var newId = retElem.newId;
             var newElem = {
-                id: newId.toString(),
+                id: newId,
                 concept_url: retElem.url,
                 concept_scheme: scheme,
                 is_top_concept: isTC,
                 label: name,
+                intree: isExport,
                 reclevel: reclevel,
                 hasChildren: false
             };
             if(id > 0) {
-                newElem.broader_id = id.toString();
-                concept.children = getChildren(id, isExport);
-                concept.hasChildren = hasChildren(id, isExport);
-                if(typeof $scope.roots[isExport][newId] == 'undefined') $scope.roots[isExport][newId] = [];
-                $scope.roots[isExport][id].push(newElem);
+                newElem.broader_id = id;
+                concept.children.push(newElem);
             } else {
                 $scope.rdfTree[isExport].push(newElem);
                 $scope.completeTree[isExport].push(newElem);
@@ -141,7 +139,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return $timeout(function(){}, 50);
     };
 
-    var addConcept = function(scheme, broader, tc, label, proj, languageId) {
+    var addConcept = function(scheme, broader, tc, label, proj, languageId, isExport) {
         var formData = new FormData();
         formData.append('projName', proj);
         formData.append('concept_scheme', scheme);
@@ -149,6 +147,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         formData.append('is_top_concept', tc);
         formData.append('prefLabel', label);
         formData.append('lang', languageId);
+        formData.append('isExport', isExport);
         var promise = httpPostPromise.getData('api/add/concept', formData);
         return promise;
     };
