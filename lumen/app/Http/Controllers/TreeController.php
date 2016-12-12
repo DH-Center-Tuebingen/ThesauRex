@@ -701,7 +701,7 @@ class TreeController extends BaseController
                     WHERE narrower_id = $id
                     UNION ALL
                     SELECT b2.*, lvl + 1
-                    FROM th_broaders_export b2
+                    FROM $thBroader b2
                     JOIN q ON q.broader_id = b2.narrower_id
                 )
             SELECT q.*
