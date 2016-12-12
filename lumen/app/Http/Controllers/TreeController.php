@@ -242,11 +242,25 @@ class TreeController extends BaseController
         $broader = DB::table($thBroader)
             ->where('narrower_id', '=', $id)
             ->value('broader_id');
-        DB::table($thBroader)
-            ->where('broader_id', '=', $id)
-            ->update([
-                'broader_id' => $broader
-            ]);
+
+        if($broader == null) {
+            $narrowers = DB::table($thBroader)
+                ->where('broader_id', '=', $id)
+                ->get();
+            foreach($narrowers as $n) {
+                DB::table($thConcept)
+                    ->where('id', '=', $n->narrower_id)
+                    ->update([
+                        'is_top_concept' => true
+                    ]);
+            }
+        } else {
+            DB::table($thBroader)
+                ->where('broader_id', '=', $id)
+                ->update([
+                    'broader_id' => $broader
+                ]);
+        }
 
         DB::table($thConcept)
             ->where('id', '=', $id)
