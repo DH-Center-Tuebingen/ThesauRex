@@ -29,7 +29,7 @@ The following packages you should be able to install from your package manager:
 1. Install all the required packages. For debian-based/apt systems you can use the following command
 
     ```bash
-    sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
+    sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-intl php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
     ```
     
 2. Clone This Repository
