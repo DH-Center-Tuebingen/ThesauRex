@@ -9,6 +9,7 @@ The following packages you should be able to install from your package manager:
   - memcached (on Windows this will not work -- see later)
   - mbstring
   - php-pgsql
+  - php-intl (on Windows, php_intl.dll ships with PHP, so just uncomment the line `;extension=php_intl.dll` in php.ini)
 - libapache2-mod-php (on Unix systems)
 - [Composer](https://getcomposer.org)
 - PostgreSQL (`>= 9.1.0`)
@@ -28,7 +29,7 @@ The following packages you should be able to install from your package manager:
 1. Install all the required packages. For debian-based/apt systems you can use the following command
 
     ```bash
-    sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
+    sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-intl php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
     ```
     
 2. Clone This Repository
