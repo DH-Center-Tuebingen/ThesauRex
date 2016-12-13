@@ -9,15 +9,9 @@ ThesauRex is a leightweight, easy to use [SKOS](https://www.w3.org/2004/02/skos/
 - Drag&drop support for **concepts**
 - Drag&drop support to create a new thesaurus
 
-## Requirements
-- Database server (e.g. PostgreSQL, MySQL)
-- PHP (tested with PHP7)
-- Laravel (PHP-Framework) (WIP)
-- Python (v3+)
-  - rdflib
-  - psycopg2
-  - getopt
-- Browser with JavaScript enabled
-
 ## Installation
-TODO
+Installation procedures and system requirements are described [here](INSTALL.md).
+
+## Acknowledgments
+
+Development of Spacialist is co-funded by the Ministry of Science, Research and the Arts Baden-Württemberg in the "E-Science" funding programme.
