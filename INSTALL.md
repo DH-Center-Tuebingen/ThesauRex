@@ -140,9 +140,14 @@ JWT_REFRESH_TTL=* #the ttl (in minutes) in which you can generate a new token. D
 JWT_BLACKLIST_GRACE_PERIOD=* #a time span in seconds which allows you to use the same token several times in this time span without blacklisting it (good for async api calls)
 ```
 
-After the `.env` file has been configured you should run the migrations to setup your database.
+After the `.env` file has been configured you should run the migrations to setup your database. Note: the DB must already exists, so create one if you do this for the first time.
 ```bash
 php artisan migrate
+```
+
+If you have just migrated into an empty database, you need to run the following command, which will populate the database with required stuff:
+```bash
+php artisan db:seed
 ```
 
 To test your installation, simply open `http://yourdomain.tld/ThesauRex/api`. You should see a website with Lumen's current version.
