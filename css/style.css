@@ -24,6 +24,22 @@
     color: #9d9d9d;
 }
 
+.my-hidden {
+    visibility: hidden;
+}
+
+.control-elements {
+    padding-bottom: 5px;
+}
+
+.control-elements, .relation-header {
+    overflow: auto;
+}
+
+#master-tree, #clone-tree, .scrollable-list {
+    overflow: auto;
+}
+
 .marker-point {
     border-radius: 50%;
     background-color: rgba(255, 0, 0, 0.5);
