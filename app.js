@@ -31,6 +31,8 @@ spacialistApp.directive('resizeWatcher', function($window) {
             } else {
                 var headerHeight = document.getElementById('header-nav').offsetHeight;
                 var informationHeight = document.getElementById('information-header').offsetHeight;
+                var informationAlertHeight = document.getElementById('information-alert').offsetHeight;
+                informationHeight += informationAlertHeight;
                 var broaderHeight = document.getElementById('broader-header').offsetHeight;
                 var narrowerHeight = document.getElementById('narrower-header').offsetHeight;
                 var preferredHeight = document.getElementById('preferred-header').offsetHeight;
