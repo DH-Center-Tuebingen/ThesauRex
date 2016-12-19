@@ -65,6 +65,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var promise = httpPostPromise.getData('api/copy', formData);
             promise.then(function(data) {
                 console.log(data.toSource());
+                elem.reclevel = newParent.reclevel + 1;
                 $scope.completeTree[isExport].push(elem);
                 $scope.rdfTree[isExport].push(elem);
             });
@@ -121,7 +122,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 label: name,
                 intree: isExport,
                 reclevel: reclevel,
-                hasChildren: false
+                hasChildren: false,
+                children: []
             };
             if(id > 0) {
                 newElem.broader_id = id;
@@ -241,6 +243,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                         httpPostFactory('api/delete/oneup', formData, function(result) {
                             var currChildren = $itemScope.$modelValue.children;
                             for(var i=0; i<currChildren.length; i++) {
+                                currChildren[i].reclevel = currChildren[i].reclevel - 1;
                                 $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
                             }
                             $itemScope.remove();
@@ -256,6 +259,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                             var currChildren = $itemScope.$modelValue.children;
                             for(var i=0; i<currChildren.length; i++) {
                                 currChildren[i].is_top_concept = true;
+                                currChildren[i].reclevel = 0;
                                 nodesScope.$modelValue.push(currChildren[i]);
                             }
                             $itemScope.remove();
