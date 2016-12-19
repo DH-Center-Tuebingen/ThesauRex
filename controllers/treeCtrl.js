@@ -218,6 +218,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     formData.append('isExport', isExport);
                     httpPostFactory('api/delete/cascade', formData, function(result) {
                         $itemScope.remove();
+                        var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
+                        parent.hasChildren = parent.children.length > 0;
                     });
                 },
                 function($itemScope) {
@@ -234,6 +236,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                         formData.append('isExport', isExport);
                         httpPostFactory('api/delete/cascade', formData, function(result) {
                             $itemScope.remove();
+                            var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
+                            parent.hasChildren = parent.children.length > 0;
                         });
                     }],
                     ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
