@@ -28,11 +28,15 @@
     visibility: hidden;
 }
 
-.control-elements, .relation-header, .scrollable-list {
+.control-elements {
+    padding-bottom: 5px;
+}
+
+.control-elements, .relation-header {
     overflow: auto;
 }
 
-#master-tree, #clone-tree {
+#master-tree, #clone-tree, .scrollable-list {
     overflow: auto;
 }
 
