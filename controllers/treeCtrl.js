@@ -696,7 +696,12 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         });
     };
 
+    angular.element(document).ready(function () {
+        $scope.getWindowSize();
+    });
+
     $scope.getMatchingConcepts = function(searchString, type) {
+        if(typeof $scope.informations == 'undefined') return;
         var currentSet = [];
         if(type === 'broader') {
             $scope.matchingBroaderConcepts = [];

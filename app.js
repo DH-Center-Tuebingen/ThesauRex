@@ -10,6 +10,53 @@ spacialistApp.directive('spinner', function() {
     };
 });
 
+spacialistApp.directive('resizeWatcher', function($window) {
+    return function($scope) {
+        var headerPadding = 20;
+        var bottomPadding = 20;
+        var listPadding = 40;
+
+        $scope.getWindowSize = function() {
+            var height = $window.innerHeight;
+            var width = $window.innerWidth;
+            var isSm = window.matchMedia("(max-width: 991px)").matches;
+            var controlHeight = $('.control-elements')[0].offsetHeight;
+            if(isSm) {
+                $('#master-tree').css('height', '');
+                $('#clone-tree').css('height', '');
+                $('#broader-list').css('height', '');
+                $('#narrower-list').css('height', '');
+                $('#preferred-list').css('height', '');
+                $('#alternative-list').css('height', '');
+            } else {
+                var headerHeight = document.getElementById('header-nav').offsetHeight;
+                var informationHeight = document.getElementById('information-header').offsetHeight;
+                var broaderHeight = document.getElementById('broader-header').offsetHeight;
+                var narrowerHeight = document.getElementById('narrower-header').offsetHeight;
+                var preferredHeight = document.getElementById('preferred-header').offsetHeight;
+                var alternativeHeight = document.getElementById('alternative-header').offsetHeight;
+
+                var containerHeight = height - controlHeight - headerHeight - headerPadding - bottomPadding;
+                var leftHeight = height - headerHeight - headerPadding - bottomPadding - informationHeight - listPadding;
+                var listHeight = (leftHeight - broaderHeight - narrowerHeight) / 2;
+                var labelHeight = (leftHeight - preferredHeight - alternativeHeight) / 2;
+
+                $('#master-tree').css('height', containerHeight);
+                $('#clone-tree').css('height', containerHeight);
+                $('#broader-list').css('height', listHeight);
+                $('#narrower-list').css('height', listHeight);
+                $('#preferred-list').css('height', labelHeight);
+                $('#alternative-list').css('height', labelHeight);
+            }
+        };
+
+        return angular.element($window).bind('resize', function() {
+            $scope.getWindowSize();
+            return $scope.$apply();
+        });
+    };
+});
+
 spacialistApp.directive('myDirective', function(httpPostFactory, scopeService) {
     return {
         restrict: 'A',
