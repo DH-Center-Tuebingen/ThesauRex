@@ -778,6 +778,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             });
             $scope.$broadcast('angular-ui-tree:collapse-all');
             var t = angular.element(document.getElementById(isExport + '-tree')).scope();
+            t.$element[0].scrollTop = 0;
             var nodesScope = t.$nodesScope;
             var children = nodesScope.childNodes();
 
@@ -790,6 +791,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     treeDom.scrollTop = topLength - treeHeight;
                 }
                 expandWatcher();
+                $scope.expandedElement = null;
             });
             recursiveExpansion(parents, children);
         });
