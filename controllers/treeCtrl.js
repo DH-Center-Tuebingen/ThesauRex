@@ -15,6 +15,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         });
     };
 
+    $scope.expandedElement = null;
+
     $scope.searchResults = {};
     $scope.rdfTree = {};
     $scope.roots = {
@@ -778,6 +780,17 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var t = angular.element(document.getElementById(isExport + '-tree')).scope();
             var nodesScope = t.$nodesScope;
             var children = nodesScope.childNodes();
+
+            var expandWatcher = $scope.$watch('expandedElement', function() {
+                if($scope.expandedElement === null) return;
+                var topLength = $scope.expandedElement.getBoundingClientRect().top;
+                var treeDom = t.$element[0];
+                var treeHeight = treeDom.getBoundingClientRect().height;
+                if(topLength > treeHeight) {
+                    treeDom.scrollTop = topLength - treeHeight;
+                }
+                expandWatcher();
+            });
             recursiveExpansion(parents, children);
         });
     };
@@ -793,6 +806,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             if(currChild.$modelValue.id == currParent.broader_id) {
                 if(lvl+1 == parents.length) {
                     $scope.displayInformation(currChild.$modelValue);
+                    $scope.expandedElement = currChild.$element[0];
                 } else {
                     //currChild.expand();
                     // calling expand() on currChild should be enough, but currChild.childNodes() then returns an array with undefined values.
