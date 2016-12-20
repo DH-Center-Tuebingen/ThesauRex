@@ -672,10 +672,14 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.addBroaderConcept = function(b, isExport) {
-        $scope.informations.broaderConcepts.push({
-            id: b.id,
-            label: b.label,
-            url: b.url
+        isExport = getTreeType(isExport);
+        var promise = updateConcept($scope.currentEntry.id, b.id, isExport);
+        promise.then(function() {
+            $scope.informations.broaderConcepts = [];
+            var nextPromise = getRelations($scope.currentEntry.id, isExport);
+            nextPromise.then(function(data) {
+                setRelations(data, $scope.informations.broaderConcepts, null);
+            });
         });
     };
 
