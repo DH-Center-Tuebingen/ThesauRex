@@ -592,14 +592,22 @@ class TreeController extends BaseController
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        DB::table($thBroader)
-            ->where([
-                ['narrower_id', '=', $narrow],
-                ['broader_id', '=', $oldBroader]
-            ])
-            ->update([
-                'broader_id' => $broader
-            ]);
+        if($broader == -1) {
+            DB::table($thBroader)
+                ->where([
+                    [ 'narrower_id', '=', $narrow ],
+                    [ 'broader_id', '=', $oldBroader ]
+                ])
+                ->delete();
+        } else {
+            DB::table($thBroader)
+                ->updateOrInsert([
+                    'narrower_id' => $narrow,
+                    'broader_id' => $oldBroader
+                ],[
+                    'broader_id' => $broader
+                ]);
+        }
 
         $isTopConcept = $broader == -1;
         DB::table($thConcept)

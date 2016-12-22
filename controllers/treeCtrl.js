@@ -39,10 +39,12 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     getLanguages();
 
     var dropped = function(event, isExportTree) {
-        var oldParent = event.source.nodesScope.$modelValue;
-        var newParent = event.dest.nodesScope.$modelValue;
+        var oldParentId = event.source.nodeScope.$modelValue.broader_id;
+        var destScope = event.dest.nodesScope.$nodeScope;
+        var newParent;
+        if(destScope !== null) newParent = destScope.$modelValue;
         var isFromAnotherTree = false;
-        if(typeof event.source.cloneModel !== 'undefined') {
+        if((event.source.cloneModel.intree == 'master' && isExportTree) || (event.source.cloneModel.intree == 'clone' && !isExportTree)) {
             isFromAnotherTree = true;
             event.source.nodeScope.$modelValue = event.source.cloneModel;
         }
@@ -72,7 +74,13 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 $scope.rdfTree[isExport].push(elem);
             });
         }
-        var outerPromise = updateRelation(elem.id, oldParent.id, newParent.id, isExportTree);
+        if(typeof newParent == 'undefined') {
+            newParent = {
+                id: -1
+            };
+        }
+        if(typeof oldParentId == 'undefined') oldParentId = -1;
+        var outerPromise = updateRelation(elem.id, oldParentId, newParent.id, isExport);
         outerPromise.then(function(concepts) {
             for(var k in concepts.concepts) {
                 if(concepts.concepts.hasOwnProperty(k)) {
@@ -158,7 +166,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     var updateRelation = function(narrower, oldBroader, newBroader, isExport) {
-        if(typeof isExport === 'undefined') isExport = false;
+        if(typeof isExport === 'undefined') isExport = 'master';
         console.log(narrower+","+ oldBroader+","+ newBroader);
         var formData = new FormData();
         formData.append('narrower_id', narrower);
