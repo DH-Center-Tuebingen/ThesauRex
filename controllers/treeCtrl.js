@@ -44,51 +44,47 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var newParent;
         if(destScope !== null) newParent = destScope.$modelValue;
         var isFromAnotherTree = false;
-        if((event.source.cloneModel.intree == 'master' && isExportTree) || (event.source.cloneModel.intree == 'clone' && !isExportTree)) {
+        if(event.source.nodesScope.$treeScope.$id != event.dest.nodesScope.$treeScope.$id) {
             isFromAnotherTree = true;
-            event.source.nodeScope.$modelValue = event.source.cloneModel;
         }
         var elem = event.source.nodeScope.$modelValue;
         var isExport = 'master';
         if((isFromAnotherTree && !isExportTree) || isExportTree) isExport = 'clone';
         if(isFromAnotherTree) {
-            elem.is_top_concept = 'f';
+            var is_top_concept = false;
             var id = -1;
+            var reclevel = -1;
             if(typeof newParent == 'undefined' || newParent.id == -1) {
-                elem.is_top_concept = 't';
-                elem.broader_id = -1;
+                is_top_concept = true;
             } else {
                 id = newParent.id;
+                reclevel = newParent.reclevel || -1;
             }
             var src = isExportTree ? 'clone' : 'master';
+            console.log("moving from " + src + " to " + isExport);
             var formData = new FormData();
             formData.append('id', elem.id);
             formData.append('new_broader', id);
             formData.append('src', src);
-            formData.append('is_top_concept', elem.is_top_concept == 't');
+            formData.append('is_top_concept', is_top_concept);
             var promise = httpPostPromise.getData('api/copy', formData);
             promise.then(function(data) {
-                console.log(data.toSource());
-                elem.reclevel = newParent.reclevel + 1;
-                $scope.completeTree[isExport].push(elem);
-                $scope.rdfTree[isExport].push(elem);
+                elem.reclevel = reclevel + 1;
+                console.log(elem.reclevel);
+                elem.is_top_concept = is_top_concept;
+                elem.broader_id = id;
+            });
+        } else  {
+            if(typeof newParent == 'undefined') {
+                newParent = {
+                    id: -1
+                };
+            }
+            if(typeof oldParentId == 'undefined') oldParentId = -1;
+            var outerPromise = updateRelation(elem.id, oldParentId, newParent.id, isExport);
+            outerPromise.then(function(concepts) {
             });
         }
-        if(typeof newParent == 'undefined') {
-            newParent = {
-                id: -1
-            };
-        }
-        if(typeof oldParentId == 'undefined') oldParentId = -1;
-        var outerPromise = updateRelation(elem.id, oldParentId, newParent.id, isExport);
-        outerPromise.then(function(concepts) {
-            for(var k in concepts.concepts) {
-                if(concepts.concepts.hasOwnProperty(k)) {
-                    $scope.roots[isExport][k] = concepts.concepts[k];
-                }
-            }
-            $scope.conceptNames = concepts.conceptNames.slice();
-        });
     };
 
     $scope.treeOptions = {

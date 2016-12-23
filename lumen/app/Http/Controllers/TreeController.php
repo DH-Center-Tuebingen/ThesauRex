@@ -486,7 +486,7 @@ class TreeController extends BaseController
         $elemId = $request->get('id');
         $newBroader = $request->get('new_broader');
         $src = $request->get('src'); // 'master' or 'clone'
-        $isTopConcept = $request->get('is_top_concept');
+        $isTopConcept = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
@@ -524,6 +524,7 @@ class TreeController extends BaseController
         ORDER BY concept_url ASC
         ");
         $tmpBroaders = [];
+        $newElemId = -1;
         foreach($rows as $row) {
             $tmpRow = $row;
             $id = $row->id;
@@ -532,6 +533,7 @@ class TreeController extends BaseController
             unset($tmpRow->id);
             if($tmpRow->created_at == '') unset($tmpRow->created_at);
             if($tmpRow->updated_at == '') unset($tmpRow->updated_at);
+            if($id == $elemId) $tmpRow->is_top_concept = $isTopConcept;
             $newId = DB::table($thConcept)
                 ->insertGetId(get_object_vars($tmpRow));
             $labels = DB::table($thLabelSrc)
@@ -543,19 +545,23 @@ class TreeController extends BaseController
                 DB::table($thLabel)
                     ->insert(get_object_vars($l));
             }
-            if($id == $elemId) continue;
-            $broader = DB::table($thBroaderSrc . ' as b')
-                ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
-                ->where('narrower_id', '=', $id)
-                ->value('c.concept_url');
-            if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
-            $tmpBroaders[$newId][] = $broader;
+            if($id == $elemId) {
+                $newElemId = $newId;
+            } else {
+                $broader = DB::table($thBroaderSrc . ' as b')
+                    ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
+                    ->where('narrower_id', '=', $id)
+                    ->value('c.concept_url');
+                if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
+                $tmpBroaders[$newId][] = $broader;
+            }
         }
         foreach($tmpBroaders as $k => $v) {
             foreach($v as $b) {
                 $bId = DB::table($thConcept)
                     ->where('concept_url', '=', $b)
                     ->value('id');
+                if($bId === null) continue;
                 DB::table($thBroader)
                     ->insert([
                         'broader_id' => $bId,
@@ -563,11 +569,11 @@ class TreeController extends BaseController
                     ]);
             }
         }
-        if($thBroader != null) {
+        if($newBroader != -1 && $newElemId != -1) {
             DB::table($thBroader)
                 ->insert([
                     'broader_id' => $newBroader,
-                    'narrower_id' => $newId
+                    'narrower_id' => $newElemId
                 ]);
         }
         return response()->json($rows);
@@ -616,7 +622,7 @@ class TreeController extends BaseController
                 'is_top_concept' => $isTopConcept
             ]);
 
-        $rows = DB::select("
+        /*$rows = DB::select("
             WITH RECURSIVE
                 q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
                 (
@@ -662,6 +668,10 @@ class TreeController extends BaseController
         return response()->json([
             'concepts' => $concepts,
             'conceptNames' => $conceptNames
+        ]);*/
+        return response()->json([
+            'concepts' => [],
+            'conceptNames' => []
         ]);
     }
 
