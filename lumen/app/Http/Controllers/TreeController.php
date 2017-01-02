@@ -38,9 +38,9 @@ class TreeController extends BaseController
                 $lang = $label->short_name;
                 $type = $label->concept_label_type;
                 if($type == 1) {
-                    $curr->set('skos:prefLabel', $lbl, $lang);
+                    $curr->addLiteral('skos:prefLabel', $lbl, $lang);
                 } else if($type == 2) {
-                    $curr->set('skos:altLabel', $lbl, $lang);
+                    $curr->addLiteral('skos:altLabel', $lbl, $lang);
                 }
             }
             if(!$is_top_concept) {
@@ -52,7 +52,7 @@ class TreeController extends BaseController
                     $broader_url = DB::table('th_concept')
                         ->where('id', '=', $broader->broader_id)
                         ->value('concept_url');
-                    $curr->addResource('skos:narrower', $broader_url);
+                    $curr->addResource('skos:broader', $broader_url);
                 }
             }
             $narrowers = DB::table('th_broaders')
