@@ -42,7 +42,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var oldParentId = event.source.nodeScope.$modelValue.broader_id;
         var destScope = event.dest.nodesScope.$nodeScope;
         var newParent;
-        if(destScope !== null) newParent = destScope.$modelValue;
+        if(destScope !== null) {
+            newParent = destScope.$modelValue;
+            newParent.hasChildren = true;
+        }
         var isFromAnotherTree = false;
         if(event.source.nodesScope.$treeScope.$id != event.dest.nodesScope.$treeScope.$id) {
             isFromAnotherTree = true;
@@ -50,16 +53,16 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var elem = event.source.nodeScope.$modelValue;
         var isExport = 'master';
         if((isFromAnotherTree && !isExportTree) || isExportTree) isExport = 'clone';
+        var is_top_concept = false;
+        var id = -1;
+        var reclevel = -1;
+        if(typeof newParent == 'undefined' || newParent.id == -1) {
+            is_top_concept = true;
+        } else {
+            id = newParent.id;
+            reclevel = typeof newParent.reclevel == 'undefined' ? -1 : newParent.reclevel;
+        }
         if(isFromAnotherTree) {
-            var is_top_concept = false;
-            var id = -1;
-            var reclevel = -1;
-            if(typeof newParent == 'undefined' || newParent.id == -1) {
-                is_top_concept = true;
-            } else {
-                id = newParent.id;
-                reclevel = newParent.reclevel || -1;
-            }
             var src = isExportTree ? 'clone' : 'master';
             console.log("moving from " + src + " to " + isExport);
             var formData = new FormData();
@@ -70,19 +73,16 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var promise = httpPostPromise.getData('api/copy', formData);
             promise.then(function(data) {
                 elem.reclevel = reclevel + 1;
-                console.log(elem.reclevel);
                 elem.is_top_concept = is_top_concept;
                 elem.broader_id = id;
             });
         } else  {
-            if(typeof newParent == 'undefined') {
-                newParent = {
-                    id: -1
-                };
-            }
             if(typeof oldParentId == 'undefined') oldParentId = -1;
-            var outerPromise = updateRelation(elem.id, oldParentId, newParent.id, isExport);
+            var outerPromise = updateRelation(elem.id, oldParentId, id, isExport);
             outerPromise.then(function(concepts) {
+                elem.reclevel = reclevel + 1;
+                elem.is_top_concept = is_top_concept;
+                elem.broader_id = id;
             });
         }
     };
