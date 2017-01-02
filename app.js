@@ -50,6 +50,14 @@ spacialistApp.directive('resizeWatcher', function($window) {
             }
         };
 
+        //recalculate window size if information-alert gets toggled (and thus toggle information container as well)
+        var alertElement = "#information-alert";
+        $scope.$watch(function() {
+            return angular.element(alertElement).is(':visible');
+        }, function() {
+            $scope.getWindowSize();
+        });
+
         return angular.element($window).bind('resize', function() {
             $scope.getWindowSize();
             return $scope.$apply();
