@@ -64,7 +64,7 @@ class TreeController extends BaseController
         $thBroader = 'th_broaders' . $suffix;
 
         $labels = DB::table($thLabel .' as lbl')
-            ->select('lbl.id', 'label', 'concept_id', 'language_id', 'concept_label_type', 'lang.display_name', 'lang.short_name', 'lang.id')
+            ->select('lbl.id', 'label', 'concept_id', 'language_id', 'concept_label_type', 'lang.display_name', 'lang.short_name')
             ->join('th_language as lang', 'lang.id', '=', 'language_id')
             ->where('concept_id', '=', $id)
             ->get();
@@ -431,12 +431,30 @@ class TreeController extends BaseController
         ]);
     }
 
+    public function removeLabel(Request $request) {
+        $id = $request->get('id');
+        $isExport = $request->get('isExport');
+
+        $suffix = $isExport === 'clone' ? '_export' : '';
+        $thLabel = 'th_concept_label' . $suffix;
+
+        DB::table($thLabel)
+            ->where([
+                ['id', '=', $id]
+            ])
+            ->delete();
+    }
+
     public function addLabel(Request $request) {
         $label = $request->get('label');
         $lang = $request->get('lang');
         $type = $request->get('type');
         $cid = $request->get('concept_id');
-        $del = $request->get('delete');
+        $isExport = $request->get('isExport');
+
+        $suffix = $isExport === 'clone' ? '_export' : '';
+        $thLabel = 'th_concept_label' . $suffix;
+
         if($request->has('id')) {
             $id = $request->get('id');
             $cond = array(
@@ -445,19 +463,13 @@ class TreeController extends BaseController
                 ['language_id', '=', $lang],
                 ['concept_label_type', '=', $type]
             );
-            if($request->has('del') && $del) {
-                DB::table('th_concept_label')
-                    ->where($cond)
-                    ->delete();
-            } else {
-                DB::table('th_concept_label')
-                    ->where($cond)
-                    ->update([
-                        'label' => $label
-                    ]);
-            }
+            DB::table($thLabel)
+                ->where($cond)
+                ->update([
+                    'label' => $label
+                ]);
         } else {
-            $lblCount = DB::table('th_concept_label')
+            $lblCount = DB::table($thLabel)
                 ->where([
                     ['language_id', '=', $lang],
                     ['concept_id', '=', $cid]
@@ -469,7 +481,7 @@ class TreeController extends BaseController
                     'error' => 'Duplicate entry for language ' . $lang
                 ]);
             }
-            $id = DB::table('th_concept_label')
+            $id = DB::table($thLabel)
                 ->insertGetId([
                     'id' => $id,
                     'label' => $label,
@@ -579,7 +591,6 @@ class TreeController extends BaseController
         $broader = $request->get('broader_id');
         $lang = $request->get('lang');
         $isExport = $request->get('isExport');
-
 
         if($isExport === 'clone') {
             $suffix = '_export';
