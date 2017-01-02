@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
+use Easyrdf\Easyrdf\Lib\EasyRdf;
+use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
 
 class TreeController extends BaseController
@@ -14,15 +16,75 @@ class TreeController extends BaseController
     }
 
     public function exportDefault() {
-        $this->export('local');
+        return $this->export('local');
     }
 
     public function export($format) {
-        if($format === 'local') {
-
-        } else if($format === 'js') {
-
+        $graph = new \EasyRdf_Graph();
+        $concepts = DB::table('th_concept')
+            ->get();
+        foreach($concepts as $concept) {
+            $concept_id = $concept->id;
+            $url = $concept->concept_url;
+            $is_top_concept = $concept->is_top_concept;
+            $curr = $graph->resource($url);
+            $labels = DB::table('th_concept_label as lbl')
+                ->select('label', 'short_name', 'concept_label_type')
+                ->join('th_language as lang', 'lbl.language_id', '=', 'lang.id')
+                ->where('concept_id', '=', $concept_id)
+                ->get();
+            foreach($labels as $label) {
+                $lbl = $label->label;
+                $lang = $label->short_name;
+                $type = $label->concept_label_type;
+                if($type == 1) {
+                    $curr->set('skos:prefLabel', $lbl, $lang);
+                } else if($type == 2) {
+                    $curr->set('skos:altLabel', $lbl, $lang);
+                }
+            }
+            if(!$is_top_concept) {
+                $broaders = DB::table('th_broaders')
+                    ->select('broader_id')
+                    ->where('narrower_id', '=', $concept_id)
+                    ->get();
+                foreach($broaders as $broader) {
+                    $broader_url = DB::table('th_concept')
+                        ->where('id', '=', $broader->broader_id)
+                        ->value('concept_url');
+                    $curr->addResource('skos:narrower', $broader_url);
+                }
+            }
+            $narrowers = DB::table('th_broaders')
+                ->select('narrower_id')
+                ->where('broader_id', '=', $concept_id)
+                ->get();
+            foreach($narrowers as $narrower) {
+                $narrower_url = DB::table('th_concept')
+                    ->where('id', '=', $narrower->narrower_id)
+                    ->value('concept_url');
+                $curr->addResource('skos:narrower', $narrower_url);
+            }
+            $curr->addType('skos:Concept');
         }
+        if($format === 'local') {
+            $arc = new \EasyRdf_Serialiser_Arc();
+            $data = $arc->serialise($graph, 'rdfxml');
+        } else if($format === 'js') {
+            $data = $graph->serialise('json');
+        }
+        if (!is_scalar($data)) {
+            $data = var_export($data, true);
+        }
+
+        //dirty hack, because it is not possible to get the desired output with either correct namespace or correct element structure
+        $nsFound = preg_match('@xmlns:([^=]*)="http://www.w3.org/2004/02/skos/core#"@', $data, $matches);
+        if($nsFound === 1) {
+            $skosNs = $matches[1];
+            $data = str_replace($skosNs . ':', 'skos:', $data);
+            $data = str_replace('xmlns:' . $skosNs . '="http://www.w3.org/2004/02/skos/core#"', 'xmlns:skos="http://www.w3.org/2004/02/skos/core#"', $data);
+        }
+        return response($data);
     }
 
     public function getAnyLabel($thesaurus_url, $suffix = '') {
