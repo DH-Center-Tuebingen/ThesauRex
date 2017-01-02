@@ -469,25 +469,28 @@ class TreeController extends BaseController
                     'label' => $label
                 ]);
         } else {
-            $lblCount = DB::table($thLabel)
-                ->where([
-                    ['language_id', '=', $lang],
-                    ['concept_id', '=', $cid]
-                ])
-                ->count();
+            if($type == 1) {
+                $lblCount = DB::table($thLabel)
+                    ->where([
+                        ['language_id', '=', $lang],
+                        ['concept_id', '=', $cid]
+                    ])
+                    ->count();
 
-            if($lblCount > 0) { //existing prefLabel for desired language, abort
-                return response()->json([
-                    'error' => 'Duplicate entry for language ' . $lang
-                ]);
+                if($lblCount > 0) { //existing prefLabel for desired language, abort
+                    return response()->json([
+                        'error' => 'Duplicate entry for language ' . $lang
+                    ]);
+                }
             }
+
             $id = DB::table($thLabel)
                 ->insertGetId([
-                    'id' => $id,
                     'label' => $label,
                     'concept_id' => $cid,
                     'language_id' => $lang,
-                    'concept_label_type' => $type
+                    'concept_label_type' => $type,
+                    'lasteditor' => 'postgres'
                 ]);
         }
         return response()->json($id);

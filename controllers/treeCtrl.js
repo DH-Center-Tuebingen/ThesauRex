@@ -491,7 +491,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.storePrefLabelEdit = function(isExport) {
         var index = $scope.informations.prefLabels.editIndex;
         var label = $scope.informations.prefLabels[index];
-        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, label.id, isExport);
+        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, isExport, label.id);
         promise.then(function(id) {
             $scope.informations.prefLabels[index].label = $scope.informations.prefLabels.editText;
             delete $scope.informations.prefLabels.editIndex;
@@ -502,7 +502,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.storeAltLabelEdit = function(isExport) {
         var index = $scope.informations.altLabels.editIndex;
         var label = $scope.informations.altLabels[index];
-        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, label.id, isExport);
+        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, isExport, label.id);
         promise.then(function(id) {
             $scope.informations.altLabels[index].label = $scope.informations.altLabels.editText;
             delete $scope.informations.altLabels.editIndex;
@@ -520,11 +520,11 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         delete $scope.informations.altLabels.editText;
     };
 
-    var addPrefLabel = function(text, langId, id, isExport) {
+    var addPrefLabel = function(text, langId, isExport, id) {
         return addLabel(text, langId, 1, id, isExport);
     };
 
-    var addAltLabel = function(text, langId, id, isExport) {
+    var addAltLabel = function(text, langId, isExport, id) {
         return addLabel(text, langId, 2, id, isExport);
     };
 
