@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Easyrdf\Easyrdf\Lib\EasyRdf;
 use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
+use Illuminate\Support\Facades\Storage;
 
 class TreeController extends BaseController
 {
@@ -15,20 +16,49 @@ class TreeController extends BaseController
         return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
     }
 
-    public function exportDefault() {
-        return $this->export('local');
-    }
+    public function export(Request $request) {
+        if($request->has('format')) $format = $request->get('format');
+        else $format = 'rdf';
+        $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
 
-    public function export($format) {
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+
         $graph = new \EasyRdf_Graph();
-        $concepts = DB::table('th_concept')
-            ->get();
+
+        if($request->has('root')) {
+            $id = $request->get('root');
+            $concepts = DB::select("
+                WITH RECURSIVE
+                q(id, concept_url) AS
+                    (
+                        SELECT  conc.*
+                        FROM    $thConcept conc
+                        WHERE   conc.id = $id
+                        UNION ALL
+                        SELECT  conc2.*
+                        FROM    $thConcept conc2
+                        JOIN    $thBroader broad
+                        ON      conc2.id = broad.narrower_id
+                        JOIN    q
+                        ON      broad.broader_id = q.id
+                    )
+                SELECT  q.*
+                FROM    q
+                ORDER BY id ASC
+            ");
+        } else {
+            $concepts = DB::table($thConcept)
+                ->get();
+        }
         foreach($concepts as $concept) {
             $concept_id = $concept->id;
             $url = $concept->concept_url;
             $is_top_concept = $concept->is_top_concept;
             $curr = $graph->resource($url);
-            $labels = DB::table('th_concept_label as lbl')
+            $labels = DB::table($thLabel . ' as lbl')
                 ->select('label', 'short_name', 'concept_label_type')
                 ->join('th_language as lang', 'lbl.language_id', '=', 'lang.id')
                 ->where('concept_id', '=', $concept_id)
@@ -44,30 +74,30 @@ class TreeController extends BaseController
                 }
             }
             if(!$is_top_concept) {
-                $broaders = DB::table('th_broaders')
+                $broaders = DB::table($thBroader)
                     ->select('broader_id')
                     ->where('narrower_id', '=', $concept_id)
                     ->get();
                 foreach($broaders as $broader) {
-                    $broader_url = DB::table('th_concept')
+                    $broader_url = DB::table($thConcept)
                         ->where('id', '=', $broader->broader_id)
                         ->value('concept_url');
                     $curr->addResource('skos:broader', $broader_url);
                 }
             }
-            $narrowers = DB::table('th_broaders')
+            $narrowers = DB::table($thBroader)
                 ->select('narrower_id')
                 ->where('broader_id', '=', $concept_id)
                 ->get();
             foreach($narrowers as $narrower) {
-                $narrower_url = DB::table('th_concept')
+                $narrower_url = DB::table($thConcept)
                     ->where('id', '=', $narrower->narrower_id)
                     ->value('concept_url');
                 $curr->addResource('skos:narrower', $narrower_url);
             }
             $curr->addType('skos:Concept');
         }
-        if($format === 'local') {
+        if($format === 'rdf') {
             $arc = new \EasyRdf_Serialiser_Arc();
             $data = $arc->serialise($graph, 'rdfxml');
         } else if($format === 'js') {
@@ -84,7 +114,13 @@ class TreeController extends BaseController
             $data = str_replace($skosNs . ':', 'skos:', $data);
             $data = str_replace('xmlns:' . $skosNs . '="http://www.w3.org/2004/02/skos/core#"', 'xmlns:skos="http://www.w3.org/2004/02/skos/core#"', $data);
         }
-        return response($data);
+
+        $file = uniqid() . '.rdf';
+        Storage::put(
+            $file,
+            $data
+        );
+        return response()->download(storage_path() . '/app/' . $file)->deleteFileAfterSend(true);
     }
 
     public function getAnyLabel($thesaurus_url, $suffix = '') {
@@ -375,7 +411,6 @@ class TreeController extends BaseController
                     ['narrower_id', '=', $id]
                 ])
                 ->delete();
-            //TODO
             //if count narrower_id = $id == 0 => concept with $id is now top_concept
             $brCnt = DB::table($thBroader)
                 ->where('narrower_id', '=', $id)
