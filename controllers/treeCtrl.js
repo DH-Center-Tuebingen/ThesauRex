@@ -853,7 +853,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var promise = httpPostPromise.getData('api/export', formData);
         promise.then(function(data) {
             $scope.waitingForFile = false;
-            var filename = "thesaurus.rdf";
+            var filename = isExport + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });
     };
