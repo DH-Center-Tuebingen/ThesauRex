@@ -14,10 +14,9 @@
 $app->get('/', function () use ($app) {
     return $app->version();
 });
-$app->get('export', 'TreeController@exportDefault');
-$app->get('import', 'TreeController@import');
-$app->get('export/{format}', 'TreeController@export');
 $app->get('get/languages', 'TreeController@getLanguages');
+$app->post('import', 'TreeController@import');
+$app->post('export', 'TreeController@export');
 $app->post('get/relations', 'TreeController@getRelations');
 $app->post('remove/concept', 'TreeController@removeConcept');
 $app->post('delete/cascade', 'TreeController@deleteElementCascade');
