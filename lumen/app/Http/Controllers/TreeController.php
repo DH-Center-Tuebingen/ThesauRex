@@ -16,6 +16,103 @@ class TreeController extends BaseController
         return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
     }
 
+    public function import(Request $request) {
+        if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
+        $file = $request->file('file');
+
+        $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+
+        DB::table($thConcept)
+            ->delete();
+
+        $languages = [];
+        foreach(DB::table('th_language')->get() as $l) {
+            $languages[$l->short_name] = $l->id;
+        }
+
+        $graph = new \EasyRdf_Graph();
+        $graph->parseFile($file->getRealPath());
+        $resources = $graph->resources();
+        $relations = [];
+        foreach($resources as $url => $r) {
+            $isTopConcept = count($r->allResources('skos:topConceptOf')) > 0;
+            $scheme = '';
+            $lasteditor = 'postgres';
+            $cid = DB::table($thConcept)
+                ->insertGetId([
+                    'concept_url' => $url,
+                    'concept_scheme' => $scheme,
+                    'is_top_concept' => $isTopConcept,
+                    'lasteditor' => $lasteditor
+            ]);
+
+            $prefLabels = $r->allLiterals('skos:prefLabel');
+            foreach($prefLabels as $pL) {
+                $lid = $languages[$pL->getLang()];
+                $label = $pL->getValue();
+                DB::table($thLabel)
+                    ->insert([
+                        'lasteditor' => $lasteditor,
+                        'label' => $label,
+                        'concept_id' => $cid,
+                        'language_id' => $lid,
+                        'concept_label_type' => 1
+                ]);
+            }
+
+            $altLabels = $r->allLiterals('skos:altLabel');
+            foreach($altLabels as $aL) {
+                $lid = $languages[$aL->getLang()];
+                $label = $aL->getValue();
+                DB::table($thLabel)
+                    ->insert([
+                        'lasteditor' => $lasteditor,
+                        'label' => $label,
+                        'concept_id' => $cid,
+                        'language_id' => $lid,
+                        'concept_label_type' => 2
+                ]);
+            }
+
+            $broaders = $r->allResources('skos:broader');
+            foreach($broaders as $broader) {
+                $relations[] = [
+                    'broader' => $broader->getUri(),
+                    'narrower' => $url
+                ];
+            }
+
+            $narrowers = $r->allResources('skos:narrower');
+            foreach($narrowers as $narrower) {
+                $relations[] = [
+                    'broader' => $url,
+                    'narrower' => $narrower->getUri()
+                ];
+            }
+        }
+        $relations = array_unique($relations, SORT_REGULAR);
+        foreach($relations as $rel) {
+            $b = $rel['broader'];
+            $n = $rel['narrower'];
+            $bid = DB::table($thConcept)
+                ->where('concept_url', '=', $b)
+                ->value('id');
+            $nid = DB::table($thConcept)
+                ->where('concept_url', '=', $n)
+                ->value('id');
+            DB::table($thBroader)
+                ->insert([
+                    'broader_id' => $bid,
+                    'narrower_id' => $nid
+            ]);
+        }
+    }
+
     public function export(Request $request) {
         if($request->has('format')) $format = $request->get('format');
         else $format = 'rdf';
@@ -84,6 +181,8 @@ class TreeController extends BaseController
                         ->value('concept_url');
                     $curr->addResource('skos:broader', $broader_url);
                 }
+            } else {
+                $curr->addResource('skos:topConceptOf', "http://we.should.think.of/a/better/name/for/our/scheme");
             }
             $narrowers = DB::table($thBroader)
                 ->select('narrower_id')
@@ -307,10 +406,6 @@ class TreeController extends BaseController
             'broader' => $broader,
             'narrower' => $narrower
         ]);
-    }
-
-    public function import() {
-
     }
 
     public function deleteElementCascade(Request $request) {
