@@ -8,6 +8,7 @@
         "php": ">=5.6.4",
         "laravel/lumen-framework": "5.3.*",
         "vlucas/phpdotenv": "~2.2",
+        "league/flysystem": " ~1.0",
         "easyrdf/easyrdf": "*",
         "semsol/arc2": "dev-master"
     },
