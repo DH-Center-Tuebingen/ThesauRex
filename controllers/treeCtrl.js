@@ -421,7 +421,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(typeof narrower !== 'undefined' && narrower !== null) {
             angular.forEach(data.narrower, function(n, key) {
                 narrower.push({
-                    id: n.id_th_concept,
+                    id: n.id,
                     label: n.label,
                     url: n.concept_url
                 });
@@ -430,7 +430,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(typeof broader !== 'undefined' && broader !== null) {
             angular.forEach(data.broader, function(b, key) {
                 broader.push({
-                    id: b.id_th_concept,
+                    id: b.id,
                     label: b.label,
                     url: b.concept_url
                 });
