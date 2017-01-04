@@ -111,6 +111,7 @@ class TreeController extends BaseController
                     'narrower_id' => $nid
             ]);
         }
+        return response()->json('');
     }
 
     public function export(Request $request) {
