@@ -356,7 +356,7 @@ class TreeController extends BaseController
     public function addBroader(Request $request) {
         $id = $request->get('id');
         $broader = $request->get('broader_id');
-        $isExport = $request->get('isTmp');
+        $isExport = $request->get('isExport');
 
         $suffix = $isExport == 'clone' ? '_export' : '';
 
