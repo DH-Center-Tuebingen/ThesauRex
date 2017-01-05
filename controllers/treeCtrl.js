@@ -318,7 +318,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     var getChildrenFromArray = function(elem, isExport) {
         if (typeof $scope.roots[isExport][elem.id] === 'undefined') return [];
         var children = $scope.roots[isExport][elem.id].slice();
-        delete $scope.roots[isExport][elem.id];
         for(var i=0; i<children.length; i++) {
             children[i].children = getChildrenFromArray(children[i], isExport);
             children[i].hasChildren = children[i].children.length > 0;
