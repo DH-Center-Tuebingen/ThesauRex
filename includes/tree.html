@@ -15,7 +15,7 @@
                 </div>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="selectedSearchVal['master']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label for result in getSearchTree($viewValue, 'master')" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'master')" typeahead-loading="loadingResults['master']" typeahead-no-results="noResults['master']">
+                        <input type="text" class="form-control" ng-model="selectedSearchVal['master']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, 'master')" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'master')" typeahead-loading="loadingResults['master']" typeahead-no-results="noResults['master']">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
                     <i ng-show="loadingResults['master']" class="glyphicon glyphicon-refresh"></i>
