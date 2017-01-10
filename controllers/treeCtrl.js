@@ -279,11 +279,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         }
         menu.push(null);
         menu.push([
-            '<i class="fa fa-fw fa-cloud-upload light blue"></i> Import', function($itemScope, $event) {
-                console.log("import!");
-            }
-        ]);
-        menu.push([
             '<i class="fa fa-fw fa-cloud-download light orange"></i> Export', function($itemScope, $event) {
                 $scope.export(isExport, $itemScope.$modelValue.id);
             }
@@ -298,7 +293,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(file) {
             file.upload = Upload.upload({
                  url: 'api/import',
-                 data: { file: file }
+                 data: { file: file, isExport: isExport }
             });
             file.upload.then(function(response) {
                 $timeout(function() {
@@ -318,7 +313,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     var getChildrenFromArray = function(elem, isExport) {
         if (typeof $scope.roots[isExport][elem.id] === 'undefined') return [];
         var children = $scope.roots[isExport][elem.id].slice();
-        delete $scope.roots[isExport][elem.id];
         for(var i=0; i<children.length; i++) {
             children[i].children = getChildrenFromArray(children[i], isExport);
             children[i].hasChildren = children[i].children.length > 0;
@@ -452,11 +446,11 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var setAltLabels = typeof altLabels !== 'undefined' && altLabels !== null;
         angular.forEach(data, function(lbl, key) {
             var curr = {
-                id: lbl.id_th_concept_label,
+                id: lbl.id,
                 label: lbl.label,
                 langShort: lbl.short_name,
                 langName: lbl.display_name,
-                langId: lbl.id_th_language
+                langId: lbl.language_id
             };
             if(setPrefLabels && lbl.concept_label_type == 1) {
                 prefLabels.push(curr);
@@ -491,7 +485,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.storePrefLabelEdit = function(isExport) {
         var index = $scope.informations.prefLabels.editIndex;
         var label = $scope.informations.prefLabels[index];
-        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, label.id, isExport);
+        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, isExport, label.id);
         promise.then(function(id) {
             $scope.informations.prefLabels[index].label = $scope.informations.prefLabels.editText;
             delete $scope.informations.prefLabels.editIndex;
@@ -502,7 +496,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     $scope.storeAltLabelEdit = function(isExport) {
         var index = $scope.informations.altLabels.editIndex;
         var label = $scope.informations.altLabels[index];
-        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, label.id, isExport);
+        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, isExport, label.id);
         promise.then(function(id) {
             $scope.informations.altLabels[index].label = $scope.informations.altLabels.editText;
             delete $scope.informations.altLabels.editIndex;
@@ -520,23 +514,32 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         delete $scope.informations.altLabels.editText;
     };
 
-    var addPrefLabel = function(text, langId, id, isExport) {
+    var addPrefLabel = function(text, langId, isExport, id) {
         return addLabel(text, langId, 1, id, isExport);
     };
 
-    var addAltLabel = function(text, langId, id, isExport) {
+    var addAltLabel = function(text, langId, isExport, id) {
         return addLabel(text, langId, 2, id, isExport);
     };
 
-    var removePrefLabel = function(langId, id, isExport) {
-        return addLabel("", langId, 1, id, true, isExport);
+    var removePrefLabel = function(id, isExport) {
+        return removeLabel(id, isExport);
     };
 
-    var removeAltLabel = function(langId, id, isExport) {
-        return addLabel("", langId, 2, id, true, isExport);
+    var removeAltLabel = function(id, isExport) {
+        return removeLabel(id, isExport);
     };
 
-    var addLabel = function(text, langId, type, id, del, isExport) {
+    var removeLabel = function(id, isExport) {
+        isExport = getTreeType(isExport);
+        var formData = new FormData();
+        formData.append('isExport', isExport);
+        formData.append('id', id);
+        var promise = httpPostPromise.getData('api/remove/label', formData);
+        return promise;
+    };
+
+    var addLabel = function(text, langId, type, id, isExport) {
         var formData = new FormData();
         formData.append('label', text);
         formData.append('lang', langId);
@@ -544,7 +547,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         formData.append('concept_id', $scope.informations.id);
         formData.append('isExport', isExport);
         if(typeof id !== 'undefined') formData.append('id', id);
-        if(typeof del !== 'undefined') formData.append('delete', del);
         var promise = httpPostPromise.getData('api/add/label', formData);
         return promise;
     };
@@ -647,7 +649,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         } else if(type == 2) { //label
             if(subType == 1) { //pref
                 lbl = $scope.informations.prefLabels[index];
-                promise = removePrefLabel(lbl.langId, lbl.id, isExport);
+                promise = removePrefLabel(lbl.id, isExport);
                 promise.then(function() {
                     $scope.informations.prefLabels = [];
                     var nextPromise = getLabels($scope.informations.id, isExport);
@@ -657,7 +659,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 });
             } else if(subType == 2) { //alt
                 lbl = $scope.informations.altLabels[index];
-                promise = removeAltLabel(lbl.langId, lbl.id, isExport);
+                promise = removeAltLabel(lbl.id, isExport);
                 promise.then(function() {
                     $scope.informations.altLabels = [];
                     var nextPromise = getLabels($scope.informations.id, isExport);
@@ -854,7 +856,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var promise = httpPostPromise.getData('api/export', formData);
         promise.then(function(data) {
             $scope.waitingForFile = false;
-            var filename = "thesaurus.rdf";
+            var filename = isExport + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });
     };
