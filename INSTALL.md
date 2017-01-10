@@ -31,7 +31,7 @@ The following packages you should be able to install from your package manager:
     ```bash
     sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-intl php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
     ```
-    
+
 2. Clone This Repository
 
     ```bash
@@ -52,6 +52,12 @@ The following packages you should be able to install from your package manager:
 composer update
 ```
 
+In order to use the export functionality you have to link the `arc2` library to a subfolder of the `easyrdf` library. Both libraries should be downloaded using the `composer` command above. To link the libraries you have to (on Linux-based OS) run the following command.
+```bash
+cd vendor/easyrdf/easyrdf/lib/EasyRdf/Serialiser #make sure you're in the correct folder
+ln -s ../../../../../semsol/arc2/ arc
+```
+
 ### Proxy Setup
 To communicate with Lumen, ThesauRex requires the API folder to be in the ThesauRex folder. If you run ThesauRex under `yourdomain.tld/ThesauRex`, the Lumen API has to be `yourdomain.tld/ThesauRex/api`.
 
@@ -63,7 +69,7 @@ One solution is to setup a proxy on the same machine and re-route all requests f
     ```bash
     sudo a2enmod proxy proxy_http rewrite
     ```
-    
+
 2. Add a new entry to your hosts file, because your proxy needs a (imaginary) domain.
 
     ```bash
@@ -71,21 +77,21 @@ One solution is to setup a proxy on the same machine and re-route all requests f
     # Add an entry to "redirect" a domain to your local machine (localhost)
     127.0.0.1 thesaurex-lumen.tld # or anything you want
     ```
-    
+
 3. Add a new vHost file to your apache
 
     ```bash
     cd /etc/apache2/site-available
     sudo nano thesaurex-lumen.conf
     ```
-     
+
     Paste the following snippet into the file:
     ```apache
     <VirtualHost *:80>
       ServerName thesaurex-lumen.tld
       ServerAdmin webmaster@localhost
       DocumentRoot /var/www/html/ThesauRex/lumen/public
-    
+
       DirectoryIndex index.php
 
       <Directory "/var/www/html/ThesauRex/lumen/public">
@@ -94,14 +100,14 @@ One solution is to setup a proxy on the same machine and re-route all requests f
       </Directory>
     </VirtualHost>
     ```
-    
+
 4. Add the proxy route to your default vHost file (e.g. `/etc/apache2/sites-available/000-default.conf`)
 
     ```apache
     ProxyPass "/ThesauRex/api" "http://thesaurex-lumen.tld"
     ProxyPassReverse "/ThesauRex/api" "http://thesaurex-lumen.tld"
     ```
-    
+
 5. Enable the new vHost file and restart the webserver
 
     ```bash
@@ -110,8 +116,8 @@ One solution is to setup a proxy on the same machine and re-route all requests f
     ```
 
 ### Configure Lumen
-Lumen should now work, but to test it you need to create a `.env` file which stores the Lumen configuration. 
-Inside the `lumen`-subfolder in the ThesauRex installation, create the `.env` file: 
+Lumen should now work, but to test it you need to create a `.env` file which stores the Lumen configuration.
+Inside the `lumen`-subfolder in the ThesauRex installation, create the `.env` file:
 ```bash
 cd /var/www/html/ThesauRex/lumen
 sudo nano .env

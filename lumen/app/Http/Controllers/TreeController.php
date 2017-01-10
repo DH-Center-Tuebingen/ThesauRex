@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
+use Easyrdf\Easyrdf\Lib\EasyRdf;
+use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
+use Illuminate\Support\Facades\Storage;
 
 class TreeController extends BaseController
 {
@@ -13,16 +16,211 @@ class TreeController extends BaseController
         return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
     }
 
-    public function exportDefault() {
-        $this->export('local');
+    public function import(Request $request) {
+        if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
+        $file = $request->file('file');
+
+        $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+
+        DB::table($thConcept)
+            ->delete();
+
+        $languages = [];
+        foreach(DB::table('th_language')->get() as $l) {
+            $languages[$l->short_name] = $l->id;
+        }
+
+        $graph = new \EasyRdf_Graph();
+        $graph->parseFile($file->getRealPath());
+        $resources = $graph->resources();
+        $relations = [];
+        foreach($resources as $url => $r) {
+            $isTopConcept = count($r->allResources('skos:topConceptOf')) > 0;
+            $scheme = '';
+            $lasteditor = 'postgres';
+            $cid = DB::table($thConcept)
+                ->insertGetId([
+                    'concept_url' => $url,
+                    'concept_scheme' => $scheme,
+                    'is_top_concept' => $isTopConcept,
+                    'lasteditor' => $lasteditor
+            ]);
+
+            $prefLabels = $r->allLiterals('skos:prefLabel');
+            foreach($prefLabels as $pL) {
+                $lid = $languages[$pL->getLang()];
+                $label = $pL->getValue();
+                DB::table($thLabel)
+                    ->insert([
+                        'lasteditor' => $lasteditor,
+                        'label' => $label,
+                        'concept_id' => $cid,
+                        'language_id' => $lid,
+                        'concept_label_type' => 1
+                ]);
+            }
+
+            $altLabels = $r->allLiterals('skos:altLabel');
+            foreach($altLabels as $aL) {
+                $lid = $languages[$aL->getLang()];
+                $label = $aL->getValue();
+                DB::table($thLabel)
+                    ->insert([
+                        'lasteditor' => $lasteditor,
+                        'label' => $label,
+                        'concept_id' => $cid,
+                        'language_id' => $lid,
+                        'concept_label_type' => 2
+                ]);
+            }
+
+            $broaders = $r->allResources('skos:broader');
+            foreach($broaders as $broader) {
+                $relations[] = [
+                    'broader' => $broader->getUri(),
+                    'narrower' => $url
+                ];
+            }
+
+            $narrowers = $r->allResources('skos:narrower');
+            foreach($narrowers as $narrower) {
+                $relations[] = [
+                    'broader' => $url,
+                    'narrower' => $narrower->getUri()
+                ];
+            }
+        }
+        $relations = array_unique($relations, SORT_REGULAR);
+        foreach($relations as $rel) {
+            $b = $rel['broader'];
+            $n = $rel['narrower'];
+            $bid = DB::table($thConcept)
+                ->where('concept_url', '=', $b)
+                ->value('id');
+            $nid = DB::table($thConcept)
+                ->where('concept_url', '=', $n)
+                ->value('id');
+            DB::table($thBroader)
+                ->insert([
+                    'broader_id' => $bid,
+                    'narrower_id' => $nid
+            ]);
+        }
+        return response()->json('');
     }
 
-    public function export($format) {
-        if($format === 'local') {
+    public function export(Request $request) {
+        if($request->has('format')) $format = $request->get('format');
+        else $format = 'rdf';
+        $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
 
-        } else if($format === 'js') {
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
+        $graph = new \EasyRdf_Graph();
+
+        if($request->has('root')) {
+            $id = $request->get('root');
+            $concepts = DB::select("
+                WITH RECURSIVE
+                q(id, concept_url) AS
+                    (
+                        SELECT  conc.*
+                        FROM    $thConcept conc
+                        WHERE   conc.id = $id
+                        UNION ALL
+                        SELECT  conc2.*
+                        FROM    $thConcept conc2
+                        JOIN    $thBroader broad
+                        ON      conc2.id = broad.narrower_id
+                        JOIN    q
+                        ON      broad.broader_id = q.id
+                    )
+                SELECT  q.*
+                FROM    q
+                ORDER BY id ASC
+            ");
+        } else {
+            $concepts = DB::table($thConcept)
+                ->get();
         }
+        foreach($concepts as $concept) {
+            $concept_id = $concept->id;
+            $url = $concept->concept_url;
+            $is_top_concept = $concept->is_top_concept;
+            $curr = $graph->resource($url);
+            $labels = DB::table($thLabel . ' as lbl')
+                ->select('label', 'short_name', 'concept_label_type')
+                ->join('th_language as lang', 'lbl.language_id', '=', 'lang.id')
+                ->where('concept_id', '=', $concept_id)
+                ->get();
+            foreach($labels as $label) {
+                $lbl = $label->label;
+                $lang = $label->short_name;
+                $type = $label->concept_label_type;
+                if($type == 1) {
+                    $curr->addLiteral('skos:prefLabel', $lbl, $lang);
+                } else if($type == 2) {
+                    $curr->addLiteral('skos:altLabel', $lbl, $lang);
+                }
+            }
+            if(!$is_top_concept) {
+                $broaders = DB::table($thBroader)
+                    ->select('broader_id')
+                    ->where('narrower_id', '=', $concept_id)
+                    ->get();
+                foreach($broaders as $broader) {
+                    $broader_url = DB::table($thConcept)
+                        ->where('id', '=', $broader->broader_id)
+                        ->value('concept_url');
+                    $curr->addResource('skos:broader', $broader_url);
+                }
+            } else {
+                $curr->addResource('skos:topConceptOf', "http://we.should.think.of/a/better/name/for/our/scheme");
+            }
+            $narrowers = DB::table($thBroader)
+                ->select('narrower_id')
+                ->where('broader_id', '=', $concept_id)
+                ->get();
+            foreach($narrowers as $narrower) {
+                $narrower_url = DB::table($thConcept)
+                    ->where('id', '=', $narrower->narrower_id)
+                    ->value('concept_url');
+                $curr->addResource('skos:narrower', $narrower_url);
+            }
+            $curr->addType('skos:Concept');
+        }
+        if($format === 'rdf') {
+            $arc = new \EasyRdf_Serialiser_Arc();
+            $data = $arc->serialise($graph, 'rdfxml');
+        } else if($format === 'js') {
+            $data = $graph->serialise('json');
+        }
+        if (!is_scalar($data)) {
+            $data = var_export($data, true);
+        }
+
+        //dirty hack, because it is not possible to get the desired output with either correct namespace or correct element structure
+        $nsFound = preg_match('@xmlns:([^=]*)="http://www.w3.org/2004/02/skos/core#"@', $data, $matches);
+        if($nsFound === 1) {
+            $skosNs = $matches[1];
+            $data = str_replace($skosNs . ':', 'skos:', $data);
+            $data = str_replace('xmlns:' . $skosNs . '="http://www.w3.org/2004/02/skos/core#"', 'xmlns:skos="http://www.w3.org/2004/02/skos/core#"', $data);
+        }
+
+        $file = uniqid() . '.rdf';
+        Storage::put(
+            $file,
+            $data
+        );
+        return response()->download(storage_path() . '/app/' . $file)->deleteFileAfterSend(true);
     }
 
     public function getAnyLabel($thesaurus_url, $suffix = '') {
@@ -211,10 +409,6 @@ class TreeController extends BaseController
         ]);
     }
 
-    public function import() {
-
-    }
-
     public function deleteElementCascade(Request $request) {
         $id = $request->get('id');
         $isExport = $request->get('isExport');
@@ -313,7 +507,6 @@ class TreeController extends BaseController
                     ['narrower_id', '=', $id]
                 ])
                 ->delete();
-            //TODO
             //if count narrower_id = $id == 0 => concept with $id is now top_concept
             $brCnt = DB::table($thBroader)
                 ->where('narrower_id', '=', $id)

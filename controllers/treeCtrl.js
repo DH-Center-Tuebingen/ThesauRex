@@ -279,11 +279,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         }
         menu.push(null);
         menu.push([
-            '<i class="fa fa-fw fa-cloud-upload light blue"></i> Import', function($itemScope, $event) {
-                console.log("import!");
-            }
-        ]);
-        menu.push([
             '<i class="fa fa-fw fa-cloud-download light orange"></i> Export', function($itemScope, $event) {
                 $scope.export(isExport, $itemScope.$modelValue.id);
             }
@@ -298,7 +293,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(file) {
             file.upload = Upload.upload({
                  url: 'api/import',
-                 data: { file: file }
+                 data: { file: file, isExport: isExport }
             });
             file.upload.then(function(response) {
                 $timeout(function() {
@@ -861,7 +856,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var promise = httpPostPromise.getData('api/export', formData);
         promise.then(function(data) {
             $scope.waitingForFile = false;
-            var filename = "thesaurus.rdf";
+            var filename = isExport + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });
     };
