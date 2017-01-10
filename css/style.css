@@ -32,7 +32,7 @@
     padding-bottom: 5px;
 }
 
-.control-elements, .relation-header {
+#information-header {
     overflow: auto;
 }
 
