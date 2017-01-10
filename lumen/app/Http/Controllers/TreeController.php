@@ -352,7 +352,7 @@ class TreeController extends BaseController
                 )
             SELECT  q.*
             FROM    q
-            ORDER BY concept_url ASC
+            ORDER BY label ASC
         ");
 
         $concepts = array();
@@ -408,7 +408,11 @@ class TreeController extends BaseController
         $narrower = DB::table($thConcept . ' as c')
             ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
             ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
-            ->where('broad.broader_id', '=', $id)
+            ->where([
+                [ 'broad.broader_id', '=', $id ],
+                [ 'lang', '=', $lang ]
+            ])
+            ->orderBy('label', 'asc')
             ->get();
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
