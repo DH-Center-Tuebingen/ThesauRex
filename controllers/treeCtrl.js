@@ -772,10 +772,11 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return false;
     };
 
-    var expandElement = function(id, isExport) {
+    var expandElement = function(id, broader_id, isExport) {
         isExport = getTreeType(isExport);
         var formData = new FormData();
         formData.append('id', id);
+        formData.append('broader_id', broader_id);
         formData.append('tree', isExport);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
             var self = parents[parents.length-1].narrower_id;
@@ -831,7 +832,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.expandElement = function($item, $model, $label, $event, isExport) {
-        expandElement($item.id, isExport);
+        expandElement($item.id, $item.broader_id, isExport);
     };
 
     $scope.getSearchTree = function(searchString, isExport) {

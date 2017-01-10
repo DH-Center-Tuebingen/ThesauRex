@@ -16,6 +16,14 @@ class TreeController extends BaseController
         return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
     }
 
+    public function sortLabels($a, $b) {
+        $pos = strcasecmp($a['label'], $b['label']);
+        if($pos == 0) {
+            $pos = strcasecmp($a['broader_label'], $b['broader_label']);
+        }
+        return $pos;
+    }
+
     public function import(Request $request) {
         if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
         $file = $request->file('file');
@@ -245,6 +253,22 @@ class TreeController extends BaseController
             ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
             ->where([
                 ['con.concept_url', '=', $thesaurus_url],
+                ['lang.short_name', '=', $lang]
+            ])
+            ->orderBy('lbl.concept_label_type', 'asc')
+            ->first();
+        return $label;
+    }
+
+    public function getLabelById($id, $suffix = '', $lang = 'de') {
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+        $label = DB::table($thLabel .' as lbl')
+            ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
+            ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
+            ->where([
+                ['con.id', '=', $id],
                 ['lang.short_name', '=', $lang]
             ])
             ->orderBy('lbl.concept_label_type', 'asc')
@@ -875,30 +899,41 @@ class TreeController extends BaseController
         $suffix = $which == 'clone' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         $matchedConcepts = DB::table($thLabel . ' as l')
-            ->select('c.concept_url', 'c.id')
+            ->select('c.concept_url', 'c.id', 'b.broader_id')
             ->join($thConcept . ' as c', 'c.id', '=', 'l.concept_id')
             ->join('th_language as lng', 'l.language_id', '=', 'lng.id')
+            ->join($thBroader . ' as b', 'b.narrower_id', '=', 'c.id')
             ->where([
                 ['label', 'ilike', '%' . $val . '%'],
                 ['lng.short_name', '=', $lang]
             ])
-            ->groupBy('c.id')
+            ->groupBy('c.id', 'b.broader_id')
+            ->orderBy('c.id')
             ->get();
         $labels = [];
         foreach($matchedConcepts as $concept) {
             $labels[] = [
-                'label' => $this->getLabel($concept->concept_url)->label,
-                'id' => $concept->id
+                'label' => $this->getLabel($concept->concept_url, $suffix, $lang)->label,
+                'id' => $concept->id,
+                'broader_label' => $this->getLabelById($concept->broader_id, $suffix, $lang)->label,
+                'broader_id' => $concept->broader_id
             ];
         }
+        usort($labels, [$this, 'sortLabels']);
         return response()->json($labels);
     }
 
     public function getAllParents(Request $request) {
         if(!$request->has('id')) return response()->json();
         $id = $request->get('id');
+        $where = "WHERE narrower_id = $id";
+        if($request->has('broader_id')) {
+            $bId = $request->get('broader_id');
+            $where .= " AND broader_id = $bId";
+        }
         if($request->has('tree')) $which = $request->get('tree');
         else $which = 'master';
 
@@ -911,7 +946,7 @@ class TreeController extends BaseController
                 (
                     SELECT b1.*, 0
                     FROM $thBroader b1
-                    WHERE narrower_id = $id
+                    $where
                     UNION ALL
                     SELECT b2.*, lvl + 1
                     FROM $thBroader b2
