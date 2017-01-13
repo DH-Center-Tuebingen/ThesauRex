@@ -139,6 +139,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 $scope.rdfTree[isExport].push(newElem);
                 $scope.completeTree[isExport].push(newElem);
             }
+            expandElement(newElem.id, newElem.broader_id, isExport);
         });
     };
 
@@ -780,13 +781,19 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         isExport = getTreeType(isExport);
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('broader_id', broader_id);
+        if(typeof broader_id != 'undefined') formData.append('broader_id', broader_id);
         formData.append('tree', isExport);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
-            var self = parents[parents.length-1].narrower_id;
-            parents.push({
-                broader_id: self
-            });
+            if(typeof parents == 'undefined' || parents.length === 0) {
+                parents = [{
+                    broader_id: id
+                }];
+            } else {
+                var self = parents[parents.length-1].narrower_id;
+                parents.push({
+                    broader_id: self
+                });
+            }
             $scope.$broadcast('angular-ui-tree:collapse-all');
             var t = angular.element(document.getElementById(isExport + '-tree')).scope();
             t.$element[0].scrollTop = 0;
