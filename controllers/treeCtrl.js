@@ -639,9 +639,22 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             } else if(subType == 2) { //narrower
                 concept = $scope.informations.narrowerConcepts[index];
                 promise = removeNarrowerConcept(currentId, concept.id, isExport);
+                var removedItem = null;
                 promise.then(function(id) {
-                    console.log(id);
-                    $scope.informations.narrowerConcepts.splice(index, 1);
+                    console.log(id); $scope.informations.narrowerConcepts.splice(index, 1);
+                    removedItem =
+                    $scope.currentEntry.children.splice(index, 1)[0];
+                    $scope.currentEntry.hasChildren = $scope.currentEntry.children.length > 0;
+                    //check if the removed item has no remaining broader concept. If so, move it to the top
+                    //var relationPromise = getRelations(removedItem.id, isExport);
+                    return getRelations(removedItem.id, isExport);
+
+                }).then(function(data) {
+                    if(data.broader.length === 0) {
+                        removedItem.is_top_concept = true;
+                        removedItem.reclevel = 0;
+                        $scope.rdfTree[isExport].push(removedItem);
+                    }
                 });
             }
         } else if(type == 2) { //label
