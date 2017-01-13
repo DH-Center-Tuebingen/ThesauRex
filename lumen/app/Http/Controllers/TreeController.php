@@ -526,6 +526,7 @@ class TreeController extends BaseController
         $tmpBroaders = [];
         $newElemId = -1;
         foreach($rows as $row) {
+            $conceptAlreadyExists = false;
             $tmpRow = $row;
             $id = $row->id;
             $broaderId = $row->broader_id;
@@ -534,14 +535,34 @@ class TreeController extends BaseController
             if($tmpRow->created_at == '') unset($tmpRow->created_at);
             if($tmpRow->updated_at == '') unset($tmpRow->updated_at);
             if($id == $elemId) $tmpRow->is_top_concept = $isTopConcept;
-            $newId = DB::table($thConcept)
-                ->insertGetId(get_object_vars($tmpRow));
+            $cnt = DB::table($thConcept)
+                ->where('concept_url', '=', $tmpRow->concept_url)
+                ->count();
+            if($cnt > 0) {
+                $conceptAlreadyExists = true;
+                $newId = DB::table($thConcept)
+                    ->where('concept_url', '=', $tmpRow->concept_url)
+                    ->value('id');
+            } else {
+                $newId = DB::table($thConcept)
+                    ->insertGetId(get_object_vars($tmpRow));
+            }
             $labels = DB::table($thLabelSrc)
                 ->where('concept_id', '=', $id)
                 ->get();
             foreach($labels as $l) {
                 unset($l->id);
                 $l->concept_id = $newId;
+                $cnt = DB::table($thLabel)
+                    ->where([
+                        ['concept_id', '=', $l->concept_id],
+                        ['label', '=', $l->label]
+                    ])
+                    ->count();
+                //if this label already exists either as pref or alt label, we ignore it
+                if($cnt > 0) continue;
+                //if the concept already exists, set label type of copied label to alt label (2)
+                if($conceptAlreadyExists) $l->concept_label_type = 2;
                 DB::table($thLabel)
                     ->insert(get_object_vars($l));
             }
