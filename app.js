@@ -12,7 +12,6 @@ spacialistApp.directive('spinner', function() {
 
 spacialistApp.directive('resizeWatcher', function($window) {
     return function($scope) {
-        var headerPadding = 20;
         var bottomPadding = 20;
         var listPadding = 40;
 
@@ -20,7 +19,8 @@ spacialistApp.directive('resizeWatcher', function($window) {
             var height = $window.innerHeight;
             var width = $window.innerWidth;
             var isSm = window.matchMedia("(max-width: 991px)").matches;
-            var controlHeight = $('.control-elements')[0].offsetHeight;
+            var controlElement = $('.control-elements')[0];
+            var controlHeight = controlElement.offsetHeight + controlElement.offsetTop;
             if(isSm) {
                 $('#master-tree').css('height', '');
                 $('#clone-tree').css('height', '');
@@ -29,28 +29,34 @@ spacialistApp.directive('resizeWatcher', function($window) {
                 $('#preferred-list').css('height', '');
                 $('#alternative-list').css('height', '');
             } else {
-                var headerHeight = document.getElementById('header-nav').offsetHeight;
+                var headerHeight = document.getElementById('main-container').offsetTop;
                 var informationHeight = document.getElementById('information-header').offsetHeight;
                 var informationAlertHeight = document.getElementById('information-alert').offsetHeight;
                 informationHeight += informationAlertHeight;
-                var broaderHeight = document.getElementById('broader-header').offsetHeight;
-                var narrowerHeight = document.getElementById('narrower-header').offsetHeight;
-                var preferredHeight = document.getElementById('preferred-header').offsetHeight;
-                var alternativeHeight = document.getElementById('alternative-header').offsetHeight;
+                //use broader-header height as subHeaderHeight, since all *-header should have the same height
+                var subHeader = document.getElementById('broader-header');
+                var subHeaderHeight = subHeader.offsetHeight + subHeader.offsetTop;
 
-                var containerHeight = height - controlHeight - headerHeight - headerPadding - bottomPadding;
-                var leftHeight = height - headerHeight - headerPadding - bottomPadding - informationHeight - listPadding;
-                var listHeight = (leftHeight - broaderHeight - narrowerHeight) / 2;
-                var labelHeight = (leftHeight - preferredHeight - alternativeHeight) / 2;
+                var containerHeight = height - controlHeight - headerHeight - bottomPadding;
+                var rightHeight = height - headerHeight - (bottomPadding - (listPadding/4)) - informationHeight - listPadding;
+                var labelHeight = (rightHeight - (2 * subHeaderHeight)) / 2;
 
                 $('#master-tree').css('height', containerHeight);
                 $('#clone-tree').css('height', containerHeight);
-                $('#broader-list').css('height', listHeight);
-                $('#narrower-list').css('height', listHeight);
+                $('#broader-list').css('height', labelHeight);
+                $('#narrower-list').css('height', labelHeight);
                 $('#preferred-list').css('height', labelHeight);
                 $('#alternative-list').css('height', labelHeight);
             }
         };
+
+        //recalculate window size if information-alert gets toggled (and thus toggle information container as well)
+        var alertElement = "#information-alert";
+        $scope.$watch(function() {
+            return angular.element(alertElement).is(':visible');
+        }, function() {
+            $scope.getWindowSize();
+        });
 
         return angular.element($window).bind('resize', function() {
             $scope.getWindowSize();

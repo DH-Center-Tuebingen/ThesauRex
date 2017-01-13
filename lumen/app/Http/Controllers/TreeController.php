@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
+use Easyrdf\Easyrdf\Lib\EasyRdf;
+use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
+use Illuminate\Support\Facades\Storage;
 
 class TreeController extends BaseController
 {
@@ -13,16 +16,219 @@ class TreeController extends BaseController
         return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
     }
 
-    public function exportDefault() {
-        $this->export('local');
+    public function sortLabels($a, $b) {
+        $pos = strcasecmp($a['label'], $b['label']);
+        if($pos == 0) {
+            $pos = strcasecmp($a['broader_label'], $b['broader_label']);
+        }
+        return $pos;
     }
 
-    public function export($format) {
-        if($format === 'local') {
+    public function import(Request $request) {
+        if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
+        $file = $request->file('file');
 
-        } else if($format === 'js') {
+        $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
 
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+
+        DB::table($thConcept)
+            ->delete();
+
+        $languages = [];
+        foreach(DB::table('th_language')->get() as $l) {
+            $languages[$l->short_name] = $l->id;
         }
+
+        $graph = new \EasyRdf_Graph();
+        $graph->parseFile($file->getRealPath());
+        $resources = $graph->resources();
+        $relations = [];
+        foreach($resources as $url => $r) {
+            $isTopConcept = count($r->allResources('skos:topConceptOf')) > 0;
+            $scheme = '';
+            $lasteditor = 'postgres';
+            $cid = DB::table($thConcept)
+                ->insertGetId([
+                    'concept_url' => $url,
+                    'concept_scheme' => $scheme,
+                    'is_top_concept' => $isTopConcept,
+                    'lasteditor' => $lasteditor
+            ]);
+
+            $prefLabels = $r->allLiterals('skos:prefLabel');
+            foreach($prefLabels as $pL) {
+                $lid = $languages[$pL->getLang()];
+                $label = $pL->getValue();
+                DB::table($thLabel)
+                    ->insert([
+                        'lasteditor' => $lasteditor,
+                        'label' => $label,
+                        'concept_id' => $cid,
+                        'language_id' => $lid,
+                        'concept_label_type' => 1
+                ]);
+            }
+
+            $altLabels = $r->allLiterals('skos:altLabel');
+            foreach($altLabels as $aL) {
+                $lid = $languages[$aL->getLang()];
+                $label = $aL->getValue();
+                DB::table($thLabel)
+                    ->insert([
+                        'lasteditor' => $lasteditor,
+                        'label' => $label,
+                        'concept_id' => $cid,
+                        'language_id' => $lid,
+                        'concept_label_type' => 2
+                ]);
+            }
+
+            $broaders = $r->allResources('skos:broader');
+            foreach($broaders as $broader) {
+                $relations[] = [
+                    'broader' => $broader->getUri(),
+                    'narrower' => $url
+                ];
+            }
+
+            $narrowers = $r->allResources('skos:narrower');
+            foreach($narrowers as $narrower) {
+                $relations[] = [
+                    'broader' => $url,
+                    'narrower' => $narrower->getUri()
+                ];
+            }
+        }
+        $relations = array_unique($relations, SORT_REGULAR);
+        foreach($relations as $rel) {
+            $b = $rel['broader'];
+            $n = $rel['narrower'];
+            $bid = DB::table($thConcept)
+                ->where('concept_url', '=', $b)
+                ->value('id');
+            $nid = DB::table($thConcept)
+                ->where('concept_url', '=', $n)
+                ->value('id');
+            DB::table($thBroader)
+                ->insert([
+                    'broader_id' => $bid,
+                    'narrower_id' => $nid
+            ]);
+        }
+        return response()->json('');
+    }
+
+    public function export(Request $request) {
+        if($request->has('format')) $format = $request->get('format');
+        else $format = 'rdf';
+        $isExport = $request->get('isExport');
+        $suffix = $isExport == 'clone' ? '_export' : '';
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+
+        $graph = new \EasyRdf_Graph();
+
+        if($request->has('root')) {
+            $id = $request->get('root');
+            $concepts = DB::select("
+                WITH RECURSIVE
+                q(id, concept_url) AS
+                    (
+                        SELECT  conc.*
+                        FROM    $thConcept conc
+                        WHERE   conc.id = $id
+                        UNION ALL
+                        SELECT  conc2.*
+                        FROM    $thConcept conc2
+                        JOIN    $thBroader broad
+                        ON      conc2.id = broad.narrower_id
+                        JOIN    q
+                        ON      broad.broader_id = q.id
+                    )
+                SELECT  q.*
+                FROM    q
+                ORDER BY id ASC
+            ");
+        } else {
+            $concepts = DB::table($thConcept)
+                ->get();
+        }
+        foreach($concepts as $concept) {
+            $concept_id = $concept->id;
+            $url = $concept->concept_url;
+            $is_top_concept = $concept->is_top_concept;
+            $curr = $graph->resource($url);
+            $labels = DB::table($thLabel . ' as lbl')
+                ->select('label', 'short_name', 'concept_label_type')
+                ->join('th_language as lang', 'lbl.language_id', '=', 'lang.id')
+                ->where('concept_id', '=', $concept_id)
+                ->get();
+            foreach($labels as $label) {
+                $lbl = $label->label;
+                $lang = $label->short_name;
+                $type = $label->concept_label_type;
+                if($type == 1) {
+                    $curr->addLiteral('skos:prefLabel', $lbl, $lang);
+                } else if($type == 2) {
+                    $curr->addLiteral('skos:altLabel', $lbl, $lang);
+                }
+            }
+            if(!$is_top_concept) {
+                $broaders = DB::table($thBroader)
+                    ->select('broader_id')
+                    ->where('narrower_id', '=', $concept_id)
+                    ->get();
+                foreach($broaders as $broader) {
+                    $broader_url = DB::table($thConcept)
+                        ->where('id', '=', $broader->broader_id)
+                        ->value('concept_url');
+                    $curr->addResource('skos:broader', $broader_url);
+                }
+            } else {
+                $curr->addResource('skos:topConceptOf', "http://we.should.think.of/a/better/name/for/our/scheme");
+            }
+            $narrowers = DB::table($thBroader)
+                ->select('narrower_id')
+                ->where('broader_id', '=', $concept_id)
+                ->get();
+            foreach($narrowers as $narrower) {
+                $narrower_url = DB::table($thConcept)
+                    ->where('id', '=', $narrower->narrower_id)
+                    ->value('concept_url');
+                $curr->addResource('skos:narrower', $narrower_url);
+            }
+            $curr->addType('skos:Concept');
+        }
+        if($format === 'rdf') {
+            $arc = new \EasyRdf_Serialiser_Arc();
+            $data = $arc->serialise($graph, 'rdfxml');
+        } else if($format === 'js') {
+            $data = $graph->serialise('json');
+        }
+        if (!is_scalar($data)) {
+            $data = var_export($data, true);
+        }
+
+        //dirty hack, because it is not possible to get the desired output with either correct namespace or correct element structure
+        $nsFound = preg_match('@xmlns:([^=]*)="http://www.w3.org/2004/02/skos/core#"@', $data, $matches);
+        if($nsFound === 1) {
+            $skosNs = $matches[1];
+            $data = str_replace($skosNs . ':', 'skos:', $data);
+            $data = str_replace('xmlns:' . $skosNs . '="http://www.w3.org/2004/02/skos/core#"', 'xmlns:skos="http://www.w3.org/2004/02/skos/core#"', $data);
+        }
+
+        $file = uniqid() . '.rdf';
+        Storage::put(
+            $file,
+            $data
+        );
+        return response()->download(storage_path() . '/app/' . $file)->deleteFileAfterSend(true);
     }
 
     public function getAnyLabel($thesaurus_url, $suffix = '') {
@@ -54,6 +260,22 @@ class TreeController extends BaseController
         return $label;
     }
 
+    public function getLabelById($id, $suffix = '', $lang = 'de') {
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+        $label = DB::table($thLabel .' as lbl')
+            ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
+            ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
+            ->where([
+                ['con.id', '=', $id],
+                ['lang.short_name', '=', $lang]
+            ])
+            ->orderBy('lbl.concept_label_type', 'asc')
+            ->first();
+        return $label;
+    }
+
     public function getLabels(Request $request) {
         $id = $request->get('id');
         $isExport = $request->get('isExport');
@@ -64,7 +286,7 @@ class TreeController extends BaseController
         $thBroader = 'th_broaders' . $suffix;
 
         $labels = DB::table($thLabel .' as lbl')
-            ->select('lbl.id', 'label', 'concept_id', 'language_id', 'concept_label_type', 'lang.display_name', 'lang.short_name', 'lang.id')
+            ->select('lbl.id', 'label', 'concept_id', 'language_id', 'concept_label_type', 'lang.display_name', 'lang.short_name')
             ->join('th_language as lang', 'lang.id', '=', 'language_id')
             ->where('concept_id', '=', $id)
             ->get();
@@ -130,7 +352,7 @@ class TreeController extends BaseController
                 )
             SELECT  q.*
             FROM    q
-            ORDER BY concept_url ASC
+            ORDER BY label ASC
         ");
 
         $concepts = array();
@@ -186,8 +408,11 @@ class TreeController extends BaseController
         $narrower = DB::table($thConcept . ' as c')
             ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
             ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
-            ->where('broad.broader_id', '=', $id)
-            ->where('lang', '=', $lang)
+            ->where([
+                [ 'broad.broader_id', '=', $id ],
+                [ 'lang', '=', $lang ]
+            ])
+            ->orderBy('label', 'asc')
             ->get();
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
@@ -211,10 +436,6 @@ class TreeController extends BaseController
             'broader' => $broader,
             'narrower' => $narrower
         ]);
-    }
-
-    public function import() {
-
     }
 
     public function deleteElementCascade(Request $request) {
@@ -315,7 +536,6 @@ class TreeController extends BaseController
                     ['narrower_id', '=', $id]
                 ])
                 ->delete();
-            //TODO
             //if count narrower_id = $id == 0 => concept with $id is now top_concept
             $brCnt = DB::table($thBroader)
                 ->where('narrower_id', '=', $id)
@@ -358,7 +578,7 @@ class TreeController extends BaseController
     public function addBroader(Request $request) {
         $id = $request->get('id');
         $broader = $request->get('broader_id');
-        $isExport = $request->get('isTmp');
+        $isExport = $request->get('isExport');
 
         $suffix = $isExport == 'clone' ? '_export' : '';
 
@@ -433,12 +653,30 @@ class TreeController extends BaseController
         ]);
     }
 
+    public function removeLabel(Request $request) {
+        $id = $request->get('id');
+        $isExport = $request->get('isExport');
+
+        $suffix = $isExport === 'clone' ? '_export' : '';
+        $thLabel = 'th_concept_label' . $suffix;
+
+        DB::table($thLabel)
+            ->where([
+                ['id', '=', $id]
+            ])
+            ->delete();
+    }
+
     public function addLabel(Request $request) {
         $label = $request->get('label');
         $lang = $request->get('lang');
         $type = $request->get('type');
         $cid = $request->get('concept_id');
-        $del = $request->get('delete');
+        $isExport = $request->get('isExport');
+
+        $suffix = $isExport === 'clone' ? '_export' : '';
+        $thLabel = 'th_concept_label' . $suffix;
+
         if($request->has('id')) {
             $id = $request->get('id');
             $cond = array(
@@ -447,37 +685,34 @@ class TreeController extends BaseController
                 ['language_id', '=', $lang],
                 ['concept_label_type', '=', $type]
             );
-            if($request->has('del') && $del) {
-                DB::table('th_concept_label')
-                    ->where($cond)
-                    ->delete();
-            } else {
-                DB::table('th_concept_label')
-                    ->where($cond)
-                    ->update([
-                        'label' => $label
-                    ]);
-            }
-        } else {
-            $lblCount = DB::table('th_concept_label')
-                ->where([
-                    ['language_id', '=', $lang],
-                    ['concept_id', '=', $cid]
-                ])
-                ->count();
-
-            if($lblCount > 0) { //existing prefLabel for desired language, abort
-                return response()->json([
-                    'error' => 'Duplicate entry for language ' . $lang
+            DB::table($thLabel)
+                ->where($cond)
+                ->update([
+                    'label' => $label
                 ]);
+        } else {
+            if($type == 1) {
+                $lblCount = DB::table($thLabel)
+                    ->where([
+                        ['language_id', '=', $lang],
+                        ['concept_id', '=', $cid]
+                    ])
+                    ->count();
+
+                if($lblCount > 0) { //existing prefLabel for desired language, abort
+                    return response()->json([
+                        'error' => 'Duplicate entry for language ' . $lang
+                    ]);
+                }
             }
-            $id = DB::table('th_concept_label')
+
+            $id = DB::table($thLabel)
                 ->insertGetId([
-                    'id' => $id,
                     'label' => $label,
                     'concept_id' => $cid,
                     'language_id' => $lang,
-                    'concept_label_type' => $type
+                    'concept_label_type' => $type,
+                    'lasteditor' => 'postgres'
                 ]);
         }
         return response()->json($id);
@@ -488,7 +723,7 @@ class TreeController extends BaseController
         $elemId = $request->get('id');
         $newBroader = $request->get('new_broader');
         $src = $request->get('src'); // 'master' or 'clone'
-        $isTopConcept = $request->get('is_top_concept');
+        $isTopConcept = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
@@ -526,7 +761,9 @@ class TreeController extends BaseController
         ORDER BY concept_url ASC
         ");
         $tmpBroaders = [];
+        $newElemId = -1;
         foreach($rows as $row) {
+            $conceptAlreadyExists = false;
             $tmpRow = $row;
             $id = $row->id;
             $broaderId = $row->broader_id;
@@ -534,30 +771,55 @@ class TreeController extends BaseController
             unset($tmpRow->id);
             if($tmpRow->created_at == '') unset($tmpRow->created_at);
             if($tmpRow->updated_at == '') unset($tmpRow->updated_at);
-            $newId = DB::table($thConcept)
-                ->insertGetId(get_object_vars($tmpRow));
+            if($id == $elemId) $tmpRow->is_top_concept = $isTopConcept;
+            $cnt = DB::table($thConcept)
+                ->where('concept_url', '=', $tmpRow->concept_url)
+                ->count();
+            if($cnt > 0) {
+                $conceptAlreadyExists = true;
+                $newId = DB::table($thConcept)
+                    ->where('concept_url', '=', $tmpRow->concept_url)
+                    ->value('id');
+            } else {
+                $newId = DB::table($thConcept)
+                    ->insertGetId(get_object_vars($tmpRow));
+            }
             $labels = DB::table($thLabelSrc)
                 ->where('concept_id', '=', $id)
                 ->get();
             foreach($labels as $l) {
                 unset($l->id);
                 $l->concept_id = $newId;
+                $cnt = DB::table($thLabel)
+                    ->where([
+                        ['concept_id', '=', $l->concept_id],
+                        ['label', '=', $l->label]
+                    ])
+                    ->count();
+                //if this label already exists either as pref or alt label, we ignore it
+                if($cnt > 0) continue;
+                //if the concept already exists, set label type of copied label to alt label (2)
+                if($conceptAlreadyExists) $l->concept_label_type = 2;
                 DB::table($thLabel)
                     ->insert(get_object_vars($l));
             }
-            if($id == $elemId) continue;
-            $broader = DB::table($thBroaderSrc . ' as b')
-                ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
-                ->where('narrower_id', '=', $id)
-                ->value('c.concept_url');
-            if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
-            $tmpBroaders[$newId][] = $broader;
+            if($id == $elemId) {
+                $newElemId = $newId;
+            } else {
+                $broader = DB::table($thBroaderSrc . ' as b')
+                    ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
+                    ->where('narrower_id', '=', $id)
+                    ->value('c.concept_url');
+                if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
+                $tmpBroaders[$newId][] = $broader;
+            }
         }
         foreach($tmpBroaders as $k => $v) {
             foreach($v as $b) {
                 $bId = DB::table($thConcept)
                     ->where('concept_url', '=', $b)
                     ->value('id');
+                if($bId === null) continue;
                 DB::table($thBroader)
                     ->insert([
                         'broader_id' => $bId,
@@ -565,11 +827,11 @@ class TreeController extends BaseController
                     ]);
             }
         }
-        if($thBroader != null) {
+        if($newBroader != -1 && $newElemId != -1) {
             DB::table($thBroader)
                 ->insert([
                     'broader_id' => $newBroader,
-                    'narrower_id' => $newId
+                    'narrower_id' => $newElemId
                 ]);
         }
         return response()->json($rows);
@@ -582,7 +844,6 @@ class TreeController extends BaseController
         $lang = $request->get('lang');
         $isExport = $request->get('isExport');
 
-
         if($isExport === 'clone') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
@@ -594,14 +855,22 @@ class TreeController extends BaseController
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        DB::table($thBroader)
-            ->where([
-                ['narrower_id', '=', $narrow],
-                ['broader_id', '=', $oldBroader]
-            ])
-            ->update([
-                'broader_id' => $broader
-            ]);
+        if($broader == -1) {
+            DB::table($thBroader)
+                ->where([
+                    [ 'narrower_id', '=', $narrow ],
+                    [ 'broader_id', '=', $oldBroader ]
+                ])
+                ->delete();
+        } else {
+            DB::table($thBroader)
+                ->updateOrInsert([
+                    'narrower_id' => $narrow,
+                    'broader_id' => $oldBroader
+                ],[
+                    'broader_id' => $broader
+                ]);
+        }
 
         $isTopConcept = $broader == -1;
         DB::table($thConcept)
@@ -610,7 +879,7 @@ class TreeController extends BaseController
                 'is_top_concept' => $isTopConcept
             ]);
 
-        $rows = DB::select("
+        /*$rows = DB::select("
             WITH RECURSIVE
                 q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
                 (
@@ -656,6 +925,10 @@ class TreeController extends BaseController
         return response()->json([
             'concepts' => $concepts,
             'conceptNames' => $conceptNames
+        ]);*/
+        return response()->json([
+            'concepts' => [],
+            'conceptNames' => []
         ]);
     }
 
@@ -670,30 +943,41 @@ class TreeController extends BaseController
         $suffix = $which == 'clone' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
 
         $matchedConcepts = DB::table($thLabel . ' as l')
-            ->select('c.concept_url', 'c.id')
+            ->select('c.concept_url', 'c.id', 'b.broader_id')
             ->join($thConcept . ' as c', 'c.id', '=', 'l.concept_id')
             ->join('th_language as lng', 'l.language_id', '=', 'lng.id')
+            ->join($thBroader . ' as b', 'b.narrower_id', '=', 'c.id')
             ->where([
                 ['label', 'ilike', '%' . $val . '%'],
                 ['lng.short_name', '=', $lang]
             ])
-            ->groupBy('c.id')
+            ->groupBy('c.id', 'b.broader_id')
+            ->orderBy('c.id')
             ->get();
         $labels = [];
         foreach($matchedConcepts as $concept) {
             $labels[] = [
-                'label' => $this->getLabel($concept->concept_url)->label,
-                'id' => $concept->id
+                'label' => $this->getLabel($concept->concept_url, $suffix, $lang)->label,
+                'id' => $concept->id,
+                'broader_label' => $this->getLabelById($concept->broader_id, $suffix, $lang)->label,
+                'broader_id' => $concept->broader_id
             ];
         }
+        usort($labels, [$this, 'sortLabels']);
         return response()->json($labels);
     }
 
     public function getAllParents(Request $request) {
         if(!$request->has('id')) return response()->json();
         $id = $request->get('id');
+        $where = "WHERE narrower_id = $id";
+        if($request->has('broader_id')) {
+            $bId = $request->get('broader_id');
+            $where .= " AND broader_id = $bId";
+        }
         if($request->has('tree')) $which = $request->get('tree');
         else $which = 'master';
 
@@ -706,7 +990,7 @@ class TreeController extends BaseController
                 (
                     SELECT b1.*, 0
                     FROM $thBroader b1
-                    WHERE narrower_id = $id
+                    $where
                     UNION ALL
                     SELECT b2.*, lvl + 1
                     FROM $thBroader b2
