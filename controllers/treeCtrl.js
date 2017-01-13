@@ -641,9 +641,16 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 promise = removeNarrowerConcept(currentId, concept.id, isExport);
                 var removedItem = null;
                 promise.then(function(id) {
-                    console.log(id); $scope.informations.narrowerConcepts.splice(index, 1);
-                    removedItem =
-                    $scope.currentEntry.children.splice(index, 1)[0];
+                    console.log(id);
+                    var remId = $scope.informations.narrowerConcepts.splice(index, 1)[0].id;
+                    var children = $scope.currentEntry.children;
+                    for(var i=0; i<children.length; i++) {
+                        var curr = children[i];
+                        if(curr.id == remId) {
+                            removedItem = $scope.currentEntry.children.splice(i, 1)[0];
+                            break;
+                        }
+                    }
                     $scope.currentEntry.hasChildren = $scope.currentEntry.children.length > 0;
                     //check if the removed item has no remaining broader concept. If so, move it to the top
                     //var relationPromise = getRelations(removedItem.id, isExport);
