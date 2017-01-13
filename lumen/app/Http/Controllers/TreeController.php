@@ -187,6 +187,7 @@ class TreeController extends BaseController
             ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
             ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
             ->where('broad.broader_id', '=', $id)
+            ->where('lang', '=', $lang)
             ->get();
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
@@ -200,6 +201,7 @@ class TreeController extends BaseController
             $br = DB::table($thConcept . ' as c')
                 ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
                 ->where('c.id', '=', $bid->broader_id)
+                ->where('lang', '=', $lang)
                 ->get();
             foreach($br as &$b) {
                 $broader[] = $b;
