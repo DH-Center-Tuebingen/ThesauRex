@@ -133,7 +133,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             };
             if(id > 0) {
                 newElem.broader_id = id;
-                if(!concept.hasChildren) concept.hasChildren = true;
                 publishNewChildrenToAllOccurrences(newElem.broader_id, newElem, isExport);
             } else {
                 $scope.rdfTree[isExport].push(newElem);
@@ -685,10 +684,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         var promise = updateConcept($scope.currentEntry.id, b.id, isExport);
         promise.then(function() {
             $scope.informations.broaderConcepts = [];
-            var nextPromise = getRelations($scope.currentEntry.id, isExport);
-            nextPromise.then(function(data) {
-                setRelations(data, $scope.informations.broaderConcepts, null);
-            });
+            return getRelations($scope.currentEntry.id, isExport);
+        }).then(function(data) {
+            publishNewChildrenToAllOccurrences(b.id, $scope.currentEntry, isExport);
+            setRelations(data, $scope.informations.broaderConcepts, null);
         });
     };
 
@@ -851,13 +850,20 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var t = angular.element(document.getElementById(isExport + '-tree')).scope();
             var nodesScope = t.$nodesScope;
             var children = nodesScope.childNodes();
-            angular.forEach(parents, function(parent, key) {
-                var self = parent[parent.length-1].narrower_id;
-                parent.push({
-                    broader_id: self
+            if(parents.length > 0) {
+                angular.forEach(parents, function(parent, key) {
+                    var self = parent[parent.length-1].narrower_id;
+                    parent.push({
+                        broader_id: self
+                    });
+                    recursiveChildrenPublisher(parent, children, newChildren);
                 });
+            } else { //element with id `id` has no parents (= is_top_concept)
+                var parent = [{
+                    broader_id: id
+                }];
                 recursiveChildrenPublisher(parent, children, newChildren);
-            });
+            }
         });
     };
 
@@ -871,7 +877,13 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var currChild = children[i];
             if(currChild.$modelValue.id == currParent.broader_id) {
                 if(lvl+1 == parents.length) {
-                    currChild.$modelValue.children.push(newChildren);
+                    newChildren.reclevel = lvl + 1;
+                    newChildren.broader_id = currChild.$modelValue.id;
+                    if(typeof currChild.$parent.parent.children == 'undefined') {
+                        currChild.$parent.parent.children = [];
+                    }
+                    currChild.$parent.parent.children.push(newChildren);
+                    currChild.$parent.parent.hasChildren = true;
                 } else {
                     $timeout(function() {
                         //we have to expand the element if it is collapsed to get access to the childnodes
