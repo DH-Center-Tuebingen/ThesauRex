@@ -371,6 +371,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.displayInformation = function(current) {
+        console.log(current);
         console.log(current.id);
         var url = current.concept_url;
         var id = current.id;
@@ -872,16 +873,15 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             var currChild = children[i];
             if(currChild.$modelValue.id == currParent.broader_id) {
                 if(lvl+1 == parents.length) {
-                    console.log(newChildren);
-                    console.log(currChild);
                     currChild.$modelValue.children.push(newChildren);
                 } else {
-                    //currChild.expand();
-                    // calling expand() on currChild should be enough, but currChild.childNodes() then returns an array with undefined values.
-                    //Thus we use this "simple" DOM-based method to simulate a click on the element and toggle it.
-                    //This only works because we broadcast the collapse-all event beforehand.
                     $timeout(function() {
+                        //we have to expand the element if it is collapsed to get access to the childnodes
+                        var wasCollapsed = currChild.collapsed;
+                        if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
                         recursiveChildrenPublisherHelper(parents, currChild.childNodes(), lvl+1, newChildren);
+                        //collapse it afterwards if we expanded it
+                        if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
                     }, 0, false);
                 }
                 break;
