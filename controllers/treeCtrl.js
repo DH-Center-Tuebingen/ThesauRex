@@ -133,8 +133,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             };
             if(id > 0) {
                 newElem.broader_id = id;
-                concept.children.push(newElem);
                 if(!concept.hasChildren) concept.hasChildren = true;
+                getRelations(newElem.broader_id, isExport).then(function(data) {
+                    publishNewChildrenToAllOccurrences(newElem.broader_id, newElem, isExport);
+                });
             } else {
                 $scope.rdfTree[isExport].push(newElem);
                 $scope.completeTree[isExport].push(newElem);
@@ -783,6 +785,8 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         formData.append('broader_id', broader_id);
         formData.append('tree', isExport);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
+            if(parents.length > 1) return;
+            parents = parents[0];
             var self = parents[parents.length-1].narrower_id;
             parents.push({
                 broader_id: self
@@ -837,6 +841,52 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
 
     $scope.expandElement = function($item, $model, $label, $event, isExport) {
         expandElement($item.id, $item.broader_id, isExport);
+    };
+
+    var publishNewChildrenToAllOccurrences = function(id, newChildren, isExport) {
+        isExport = getTreeType(isExport);
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('tree', isExport);
+        httpPostFactory('api/get/parents/all', formData, function(parents) {
+            var t = angular.element(document.getElementById(isExport + '-tree')).scope();
+            var nodesScope = t.$nodesScope;
+            var children = nodesScope.childNodes();
+            angular.forEach(parents, function(parent, key) {
+                var self = parent[parent.length-1].narrower_id;
+                parent.push({
+                    broader_id: self
+                });
+                recursiveChildrenPublisher(parent, children, newChildren);
+            });
+        });
+    };
+
+    var recursiveChildrenPublisher = function(parents, children, newChildren) {
+        recursiveChildrenPublisherHelper(parents, children, 0, newChildren);
+    };
+
+    var recursiveChildrenPublisherHelper = function(parents, children, lvl, newChildren) {
+        for(var i=0; i<children.length; i++) {
+            var currParent = parents[lvl];
+            var currChild = children[i];
+            if(currChild.$modelValue.id == currParent.broader_id) {
+                if(lvl+1 == parents.length) {
+                    console.log(newChildren);
+                    console.log(currChild);
+                    currChild.$modelValue.children.push(newChildren);
+                } else {
+                    //currChild.expand();
+                    // calling expand() on currChild should be enough, but currChild.childNodes() then returns an array with undefined values.
+                    //Thus we use this "simple" DOM-based method to simulate a click on the element and toggle it.
+                    //This only works because we broadcast the collapse-all event beforehand.
+                    $timeout(function() {
+                        recursiveChildrenPublisherHelper(parents, currChild.childNodes(), lvl+1, newChildren);
+                    }, 0, false);
+                }
+                break;
+            }
+        }
     };
 
     $scope.getSearchTree = function(searchString, isExport) {
