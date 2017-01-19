@@ -259,22 +259,6 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                             }
                             $itemScope.remove();
                         });
-                    }],
-                    ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
-                        var t = angular.element(document.getElementById(isExport + '-tree')).scope();
-                        var nodesScope = t.$nodesScope;
-                        var formData = new FormData();
-                        formData.append('id', $itemScope.$modelValue.id);
-                        formData.append('isExport', isExport);
-                        httpPostFactory('api/delete/totop', formData, function(result) {
-                            var currChildren = $itemScope.$modelValue.children;
-                            for(var i=0; i<currChildren.length; i++) {
-                                currChildren[i].is_top_concept = true;
-                                currChildren[i].reclevel = 0;
-                                nodesScope.$modelValue.push(currChildren[i]);
-                            }
-                            $itemScope.remove();
-                        });
                     }]
                 ],
                 function($itemScope) {
@@ -682,6 +666,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.addBroaderConcept = function(b, isExport) {
+        console.log(b);
         isExport = getTreeType(isExport);
         var promise = updateConcept($scope.currentEntry.id, b.id, isExport);
         promise.then(function() {
