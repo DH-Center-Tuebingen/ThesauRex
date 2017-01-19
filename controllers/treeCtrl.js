@@ -291,11 +291,21 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return menu;
     };
 
+    $scope.disableUi = function(msg) {
+        $scope.loadingUi = true;
+        $scope.blockingMessage = msg;
+    };
+
+    $scope.enableUi = function() {
+        $scope.loadingUi = false;
+    };
+
     $scope.uploadFile = function(file, errFiles, type, isExport) {
         isExport = getTreeType(isExport);
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
         if(file) {
+            $scope.disableUi('Uploading file. Please wait.');
             file.upload = Upload.upload({
                  url: 'api/import',
                  data: { file: file, isExport: isExport, type: type }
@@ -304,6 +314,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 $timeout(function() {
                     file.result = response.data;
                     $scope.getTree(isExport);
+                    $scope.enableUi();
                 });
             }, function(reponse) {
                 if(response.status > 0) {
@@ -877,16 +888,16 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.export = function(isExport, id) {
-        $scope.waitingForFile = true;
-        var formData = new FormData();
         isExport = getTreeType(isExport);
+        $scope.disableUi('Creating ' + isExport + '_thesaurus.rdf. Please wait.');
+        var formData = new FormData();
         formData.append('isExport', isExport);
         if(typeof id !== 'undefined' && id > 0) {
             formData.append('root', id);
         }
         var promise = httpPostPromise.getData('api/export', formData);
         promise.then(function(data) {
-            $scope.waitingForFile = false;
+            $scope.enableUi();
             var filename = isExport + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });

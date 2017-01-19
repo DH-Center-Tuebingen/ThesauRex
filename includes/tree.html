@@ -16,16 +16,8 @@
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'update')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Also update existing concepts</a></li>
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
                     </ul>
-                    {{ f.name }}
-                    <span class="progress" ng-show="f.progress >= 0">
-                        <div style="width: {{ f.progress }}%" ng-bind="f.progress + '%'">
-                        </div>
-                    </span>
                 </div>
                 <button type="button" class="btn btn-default" ng-click="export()">Export (.rdf)</button>
-                <div ng-show="waitingForFile">
-                    <spinner />
-                </div>
                 <div class="search-container">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal['master']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, 'master')" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'master')" typeahead-loading="loadingResults['master']" typeahead-no-results="noResults['master']">
@@ -74,16 +66,8 @@
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'update', 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Also update existing concepts</a></li>
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new', 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
                     </ul>
-                    {{ f.name }}
-                    <span class="progress" ng-show="f.progress >= 0">
-                        <div style="width: {{ f.progress }}%" ng-bind="f.progress + '%'">
-                        </div>
-                    </span>
                 </div>
                 <button type="button" class="btn btn-default" ng-click="export('clone')">Export (.rdf)</button>
-                <div ng-show="waitingForFile">
-                    <spinner />
-                </div>
                 <div class="search-container">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal['clone']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, 'clone')" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'clone')" typeahead-loading="loadingResults['clone']" typeahead-no-results="noResults['clone']">
@@ -281,5 +265,11 @@
                 </li>
             </ul>
         </div>
+    </div>
+    <div id="loadingUi" ng-if="loadingUi">
+        <h2>{{ blockingMessage }}</h2>
+        <spinner />
+    </div>
+    <div id="loadingUiBackdrop" ng-if="loadingUi">
     </div>
 </div>
