@@ -222,9 +222,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     formData.append('id', $itemScope.$modelValue.id);
                     formData.append('isExport', isExport);
                     httpPostFactory('api/delete/cascade', formData, function(result) {
-                        $itemScope.remove();
+                        publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+                        /*$itemScope.remove();
                         var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
-                        parent.hasChildren = parent.children.length > 0;
+                        parent.hasChildren = parent.children.length > 0;*/
                     });
                 },
                 function($itemScope) {
@@ -240,9 +241,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                         formData.append('id', $itemScope.$modelValue.id);
                         formData.append('isExport', isExport);
                         httpPostFactory('api/delete/cascade', formData, function(result) {
-                            $itemScope.remove();
+                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+                            /*$itemScope.remove();
                             var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
-                            parent.hasChildren = parent.children.length > 0;
+                            parent.hasChildren = parent.children.length > 0;*/
                         });
                     }],
                     ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
@@ -841,8 +843,9 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         expandElement($item.id, $item.broader_id, isExport);
     };
 
-    var publishNewChildrenToAllOccurrences = function(id, newChildren, isExport) {
+    var publishNewChildrenToAllOccurrences = function(id, newChildren, isExport, isDelete) {
         isExport = getTreeType(isExport);
+        isDelete = isDelete || false;
         var formData = new FormData();
         formData.append('id', id);
         formData.append('tree', isExport);
@@ -856,40 +859,52 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     parent.push({
                         broader_id: self
                     });
-                    recursiveChildrenPublisher(parent, children, newChildren);
+                    recursiveChildrenPublisher(parent, children, newChildren, isDelete);
                 });
             } else { //element with id `id` has no parents (= is_top_concept)
                 var parent = [{
                     broader_id: id
                 }];
-                recursiveChildrenPublisher(parent, children, newChildren);
+                recursiveChildrenPublisher(parent, children, newChildren, isDelete);
             }
         });
     };
 
-    var recursiveChildrenPublisher = function(parents, children, newChildren) {
-        recursiveChildrenPublisherHelper(parents, children, 0, newChildren);
+    var recursiveChildrenPublisher = function(parents, children, newChildren, isDelete) {
+        recursiveChildrenPublisherHelper(parents, children, 0, newChildren, isDelete);
     };
 
-    var recursiveChildrenPublisherHelper = function(parents, children, lvl, newChildren) {
+    var recursiveChildrenPublisherHelper = function(parents, children, lvl, newChildren, isDelete) {
         for(var i=0; i<children.length; i++) {
             var currParent = parents[lvl];
             var currChild = children[i];
             if(currChild.$modelValue.id == currParent.broader_id) {
                 if(lvl+1 == parents.length) {
-                    newChildren.reclevel = lvl + 1;
-                    newChildren.broader_id = currChild.$modelValue.id;
-                    if(typeof currChild.$parent.parent.children == 'undefined') {
-                        currChild.$parent.parent.children = [];
+                    if(isDelete) {
+                        var siblings = currChild.$parent.parent.children;
+                        for(var j=0; j<siblings.length; j++) {
+                            var sibling = siblings[j];
+                            if(sibling.id == newChildren.id) {
+                                currChild.$parent.parent.children.splice(j, 1);
+                                currChild.$parent.parent.hasChildren = currChild.$parent.parent.children.length > 0;
+                                break;
+                            }
+                        }
+                    } else {
+                        newChildren.reclevel = lvl + 1;
+                        newChildren.broader_id = currChild.$modelValue.id;
+                        if(typeof currChild.$parent.parent.children == 'undefined') {
+                            currChild.$parent.parent.children = [];
+                        }
+                        currChild.$parent.parent.children.push(newChildren);
+                        currChild.$parent.parent.hasChildren = true;
                     }
-                    currChild.$parent.parent.children.push(newChildren);
-                    currChild.$parent.parent.hasChildren = true;
                 } else {
                     $timeout(function() {
                         //we have to expand the element if it is collapsed to get access to the childnodes
                         var wasCollapsed = currChild.collapsed;
                         if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
-                        recursiveChildrenPublisherHelper(parents, currChild.childNodes(), lvl+1, newChildren);
+                        recursiveChildrenPublisherHelper(parents, currChild.childNodes(), lvl+1, newChildren, isDelete);
                         //collapse it afterwards if we expanded it
                         if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
                     }, 0, false);
