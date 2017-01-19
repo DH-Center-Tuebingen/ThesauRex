@@ -1,4 +1,4 @@
-spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, Upload, $timeout, $uibModal) {
+spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', 'modalFactory', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, modalFactory, Upload, $timeout, $uibModal) {
     var getLanguages = function() {
         httpGetFactory('api/get/languages', function(callback) {
             for(var i=0; i<callback.length; i++) {
@@ -237,19 +237,19 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
                 [
                     ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
-                        var formData = new FormData();
-                        formData.append('id', $itemScope.$modelValue.id);
-                        formData.append('isExport', isExport);
-                        httpPostFactory('api/delete/cascade', formData, function(result) {
-                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
-                            /*$itemScope.remove();
-                            var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
-                            parent.hasChildren = parent.children.length > 0;*/
-                        });
+                        modalFactory.deleteModal($itemScope.$modelValue.label, function() {
+                            var formData = new FormData();
+                            formData.append('id', $itemScope.$modelValue.id);
+                            formData.append('isExport', isExport);
+                            httpPostFactory('api/delete/cascade', formData, function(result) {
+	                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+                            });
+                        }, 'If you delete this element, all of its descendants will be deleted, too!');
                     }],
                     ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
                         var formData = new FormData();
                         formData.append('id', $itemScope.$modelValue.id);
+                        formData.append('broader_id', $itemScope.$modelValue.broader_id);
                         formData.append('isExport', isExport);
                         httpPostFactory('api/delete/oneup', formData, function(result) {
                             var currChildren = $itemScope.$modelValue.children;
