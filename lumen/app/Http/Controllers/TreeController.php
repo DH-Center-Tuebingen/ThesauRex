@@ -454,20 +454,21 @@ class TreeController extends BaseController
 
     public function deleteElementOneUp(Request $request) {
         $id = $request->get('id');
+        $broader_id = $request->get('broader_id');
         $isExport = $request->get('isExport');
 
         $suffix = $isExport == 'clone' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        $broader = DB::table($thBroader)
+        $cnt = DB::table($thBroader)
             ->where('narrower_id', '=', $id)
-            ->value('broader_id');
+            ->count();
 
-        if($broader == null) {
-            $narrowers = DB::table($thBroader)
-                ->where('broader_id', '=', $id)
-                ->get();
+        $narrowers = DB::table($thBroader)
+            ->where('broader_id', '=', $id)
+            ->get();
+        if(!$request->has('broader_id')) {
             foreach($narrowers as $n) {
                 DB::table($thConcept)
                     ->where('id', '=', $n->narrower_id)
@@ -475,46 +476,27 @@ class TreeController extends BaseController
                         'is_top_concept' => true
                     ]);
             }
+            //if this concept does not exist as narrower, we can delete it (since it only exists once; as top concept)
+            if($cnt == 0) {
+                DB::table($thConcept)
+                    ->where('id', '=', $id)
+                    ->delete();
+            }
         } else {
-            DB::table($thBroader)
-                ->where('broader_id', '=', $id)
-                ->update([
-                    'broader_id' => $broader
-                ]);
+            foreach($narrowers as $n) {
+                DB::table($thBroader)
+                    ->insert([
+                        'broader_id' => $broader_id,
+                        'narrower_id' => $n->narrower_id
+                    ]);
+            }
+            //if this concept exists exactly once, we can delete it
+            if($cnt == 1) {
+                DB::table($thConcept)
+                    ->where('id', '=', $id)
+                    ->delete();
+            }
         }
-
-        DB::table($thConcept)
-            ->where('id', '=', $id)
-            ->delete();
-    }
-
-    public function deleteElementToTop(Request $request) {
-        $id = $request->get('id');
-        $isExport = $request->get('isExport');
-
-        $suffix = $isExport == 'clone' ? '_export' : '';
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-
-        $narrowers = DB::table($thBroader)
-            ->where('broader_id', '=', $id)
-            ->get();
-        foreach($narrowers as $n) {
-            DB::table($thConcept)
-                ->where('id', '=', $n->narrower_id)
-                ->update([
-                    'is_top_concept' => true
-                ]);
-        }
-        $narrowers = DB::table($thBroader)
-            ->where('broader_id', '=', $id)
-            ->delete();
-
-        DB::table($thConcept)
-            ->where('id', '=', $id)
-            ->delete();
     }
 
     public function removeConcept(Request $request) {
@@ -1008,10 +990,13 @@ class TreeController extends BaseController
                     )
                 SELECT q.*
                 FROM q
-                ORDER BY lvl DESC
+                ORDER BY lvl ASC
             ");
         }
 
-        return response()->json($parents);
+        return response()->json([
+            'p' => $parents,
+            'b' => $broaders
+        ]);
     }
 }
