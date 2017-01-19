@@ -10,6 +10,30 @@ spacialistApp.directive('spinner', function() {
     };
 });
 
+spacialistApp.service('modalFactory', ['$uibModal', function($uibModal) {
+    this.deleteModal = function(elementName, onConfirm, additionalWarning) {
+        if(typeof additionalWarning != 'undefined' && additionalWarning !== '') {
+            var warning = additionalWarning;
+        }
+        var modalInstance = $uibModal.open({
+            templateUrl: 'templates/delete-confirm.html',
+            controller: function($uibModalInstance) {
+                this.name = elementName;
+                this.warning = warning;
+                this.cancel = function(result) {
+                    $uibModalInstance.dismiss('cancel');
+                };
+                this.deleteConfirmed = function() {
+                    onConfirm();
+                    $uibModalInstance.dismiss('ok');
+                };
+            },
+            controllerAs: 'mc'
+        });
+        modalInstance.result.then(function(selectedItem) {}, function() {});
+    };
+}]);
+
 spacialistApp.directive('resizeWatcher', function($window) {
     return function($scope) {
         var bottomPadding = 20;
