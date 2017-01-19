@@ -291,14 +291,14 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return menu;
     };
 
-    $scope.uploadFile = function(file, errFiles, isExport) {
+    $scope.uploadFile = function(file, errFiles, type, isExport) {
         isExport = getTreeType(isExport);
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
         if(file) {
             file.upload = Upload.upload({
                  url: 'api/import',
-                 data: { file: file, isExport: isExport }
+                 data: { file: file, isExport: isExport, type: type }
             });
             file.upload.then(function(response) {
                 $timeout(function() {
