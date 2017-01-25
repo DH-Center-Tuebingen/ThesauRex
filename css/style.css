@@ -287,6 +287,38 @@ li .angular-ui-tree-placeholder {
     cursor: not-allowed;
 }
 
+#loadingUi {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    left: 25%;
+    top: 35%;
+    z-index: 99999;
+    color: #eee;
+    background-color: transparant;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#loadingUi spinner {
+    position: absolute;
+}
+
+#loadingUiBackdrop {
+    height: 100vh;
+    width: 100%;
+    z-index: 99998;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #000;
+    opacity: 0.5;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
 /* font awesome styles */
 .fa-light {
     color: rgba(0, 0, 0, 0.6);
