@@ -990,13 +990,10 @@ class TreeController extends BaseController
                     )
                 SELECT q.*
                 FROM q
-                ORDER BY lvl ASC
+                ORDER BY lvl DESC
             ");
         }
 
-        return response()->json([
-            'p' => $parents,
-            'b' => $broaders
-        ]);
+        return response()->json($parents);
     }
 }
