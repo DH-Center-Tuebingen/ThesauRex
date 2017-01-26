@@ -143,7 +143,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
 
     var addPromisedConcept = function(name, concept, lang, isExport) {
         isExport = getTreeType(isExport);
-        $scope.addConcept(name, concept, lang.id, isExport);
+        $scope.addConcept(name, concept, lang, isExport);
         return $timeout(function(){}, 50);
     };
 
@@ -680,18 +680,46 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
 
     $scope.addNarrowerConcept = function(n, isExport) {
         isExport = getTreeType(isExport);
+        var oldNarrowers;
         var promise;
-        if(n.isNew) {
-            promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, isExport);
-        } else {
-            promise = updateConcept(n.id, $scope.currentEntry.id, isExport);
-        }
-        promise.then(function() {
+        promise = getRelations($scope.currentEntry.id, isExport);
+        promise.then(function(data) {
+            if(n.isNew) {
+                oldNarrowers = data.narrower;
+                promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, isExport);
+            } else {
+                promise = updateConcept(n.id, $scope.currentEntry.id, isExport);
+            }
+            return promise;
+        }).then(function() {
             $scope.informations.narrowerConcepts = [];
-            var nextPromise = getRelations($scope.currentEntry.id, isExport);
-            nextPromise.then(function(data) {
-                setRelations(data, null, $scope.informations.narrowerConcepts);
-            });
+            return getRelations($scope.currentEntry.id, isExport);
+        }).then(function(data) {
+            var inserted;
+            if(n.isNew) {
+                var narrowers = data.narrower;
+                for(var i=0; i<narrowers.length; i++) {
+                    var curr = narrowers[i];
+                    var found = false;
+                    for(var j=0; j<oldNarrowers.length; j++) {
+                        var old = oldNarrowers[j];
+                        if(old.id == curr.id) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(!found) {
+                        inserted = curr;
+                        break;
+                    }
+
+                    if(inserted) break;
+                }
+            } else {
+                inserted = n;
+            }
+            publishNewChildrenToAllOccurrences($scope.currentEntry.id, inserted, isExport, false);
+            setRelations(data, null, $scope.informations.narrowerConcepts);
         });
     };
 
