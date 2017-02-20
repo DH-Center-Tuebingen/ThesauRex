@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 
 class TreeController extends BaseController
 {
+    private $importTypes = ['extend', 'update', 'new'];
+
     //
     private function removeIllegalChars($input) {
         return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
@@ -27,6 +29,13 @@ class TreeController extends BaseController
     public function import(Request $request) {
         if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
         $file = $request->file('file');
+        $type = $request->get('type');
+
+        if(!in_array($type, $this->importTypes)) {
+            return response()->json([
+                'error' => 'Please provide an import type. \'type\' has to be one of \'' . implode('\', \'', $this->importTypes) . '\''
+            ]);
+        }
 
         $isExport = $request->get('isExport');
         $suffix = $isExport == 'clone' ? '_export' : '';
@@ -35,8 +44,10 @@ class TreeController extends BaseController
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        DB::table($thConcept)
-            ->delete();
+        if($type == 'new') {
+            DB::table($thConcept)
+                ->delete();
+        }
 
         $languages = [];
         foreach(DB::table('th_language')->get() as $l) {
@@ -48,43 +59,106 @@ class TreeController extends BaseController
         $resources = $graph->resources();
         $relations = [];
         foreach($resources as $url => $r) {
+            $conceptExists = DB::table($thConcept)
+                ->where('concept_url', '=', $url)
+                ->count() === 1;
+            //if type = extend we only want to add new concepts (count = 0)
+            if($type == 'extend' && $conceptExists) continue;
+
             $isTopConcept = count($r->allResources('skos:topConceptOf')) > 0;
             $scheme = '';
             $lasteditor = 'postgres';
-            $cid = DB::table($thConcept)
-                ->insertGetId([
-                    'concept_url' => $url,
-                    'concept_scheme' => $scheme,
-                    'is_top_concept' => $isTopConcept,
-                    'lasteditor' => $lasteditor
-            ]);
+
+            $needsUpdate = $type == 'update' && $conceptExists;
+            if($needsUpdate) {
+                $cid = DB::table($thConcept)
+                    ->where('concept_url', '=', $url)
+                    ->value('id');
+            } else {
+                $cid = DB::table($thConcept)
+                    ->insertGetId([
+                        'concept_url' => $url,
+                        'concept_scheme' => $scheme,
+                        'is_top_concept' => $isTopConcept,
+                        'lasteditor' => $lasteditor
+                ]);
+            }
 
             $prefLabels = $r->allLiterals('skos:prefLabel');
             foreach($prefLabels as $pL) {
                 $lid = $languages[$pL->getLang()];
                 $label = $pL->getValue();
-                DB::table($thLabel)
-                    ->insert([
-                        'lasteditor' => $lasteditor,
-                        'label' => $label,
-                        'concept_id' => $cid,
-                        'language_id' => $lid,
-                        'concept_label_type' => 1
-                ]);
+                if($needsUpdate) {
+                    $where = [
+                        ['concept_id', '=', $cid],
+                        ['language_id', '=', $lid],
+                        ['concept_label_type', '=', 1]
+                    ];
+                    $cnt = DB::table($thLabel)
+                        ->where($where)
+                        ->count();
+                    if($cnt === 1) {
+                        DB::table($thLabel)
+                            ->where($where)
+                            ->update([
+                                'label' => $label,
+                                'lasteditor' => $lasteditor
+                            ]);
+                    } else {
+                        DB::table($thLabel)
+                            ->insert([
+                                'lasteditor' => $lasteditor,
+                                'label' => $label,
+                                'concept_id' => $cid,
+                                'language_id' => $lid,
+                                'concept_label_type' => 1
+                        ]);
+                    }
+                } else {
+                    DB::table($thLabel)
+                        ->insert([
+                            'lasteditor' => $lasteditor,
+                            'label' => $label,
+                            'concept_id' => $cid,
+                            'language_id' => $lid,
+                            'concept_label_type' => 1
+                    ]);
+                }
             }
 
             $altLabels = $r->allLiterals('skos:altLabel');
             foreach($altLabels as $aL) {
                 $lid = $languages[$aL->getLang()];
                 $label = $aL->getValue();
-                DB::table($thLabel)
-                    ->insert([
-                        'lasteditor' => $lasteditor,
-                        'label' => $label,
-                        'concept_id' => $cid,
-                        'language_id' => $lid,
-                        'concept_label_type' => 2
-                ]);
+                if($needsUpdate) {
+                    $where = [
+                        ['concept_id', '=', $cid],
+                        ['language_id', '=', $lid],
+                        ['label', '=', $label]
+                    ];
+                    $cnt = DB::table($thLabel)
+                        ->where($where)
+                        ->count();
+                    if($cnt === 0) {
+                        DB::table($thLabel)
+                            ->insert([
+                                'lasteditor' => $lasteditor,
+                                'label' => $label,
+                                'concept_id' => $cid,
+                                'language_id' => $lid,
+                                'concept_label_type' => 2
+                        ]);
+                    }
+                } else {
+                    DB::table($thLabel)
+                        ->insert([
+                            'lasteditor' => $lasteditor,
+                            'label' => $label,
+                            'concept_id' => $cid,
+                            'language_id' => $lid,
+                            'concept_label_type' => 2
+                    ]);
+                }
             }
 
             $broaders = $r->allResources('skos:broader');
@@ -113,11 +187,19 @@ class TreeController extends BaseController
             $nid = DB::table($thConcept)
                 ->where('concept_url', '=', $n)
                 ->value('id');
-            DB::table($thBroader)
-                ->insert([
-                    'broader_id' => $bid,
-                    'narrower_id' => $nid
-            ]);
+            $relationExists = DB::table($thBroader)
+                ->where([
+                    ['broader_id', '=', $bid],
+                    ['narrower_id', '=', $nid]
+                ])
+                ->count() === 1;
+            if(!$relationExists) {
+                DB::table($thBroader)
+                    ->insert([
+                        'broader_id' => $bid,
+                        'narrower_id' => $nid
+                ]);
+            }
         }
         return response()->json('');
     }
@@ -426,6 +508,7 @@ class TreeController extends BaseController
             $br = DB::table($thConcept . ' as c')
                 ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
                 ->where('c.id', '=', $bid->broader_id)
+                ->where('lang', '=', $lang)
                 ->get();
             foreach($br as &$b) {
                 $broader[] = $b;

@@ -138,6 +138,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 $scope.rdfTree[isExport].push(newElem);
                 $scope.completeTree[isExport].push(newElem);
             }
+            expandElement(newElem.id, newElem.broader_id, isExport);
         });
     };
 
@@ -275,19 +276,30 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         return menu;
     };
 
-    $scope.uploadFile = function(file, errFiles, isExport) {
+    $scope.disableUi = function(msg) {
+        $scope.loadingUi = true;
+        $scope.blockingMessage = msg;
+    };
+
+    $scope.enableUi = function() {
+        $scope.loadingUi = false;
+    };
+
+    $scope.uploadFile = function(file, errFiles, type, isExport) {
         isExport = getTreeType(isExport);
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
         if(file) {
+            $scope.disableUi('Uploading file. Please wait.');
             file.upload = Upload.upload({
                  url: 'api/import',
-                 data: { file: file, isExport: isExport }
+                 data: { file: file, isExport: isExport, type: type }
             });
             file.upload.then(function(response) {
                 $timeout(function() {
                     file.result = response.data;
                     $scope.getTree(isExport);
+                    $scope.enableUi();
                 });
             }, function(reponse) {
                 if(response.status > 0) {
@@ -405,7 +417,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(typeof narrower !== 'undefined' && narrower !== null) {
             angular.forEach(data.narrower, function(n, key) {
                 narrower.push({
-                    id: n.id_th_concept,
+                    id: n.id,
                     label: n.label,
                     url: n.concept_url
                 });
@@ -414,7 +426,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(typeof broader !== 'undefined' && broader !== null) {
             angular.forEach(data.broader, function(b, key) {
                 broader.push({
-                    id: b.id_th_concept,
+                    id: b.id,
                     label: b.label,
                     url: b.concept_url
                 });
@@ -631,9 +643,29 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             } else if(subType == 2) { //narrower
                 concept = $scope.informations.narrowerConcepts[index];
                 promise = removeNarrowerConcept(currentId, concept.id, isExport);
+                var removedItem = null;
                 promise.then(function(id) {
                     console.log(id);
-                    $scope.informations.narrowerConcepts.splice(index, 1);
+                    var remId = $scope.informations.narrowerConcepts.splice(index, 1)[0].id;
+                    var children = $scope.currentEntry.children;
+                    for(var i=0; i<children.length; i++) {
+                        var curr = children[i];
+                        if(curr.id == remId) {
+                            removedItem = $scope.currentEntry.children.splice(i, 1)[0];
+                            break;
+                        }
+                    }
+                    $scope.currentEntry.hasChildren = $scope.currentEntry.children.length > 0;
+                    //check if the removed item has no remaining broader concept. If so, move it to the top
+                    //var relationPromise = getRelations(removedItem.id, isExport);
+                    return getRelations(removedItem.id, isExport);
+
+                }).then(function(data) {
+                    if(data.broader.length === 0) {
+                        removedItem.is_top_concept = true;
+                        removedItem.reclevel = 0;
+                        $scope.rdfTree[isExport].push(removedItem);
+                    }
                 });
             }
         } else if(type == 2) { //label
@@ -795,7 +827,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         isExport = getTreeType(isExport);
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('broader_id', broader_id);
+        if(typeof broader_id != 'undefined') formData.append('broader_id', broader_id);
         formData.append('tree', isExport);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
             if(parents.length > 1) return;
@@ -938,16 +970,16 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.export = function(isExport, id) {
-        $scope.waitingForFile = true;
-        var formData = new FormData();
         isExport = getTreeType(isExport);
+        $scope.disableUi('Creating ' + isExport + '_thesaurus.rdf. Please wait.');
+        var formData = new FormData();
         formData.append('isExport', isExport);
         if(typeof id !== 'undefined' && id > 0) {
             formData.append('root', id);
         }
         var promise = httpPostPromise.getData('api/export', formData);
         promise.then(function(data) {
-            $scope.waitingForFile = false;
+            $scope.enableUi();
             var filename = isExport + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });
