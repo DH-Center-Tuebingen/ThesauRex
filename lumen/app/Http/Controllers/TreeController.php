@@ -537,20 +537,21 @@ class TreeController extends BaseController
 
     public function deleteElementOneUp(Request $request) {
         $id = $request->get('id');
+        $broader_id = $request->get('broader_id');
         $isExport = $request->get('isExport');
 
         $suffix = $isExport == 'clone' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        $broader = DB::table($thBroader)
+        $cnt = DB::table($thBroader)
             ->where('narrower_id', '=', $id)
-            ->value('broader_id');
+            ->count();
 
-        if($broader == null) {
-            $narrowers = DB::table($thBroader)
-                ->where('broader_id', '=', $id)
-                ->get();
+        $narrowers = DB::table($thBroader)
+            ->where('broader_id', '=', $id)
+            ->get();
+        if(!$request->has('broader_id')) {
             foreach($narrowers as $n) {
                 DB::table($thConcept)
                     ->where('id', '=', $n->narrower_id)
@@ -558,46 +559,27 @@ class TreeController extends BaseController
                         'is_top_concept' => true
                     ]);
             }
+            //if this concept does not exist as narrower, we can delete it (since it only exists once; as top concept)
+            if($cnt == 0) {
+                DB::table($thConcept)
+                    ->where('id', '=', $id)
+                    ->delete();
+            }
         } else {
-            DB::table($thBroader)
-                ->where('broader_id', '=', $id)
-                ->update([
-                    'broader_id' => $broader
-                ]);
+            foreach($narrowers as $n) {
+                DB::table($thBroader)
+                    ->insert([
+                        'broader_id' => $broader_id,
+                        'narrower_id' => $n->narrower_id
+                    ]);
+            }
+            //if this concept exists exactly once, we can delete it
+            if($cnt == 1) {
+                DB::table($thConcept)
+                    ->where('id', '=', $id)
+                    ->delete();
+            }
         }
-
-        DB::table($thConcept)
-            ->where('id', '=', $id)
-            ->delete();
-    }
-
-    public function deleteElementToTop(Request $request) {
-        $id = $request->get('id');
-        $isExport = $request->get('isExport');
-
-        $suffix = $isExport == 'clone' ? '_export' : '';
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-
-        $narrowers = DB::table($thBroader)
-            ->where('broader_id', '=', $id)
-            ->get();
-        foreach($narrowers as $n) {
-            DB::table($thConcept)
-                ->where('id', '=', $n->narrower_id)
-                ->update([
-                    'is_top_concept' => true
-                ]);
-        }
-        $narrowers = DB::table($thBroader)
-            ->where('broader_id', '=', $id)
-            ->delete();
-
-        DB::table($thConcept)
-            ->where('id', '=', $id)
-            ->delete();
     }
 
     public function removeConcept(Request $request) {
@@ -1056,32 +1038,45 @@ class TreeController extends BaseController
         if(!$request->has('id')) return response()->json();
         $id = $request->get('id');
         $where = "WHERE narrower_id = $id";
-        if($request->has('broader_id')) {
-            $bId = $request->get('broader_id');
-            $where .= " AND broader_id = $bId";
-        }
         if($request->has('tree')) $which = $request->get('tree');
         else $which = 'master';
 
         $suffix = $which == 'clone' ? '_export' : '';
         $thBroader = 'th_broaders' . $suffix;
 
-        $parents = DB::select("
-            WITH RECURSIVE
-                q (broader_id, narrower_id, lvl) AS
-                (
-                    SELECT b1.*, 0
-                    FROM $thBroader b1
-                    $where
-                    UNION ALL
-                    SELECT b2.*, lvl + 1
-                    FROM $thBroader b2
-                    JOIN q ON q.broader_id = b2.narrower_id
-                )
-            SELECT q.*
-            FROM q
-            ORDER BY lvl DESC
-        ");
+        $parents = array();
+        $broaders = array();
+        if($request->has('broader_id')) {
+            $broaders[] = (object) [
+                'broader_id' => $request->get('broader_id')
+            ];
+        } else {
+            $broaders = DB::table($thBroader)
+                ->select('broader_id')
+                ->where('narrower_id', '=', $id)
+                ->get();
+        }
+
+        foreach($broaders as $broader) {
+            $currentWhere = $where . " AND broader_id = " . $broader->broader_id;
+            $parents[] = DB::select("
+                WITH RECURSIVE
+                    q (broader_id, narrower_id, lvl) AS
+                    (
+                        SELECT b1.*, 0
+                        FROM $thBroader b1
+                        $currentWhere
+                        UNION ALL
+                        SELECT b2.*, lvl + 1
+                        FROM $thBroader b2
+                        JOIN q ON q.broader_id = b2.narrower_id
+                    )
+                SELECT q.*
+                FROM q
+                ORDER BY lvl DESC
+            ");
+        }
+
         return response()->json($parents);
     }
 }

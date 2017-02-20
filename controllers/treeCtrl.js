@@ -1,4 +1,4 @@
-spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, Upload, $timeout, $uibModal) {
+spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', 'modalFactory', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, modalFactory, Upload, $timeout, $uibModal) {
     var getLanguages = function() {
         httpGetFactory('api/get/languages', function(callback) {
             for(var i=0; i<callback.length; i++) {
@@ -133,8 +133,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
             };
             if(id > 0) {
                 newElem.broader_id = id;
-                concept.children.push(newElem);
-                if(!concept.hasChildren) concept.hasChildren = true;
+                publishNewChildrenToAllOccurrences(newElem.broader_id, newElem, isExport);
             } else {
                 $scope.rdfTree[isExport].push(newElem);
                 $scope.completeTree[isExport].push(newElem);
@@ -145,7 +144,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
 
     var addPromisedConcept = function(name, concept, lang, isExport) {
         isExport = getTreeType(isExport);
-        $scope.addConcept(name, concept, lang.id, isExport);
+        $scope.addConcept(name, concept, lang, isExport);
         return $timeout(function(){}, 50);
     };
 
@@ -224,9 +223,10 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                     formData.append('id', $itemScope.$modelValue.id);
                     formData.append('isExport', isExport);
                     httpPostFactory('api/delete/cascade', formData, function(result) {
-                        $itemScope.remove();
+                        publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+                        /*$itemScope.remove();
                         var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
-                        parent.hasChildren = parent.children.length > 0;
+                        parent.hasChildren = parent.children.length > 0;*/
                     });
                 },
                 function($itemScope) {
@@ -238,40 +238,25 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
                 '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
                 [
                     ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
-                        var formData = new FormData();
-                        formData.append('id', $itemScope.$modelValue.id);
-                        formData.append('isExport', isExport);
-                        httpPostFactory('api/delete/cascade', formData, function(result) {
-                            $itemScope.remove();
-                            var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
-                            parent.hasChildren = parent.children.length > 0;
-                        });
+                        modalFactory.deleteModal($itemScope.$modelValue.label, function() {
+                            var formData = new FormData();
+                            formData.append('id', $itemScope.$modelValue.id);
+                            formData.append('isExport', isExport);
+                            httpPostFactory('api/delete/cascade', formData, function(result) {
+	                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+                            });
+                        }, 'If you delete this element, all of its descendants will be deleted, too!');
                     }],
                     ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
                         var formData = new FormData();
                         formData.append('id', $itemScope.$modelValue.id);
+                        formData.append('broader_id', $itemScope.$modelValue.broader_id);
                         formData.append('isExport', isExport);
                         httpPostFactory('api/delete/oneup', formData, function(result) {
                             var currChildren = $itemScope.$modelValue.children;
                             for(var i=0; i<currChildren.length; i++) {
                                 currChildren[i].reclevel = currChildren[i].reclevel - 1;
                                 $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
-                            }
-                            $itemScope.remove();
-                        });
-                    }],
-                    ['<i class="fa fa-fw fa-angle-double-up light red"></i> and move descendants to the top level', function($itemScope) {
-                        var t = angular.element(document.getElementById(isExport + '-tree')).scope();
-                        var nodesScope = t.$nodesScope;
-                        var formData = new FormData();
-                        formData.append('id', $itemScope.$modelValue.id);
-                        formData.append('isExport', isExport);
-                        httpPostFactory('api/delete/totop', formData, function(result) {
-                            var currChildren = $itemScope.$modelValue.children;
-                            for(var i=0; i<currChildren.length; i++) {
-                                currChildren[i].is_top_concept = true;
-                                currChildren[i].reclevel = 0;
-                                nodesScope.$modelValue.push(currChildren[i]);
                             }
                             $itemScope.remove();
                         });
@@ -381,6 +366,7 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.displayInformation = function(current) {
+        console.log(current);
         console.log(current.id);
         var url = current.concept_url;
         var id = current.id;
@@ -712,31 +698,60 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
     };
 
     $scope.addBroaderConcept = function(b, isExport) {
+        console.log(b);
         isExport = getTreeType(isExport);
         var promise = updateConcept($scope.currentEntry.id, b.id, isExport);
         promise.then(function() {
             $scope.informations.broaderConcepts = [];
-            var nextPromise = getRelations($scope.currentEntry.id, isExport);
-            nextPromise.then(function(data) {
-                setRelations(data, $scope.informations.broaderConcepts, null);
-            });
+            return getRelations($scope.currentEntry.id, isExport);
+        }).then(function(data) {
+            publishNewChildrenToAllOccurrences(b.id, $scope.currentEntry, isExport);
+            setRelations(data, $scope.informations.broaderConcepts, null);
         });
     };
 
     $scope.addNarrowerConcept = function(n, isExport) {
         isExport = getTreeType(isExport);
+        var oldNarrowers;
         var promise;
-        if(n.isNew) {
-            promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, isExport);
-        } else {
-            promise = updateConcept(n.id, $scope.currentEntry.id, isExport);
-        }
-        promise.then(function() {
+        promise = getRelations($scope.currentEntry.id, isExport);
+        promise.then(function(data) {
+            if(n.isNew) {
+                oldNarrowers = data.narrower;
+                promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, isExport);
+            } else {
+                promise = updateConcept(n.id, $scope.currentEntry.id, isExport);
+            }
+            return promise;
+        }).then(function() {
             $scope.informations.narrowerConcepts = [];
-            var nextPromise = getRelations($scope.currentEntry.id, isExport);
-            nextPromise.then(function(data) {
-                setRelations(data, null, $scope.informations.narrowerConcepts);
-            });
+            return getRelations($scope.currentEntry.id, isExport);
+        }).then(function(data) {
+            var inserted;
+            if(n.isNew) {
+                var narrowers = data.narrower;
+                for(var i=0; i<narrowers.length; i++) {
+                    var curr = narrowers[i];
+                    var found = false;
+                    for(var j=0; j<oldNarrowers.length; j++) {
+                        var old = oldNarrowers[j];
+                        if(old.id == curr.id) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if(!found) {
+                        inserted = curr;
+                        break;
+                    }
+
+                    if(inserted) break;
+                }
+            } else {
+                inserted = n;
+            }
+            publishNewChildrenToAllOccurrences($scope.currentEntry.id, inserted, isExport, false);
+            setRelations(data, null, $scope.informations.narrowerConcepts);
         });
     };
 
@@ -815,16 +830,12 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
         if(typeof broader_id != 'undefined') formData.append('broader_id', broader_id);
         formData.append('tree', isExport);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
-            if(typeof parents == 'undefined' || parents.length === 0) {
-                parents = [{
-                    broader_id: id
-                }];
-            } else {
-                var self = parents[parents.length-1].narrower_id;
-                parents.push({
-                    broader_id: self
-                });
-            }
+            if(parents.length > 1) return;
+            parents = parents[0];
+            var self = parents[parents.length-1].narrower_id;
+            parents.push({
+                broader_id: self
+            });
             $scope.$broadcast('angular-ui-tree:collapse-all');
             var t = angular.element(document.getElementById(isExport + '-tree')).scope();
             t.$element[0].scrollTop = 0;
@@ -875,6 +886,77 @@ spacialistApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory
 
     $scope.expandElement = function($item, $model, $label, $event, isExport) {
         expandElement($item.id, $item.broader_id, isExport);
+    };
+
+    var publishNewChildrenToAllOccurrences = function(id, newChildren, isExport, isDelete) {
+        isExport = getTreeType(isExport);
+        isDelete = isDelete || false;
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('tree', isExport);
+        httpPostFactory('api/get/parents/all', formData, function(parents) {
+            var t = angular.element(document.getElementById(isExport + '-tree')).scope();
+            var nodesScope = t.$nodesScope;
+            var children = nodesScope.childNodes();
+            if(parents.length > 0) {
+                angular.forEach(parents, function(parent, key) {
+                    var self = parent[parent.length-1].narrower_id;
+                    parent.push({
+                        broader_id: self
+                    });
+                    recursiveChildrenPublisher(parent, children, newChildren, isDelete);
+                });
+            } else { //element with id `id` has no parents (= is_top_concept)
+                var parent = [{
+                    broader_id: id
+                }];
+                recursiveChildrenPublisher(parent, children, newChildren, isDelete);
+            }
+        });
+    };
+
+    var recursiveChildrenPublisher = function(parents, children, newChildren, isDelete) {
+        recursiveChildrenPublisherHelper(parents, children, 0, newChildren, isDelete);
+    };
+
+    var recursiveChildrenPublisherHelper = function(parents, children, lvl, newChildren, isDelete) {
+        for(var i=0; i<children.length; i++) {
+            var currParent = parents[lvl];
+            var currChild = children[i];
+            if(currChild.$modelValue.id == currParent.broader_id) {
+                if(lvl+1 == parents.length) {
+                    if(isDelete) {
+                        var siblings = currChild.$parent.parent.children;
+                        for(var j=0; j<siblings.length; j++) {
+                            var sibling = siblings[j];
+                            if(sibling.id == newChildren.id) {
+                                currChild.$parent.parent.children.splice(j, 1);
+                                currChild.$parent.parent.hasChildren = currChild.$parent.parent.children.length > 0;
+                                break;
+                            }
+                        }
+                    } else {
+                        newChildren.reclevel = lvl + 1;
+                        newChildren.broader_id = currChild.$modelValue.id;
+                        if(typeof currChild.$parent.parent.children == 'undefined') {
+                            currChild.$parent.parent.children = [];
+                        }
+                        currChild.$parent.parent.children.push(newChildren);
+                        currChild.$parent.parent.hasChildren = true;
+                    }
+                } else {
+                    $timeout(function() {
+                        //we have to expand the element if it is collapsed to get access to the childnodes
+                        var wasCollapsed = currChild.collapsed;
+                        if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
+                        recursiveChildrenPublisherHelper(parents, currChild.childNodes(), lvl+1, newChildren, isDelete);
+                        //collapse it afterwards if we expanded it
+                        if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
+                    }, 0, false);
+                }
+                break;
+            }
+        }
     };
 
     $scope.getSearchTree = function(searchString, isExport) {
