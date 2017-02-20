@@ -14,10 +14,10 @@
     </head>
     <body>
         <nav id="header-nav" class="navbar navbar-inverse" role="navigation">
-            <div class="container-fluid" ng-controller="headerCtrl">
+            <div class="container-fluid">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle"
-                     ng-click="isCollapsed = !isCollapsed" aria-expanded="false">
+                     ng-click="isCollapsed = !isCollapsed" ng-init="isCollapsed = true" aria-expanded="false">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
