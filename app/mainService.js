@@ -24,6 +24,10 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         treeName: '',
         loading: {}
     };
+    main.blockedUi = {
+        isBlocked: false,
+        message: ''
+    };
 
     main.createNewConceptModal = function(treeName, parent) {
         if(!isValidTreeName(treeName)) return;
@@ -81,6 +85,26 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         main.selectedElement.relations.broader.length = 0;
         main.selectedElement.relations.narrower.length = 0;
         displayInformation(element, treeName);
+    };
+
+    main.disableUi = function(msg) {
+        main.blockedUi.isBlocked = true;
+        main.blockedUi.message = msg;
+    };
+
+    main.enableUi = function() {
+        main.blockedUi.isBlocked = false;
+        main.blockedUi.message = '';
+    };
+
+    main.export = function(treeName, id) {
+        if(!isValidTreeName(treeName)) return;
+        var formData = new FormData();
+        formData.append('treeName', treeName);
+        if(typeof id !== 'undefined' && id > 0) {
+            formData.append('root', id);
+        }
+        return httpPostPromise.getData('api/export', formData);
     };
 
     function isValidTreeName(treeName) {
@@ -144,14 +168,14 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     function setRelations(data) {
         angular.forEach(data.narrower, function(n, key) {
             main.selectedElement.relations.narrower.push({
-                id: n.id_th_concept,
+                id: n.id,
                 label: n.label,
                 url: n.concept_url
             });
         });
         angular.forEach(data.broader, function(b, key) {
             main.selectedElement.relations.broader.push({
-                id: b.id_th_concept,
+                id: b.id,
                 label: b.label,
                 url: b.concept_url
             });

@@ -4,6 +4,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     $scope.masterTree = mainService.tree.master;
     $scope.projectTree = mainService.tree.project;
     $scope.selectedElement = mainService.selectedElement;
+    $scope.blockedUi = mainService.blockedUi;
 
     $scope.expandedElement = null;
 
@@ -198,18 +199,20 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         return menu;
     };
 
-    $scope.uploadFile = function(file, errFiles, treeName) {
+    $scope.uploadFile = function(file, errFiles, type, treeName) {
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
         if(file) {
+            mainService.disableUi('Uploading file. Please wait.');
             file.upload = Upload.upload({
                  url: 'api/import',
-                 data: { file: file, treeName: treeName }
+                 data: { file: file, treeName: treeName, type: type }
             });
             file.upload.then(function(response) {
                 $timeout(function() {
                     file.result = response.data;
                     $scope.getTree(treeName);
+                    mainService.enableUi();
                 });
             }, function(reponse) {
                 if(response.status > 0) {
@@ -419,10 +422,29 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
                 });
             } else if(subType == 2) { //narrower
                 concept = $scope.informations.narrowerConcepts[index];
+                var removedItem = null;
                 promise = removeNarrowerConcept(currentId, concept.id, treeName);
                 promise.then(function(id) {
                     console.log(id);
-                    $scope.informations.narrowerConcepts.splice(index, 1);
+                    var remId = $scope.informations.narrowerConcepts.splice(index, 1)[0].id;
+                    var children = $scope.currentEntry.children;
+                    for(var i=0; i<children.length; i++) {
+                        var curr = children[i];
+                        if(curr.id == remId) {
+                            removedItem = $scope.currentEntry.children.splice(i, 1)[0];
+                            break;
+                        }
+                    }
+                    $scope.currentEntry.hasChildren = $scope.currentEntry.children.length > 0;
+                    //check if the removed item has no remaining broader concept. If so, move it to the top
+                    //var relationPromise = getRelations(removedItem.id, isExport);
+                    return getRelations(removedItem.id, isExport);
+                }).then(function(data) {
+                    if(data.broader.length === 0) {
+                        removedItem.is_top_concept = true;
+                        removedItem.reclevel = 0;
+                        $scope.rdfTree[isExport].push(removedItem);
+                    }
                 });
             }
         } else if(type == 2) { //label
@@ -576,7 +598,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     var expandElement = function(id, broader_id, treeName) {
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('broader_id', broader_id);
+        if(typeof broader_id != 'undefined') formData.append('broader_id', broader_id);
         formData.append('tree', treeName);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
             if(parents.length > 1) return;
@@ -717,49 +739,14 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     };
 
     $scope.export = function(treeName, id) {
-        $scope.waitingForFile = true;
-        var formData = new FormData();
-        formData.append('treeName', treeName);
-        if(typeof id !== 'undefined' && id > 0) {
-            formData.append('root', id);
-        }
-        var promise = httpPostPromise.getData('api/export', formData);
+        var blockMsg = 'Creating ' + treeName + '_thesaurus.rdf. Please wait.';
+        mainService.disableUi(blockMsg);
+        var promise = mainService.export(treeName, id);
         promise.then(function(data) {
-            $scope.waitingForFile = false;
+            mainService.enableUi();
             var filename = treeName + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });
-    };
-
-    var createDownloadFile = function(data, filename) {
-        var uri = 'data:text/xml;charset=utf-8,' + encodeURIComponent(data);
-        var link = document.createElement("a");
-        link.href = uri;
-        link.style = "visibility:hidden";
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    $scope.getRecLength = function(parent) {
-        var sum = 0;
-        if(typeof parent === 'undefined' || typeof parent.children === 'undefined') return sum;
-        if(typeof parent.children[0] !== 'undefined') {
-            if(typeof parent.children[0].children !== 'undefined') {
-                sum += parent.children[0].children.length;
-                for(var i=0; i<parent.children[0].children.length; i++) {
-                    var children = parent.children[0].children[i];
-                    sum += $scope.getRecLength(children);
-                }
-            }
-        }
-        if(typeof parent.children[1] !== 'undefined') {
-            if(typeof parent.children[1].children !== 'undefined') {
-                sum += parent.children[1].children.length;
-            }
-        }
-        return sum;
     };
 
     $scope.setEditContext = function(parent) {
@@ -772,6 +759,17 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
             var index = value.context + "_" + value.attr;
             $scope.attribData[attrDT][index] = value.value;
         });
+    };
+
+    var createDownloadFile = function(data, filename) {
+        var uri = 'data:text/xml;charset=utf-8,' + encodeURIComponent(data);
+        var link = document.createElement("a");
+        link.href = uri;
+        link.style = "visibility:hidden";
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 }]);
 

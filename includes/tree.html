@@ -266,10 +266,10 @@
             </ul>
         </div>
     </div>
-    <div id="loadingUi" ng-if="loadingUi">
-        <h2>{{ blockingMessage }}</h2>
+    <div id="loadingUi" ng-if="blockedUi.isBlocked">
+        <h2>{{ blockedUi.message }}</h2>
         <spinner />
     </div>
-    <div id="loadingUiBackdrop" ng-if="loadingUi">
+    <div id="loadingUiBackdrop" ng-if="blockedUi.isBlocked">
     </div>
 </div>
