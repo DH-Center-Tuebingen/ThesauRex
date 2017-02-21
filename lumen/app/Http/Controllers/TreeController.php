@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Laravel\Lumen\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
 use Easyrdf\Easyrdf\Lib\EasyRdf;
 use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
 use Illuminate\Support\Facades\Storage;
+use App\ThBroader;
+use App\ThBroaderProject;
 
-class TreeController extends BaseController
+class TreeController extends Controller
 {
     private $importTypes = ['extend', 'update', 'new'];
 
@@ -437,25 +438,32 @@ class TreeController extends BaseController
             ORDER BY label ASC
         ");
 
-        $concepts = array();
-        foreach($rows as $row) {
-            if(empty($row)) continue;
-            if($row->broader_id > 0) {
+        $concepts = [];
+        $topConcepts = [];
+        $conceptList = [];
+        foreach($rows as $k => $concept) {
+            if($concept->is_top_concept) {
+                $topConcepts[$concept->id] = $concept;
+            } else {
+                $conceptList[$concept->id] = $concept;
+            }
+            if(empty($concept)) continue;
+            if($concept->broader_id > 0) {
                 $alreadySet = false;
-                if(isset($concepts[$row->broader_id])) {
-                    foreach($concepts[$row->broader_id] as $con) {
-                        if($con['id'] == $row->id) {
+                if(isset($concepts[$concept->broader_id])) {
+                    foreach($concepts[$concept->broader_id] as $con) {
+                        if($con['id'] == $concept->id) {
                             $alreadySet = true;
                             break;
                         }
                     }
                 }
-                $lblArr = [ 'label' => $row->label ];
-                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lblArr);
+                if(!$alreadySet) $concepts[$concept->broader_id][] = $concept->id;
             }
         }
         return response()->json([
             'topConcepts' => $topConcepts,
+            'conceptList' => $conceptList,
             'concepts' => $concepts
         ]);
     }
@@ -641,17 +649,20 @@ class TreeController extends BaseController
         $broader = $request->get('broader_id');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $entry;
+        if($treeName == 'project') {
+            $entry = new ThBroaderProject();
+        } else {
+            $entry = new ThBroader();
+        }
 
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
+        $entry->broader_id = $broader;
+        $entry->narrower_id = $id;
+        $entry->save();
 
-        DB::table($thBroader)
-            ->insert([
-                'broader_id' => $broader,
-                'narrower_id' => $id
-            ]);
+        return response()->json([
+            'broader' => $entry
+        ]);
     }
 
     public function addConcept(Request $request) {
