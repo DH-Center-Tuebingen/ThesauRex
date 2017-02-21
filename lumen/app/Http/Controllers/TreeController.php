@@ -37,8 +37,8 @@ class TreeController extends BaseController
             ]);
         }
 
-        $isExport = $request->get('isExport');
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -207,8 +207,8 @@ class TreeController extends BaseController
     public function export(Request $request) {
         if($request->has('format')) $format = $request->get('format');
         else $format = 'rdf';
-        $isExport = $request->get('isExport');
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -360,8 +360,8 @@ class TreeController extends BaseController
 
     public function getLabels(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -384,7 +384,7 @@ class TreeController extends BaseController
     }
 
     public function getTree(Request $request) {
-        if($request->has('tree')) $which = $request->get('tree');
+        if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
@@ -470,9 +470,9 @@ class TreeController extends BaseController
 
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        if($isExport === 'clone') {
+        if($treeName === 'project') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
         } else {
@@ -519,9 +519,9 @@ class TreeController extends BaseController
 
     public function deleteElementCascade(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -535,9 +535,9 @@ class TreeController extends BaseController
     public function deleteElementOneUp(Request $request) {
         $id = $request->get('id');
         $broader_id = $request->get('broader_id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
@@ -581,9 +581,9 @@ class TreeController extends BaseController
 
     public function removeConcept(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -639,9 +639,9 @@ class TreeController extends BaseController
     public function addBroader(Request $request) {
         $id = $request->get('id');
         $broader = $request->get('broader_id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -659,14 +659,9 @@ class TreeController extends BaseController
         $scheme = $request->get('concept_scheme');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
-        $tree = $request->get('tree');
+        $treeName = $request->get('treeName');
 
-        $suffix = $tree == 'project' ? '_export' : '';
-
-        return response()->json([
-            'suffix' => $suffix,
-            'tree' => $tree
-        ]);
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -721,9 +716,9 @@ class TreeController extends BaseController
 
     public function removeLabel(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport === 'clone' ? '_export' : '';
+        $suffix = $treeName === 'project' ? '_export' : '';
         $thLabel = 'th_concept_label' . $suffix;
 
         DB::table($thLabel)
@@ -738,9 +733,9 @@ class TreeController extends BaseController
         $lang = $request->get('lang');
         $type = $request->get('type');
         $cid = $request->get('concept_id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport === 'clone' ? '_export' : '';
+        $suffix = $treeName === 'project' ? '_export' : '';
         $thLabel = 'th_concept_label' . $suffix;
 
         if($request->has('id')) {
@@ -788,13 +783,13 @@ class TreeController extends BaseController
         // Copy elements from source tree to cloned tree and vice versa
         $elemId = $request->get('id');
         $newBroader = $request->get('new_broader');
-        $src = $request->get('src'); // 'master' or 'clone'
+        $src = $request->get('src'); // 'master' or 'project'
         $isTopConcept = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
         $thBroader = 'th_broaders';
-        if($src == 'clone') {
+        if($src == 'project') {
             $thConceptSrc = $thConcept.'_export';
             $thLabelSrc = $thLabel.'_export';
             $thBroaderSrc = $thBroader.'_export';
@@ -908,9 +903,9 @@ class TreeController extends BaseController
         $oldBroader = $request->get('old_broader_id');
         $broader = $request->get('broader_id');
         $lang = $request->get('lang');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        if($isExport === 'clone') {
+        if($treeName === 'project') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
         } else {
@@ -1001,12 +996,12 @@ class TreeController extends BaseController
     public function search(Request $request) {
         if(!$request->has('val')) return response()->json();
         $val = $request->get('val');
-        if($request->has('tree')) $which = $request->get('tree');
+        if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        $suffix = $which == 'clone' ? '_export' : '';
+        $suffix = $which == 'project' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -1040,10 +1035,10 @@ class TreeController extends BaseController
         if(!$request->has('id')) return response()->json();
         $id = $request->get('id');
         $where = "WHERE narrower_id = $id";
-        if($request->has('tree')) $which = $request->get('tree');
+        if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
 
-        $suffix = $which == 'clone' ? '_export' : '';
+        $suffix = $which == 'project' ? '_export' : '';
         $thBroader = 'th_broaders' . $suffix;
 
         $parents = array();
