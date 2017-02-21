@@ -141,7 +141,8 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                     label: searchString,
                     id: -1,
                     broader_label: 'Add new',
-                    broader_id: -1
+                    broader_id: -1,
+                    isNew: true
                 };
                 result.push(item);
             }
