@@ -200,21 +200,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         mainService.uploadFile(file, errFiles, type, treeName);
     };
 
-    var getChildCount = function(id, treeName) {
-        if(typeof $scope.roots[treeName][id] === 'undefined') return 0;
-        return $scope.roots[treeName][id].length;
-    };
-
-    var getSubTree = function(id, treeName) {
-        if(typeof $scope.roots[treeName][id] === 'undefined') return [];
-        var children = $scope.roots[treeName][id].slice();
-        delete $scope.roots[treeName][id];
-        for(var i=0; i<children.length; i++) {
-            children[i].children = getSubTree(children[i].id);
-        }
-        return children;
-    };
-
     $scope.setSelectedElement = function(element, tree) {
         mainService.setSelectedElement(element, tree);
     };
@@ -548,29 +533,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         }
     };
 
-    var getChildrenRecursive = function(id, reclevel) {
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('reclevel', reclevel);
-        var promise = httpPostPromise.getData('api/get/children', formData);
-        return promise;
-    };
-
-    var getChildren = function(id, treeName) {
-        var children = $scope.roots[treeName][id];
-        angular.forEach(children, function(c, key) {
-            c.hasChildren = hasChildren(c.id, treeName);
-        });
-        return typeof children === 'undefined' ? children : children.slice();
-    };
-
-    var elementAlreadyInTree = function(elem, tree) {
-        for(var i=0; i<tree.length; i++) {
-            if(elem.id == tree[i].id) return true;
-        }
-        return false;
-    };
-
     var expandElement = function(id, broader_id, treeName) {
         var formData = new FormData();
         formData.append('id', id);
@@ -722,18 +684,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
             mainService.enableUi();
             var filename = treeName + '_thesaurus.rdf';
             createDownloadFile(data, filename);
-        });
-    };
-
-    $scope.setEditContext = function(parent) {
-        var attrDT;
-        $scope.currentContext = parent;
-        $scope.attribDataType = attrDT = attribDataTypes[1];
-        $scope.attribData[attrDT] = {};
-        $scope.attribData[attrDT].name = parent.title;
-        angular.forEach(parent.data, function(value, key) {
-            var index = value.context + "_" + value.attr;
-            $scope.attribData[attrDT][index] = value.value;
         });
     };
 
