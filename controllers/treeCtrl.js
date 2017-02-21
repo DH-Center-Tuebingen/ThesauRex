@@ -102,15 +102,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         return promise;
     };
 
-    var updateConcept = function(id, broader, treeName) {
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('broader_id', broader);
-        formData.append('treeName', treeName);
-        var promise = httpPostPromise.getData('api/add/broader', formData);
-        return promise;
-    };
-
     $scope.createNewConceptModal = function(which) {
         mainService.createNewConceptModal(which);
     };
@@ -436,6 +427,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     $scope.addBroader = function($item, treeName) {
         console.log($item);
         console.log(treeName);
+        mainService.addBroader($item, treeName);
     };
 
     $scope.addNarrower = function($item, treeName) {

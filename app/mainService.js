@@ -5,10 +5,12 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     main.preferredLanguage = {};
     main.tree = {
         project: {
-            tree: []
+            tree: [],
+            concepts: []
         },
         master: {
-            tree: []
+            tree: [],
+            concepts: []
         }
     };
     main.selectedElement = {
@@ -130,11 +132,27 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return httpPostPromise.getData('api/export', formData);
     };
 
+    main.addBroader = function(parent, treeName) {
+        if(!isValidTreeName(treeName)) return;
+        var formData = new FormData();
+        var id = main.selectedElement.properties.id;
+        formData.append('id', id);
+        formData.append('broader_id', parent.id);
+        formData.append('treeName', treeName);
+        httpPostFactory('api/add/broader', formData, function(response) {
+            if(typeof main.tree[treeName].childList[parent.id] == 'undefined') {
+                main.tree[treeName].childList[parent.id] = [];
+            }
+            main.tree[treeName].childList[parent.id].push(id);
+            main.tree[treeName].concepts[parent.id].children = getChildrenById(parent.id, treeName);
+        });
+    };
+
     main.getSearchResults = function(searchString, treeName, appendSearchString) {
         appendSearchString = appendSearchString || false;
         var formData = new FormData();
         formData.append('val', searchString);
-        formData.append('tree', treeName);
+        formData.append('treeName', treeName);
         return httpPostPromise.getData('api/search', formData).then(function(result) {
             if(appendSearchString) {
                 var item = {
@@ -285,24 +303,33 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         main.tree[t].tree.length = 0; // reset tree
         httpPostFactory('api/get/tree', formData, function(callback) {
             var tC = callback.topConcepts;
-            main.tree[t].concepts = callback.concepts;
+            angular.extend(main.tree[t].concepts, callback.topConcepts, callback.conceptList);
+            main.tree[t].childList = callback.concepts;
+            console.log(callback.concepts);
             for(var k in tC) {
                 if(tC.hasOwnProperty(k)) {
                     var c = tC[k];
-                    c.children = getChildren(c.id, main.tree[t].concepts);
+                    c.children = getChildren(c.id, main.tree[t].childList, main.tree[t].concepts);
                     main.tree[t].tree.push(c);
                 }
             }
         });
     }
 
-    function getChildren(id, children) {
+    function getChildren(id, children, list) {
         if(typeof children[id] === 'undefined') return [];
         var contextChildren = children[id];
+        var newChildren = [];
         for(var i=0; i<contextChildren.length; i++) {
-            contextChildren[i].children = getChildren(contextChildren[i].id, children);
+            var child = list[contextChildren[i]];
+            child.children = getChildren(contextChildren[i], children, list);
+            newChildren.push(child);
         }
-        return contextChildren;
+        return newChildren;
+    }
+
+    function getChildrenById(id, treeName) {
+        return getChildren(id, main.tree[treeName].childList, main.tree[treeName].concepts);
     }
 
     return main;

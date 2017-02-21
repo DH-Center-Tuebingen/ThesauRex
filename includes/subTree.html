@@ -12,6 +12,6 @@
     <!--<span ng-class="{ 'selected-leaf': currentContext.id == parent.id }">-->
 </div>
 <ul ui-tree-nodes="" ng-model="parent.children" ng-if="!collapsed" ng-class="{ hidden: collapsed }" data-expand-on-hover="true">
-    <li ng-repeat="parent in parent.children" ui-tree-node data-expand-on-hover="true" ng-include="'includes/subTree.html'" context-menu="getContextMenu(parent, treeName)">
+    <li ng-repeat="parent in parent.children track by $index" ui-tree-node data-expand-on-hover="true" ng-include="'includes/subTree.html'" context-menu="getContextMenu(parent, treeName)">
     </li>
 </ul>
