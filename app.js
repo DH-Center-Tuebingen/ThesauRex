@@ -10,6 +10,14 @@ thesaurexApp.directive('spinner', function() {
     };
 });
 
+thesaurexApp.controller('masterCtrl', ['$scope', function($scope) {
+    $scope.treeName = 'master';
+}]);
+
+thesaurexApp.controller('projectCtrl', ['$scope', function($scope) {
+    $scope.treeName = 'project';
+}]);
+
 thesaurexApp.service('modalFactory', ['$uibModal', function($uibModal) {
     this.deleteModal = function(elementName, onConfirm, additionalWarning) {
         if(typeof additionalWarning != 'undefined' && additionalWarning !== '') {
