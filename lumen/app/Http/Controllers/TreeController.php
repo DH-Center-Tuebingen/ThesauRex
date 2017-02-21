@@ -389,7 +389,7 @@ class TreeController extends BaseController
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        if($which === 'clone') {
+        if($which === 'project') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
         } else {
@@ -402,7 +402,7 @@ class TreeController extends BaseController
 
         $topConcepts = DB::table($thConcept . ' as c')
             ->select('id', 'c.concept_url', 'concept_scheme', 'is_top_concept', 'f.label',
-                DB::raw("0 as reclevel, '$which' as intree"))
+                DB::raw("0 as reclevel"))
             ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
             ->where([
                 ['is_top_concept', '=', true],
@@ -438,10 +438,8 @@ class TreeController extends BaseController
         ");
 
         $concepts = array();
-        $conceptNames = array();
         foreach($rows as $row) {
             if(empty($row)) continue;
-            $conceptNames[] = array('label' => $row->label, 'url' => $row->concept_url, 'id' => $row->id);
             if($row->broader_id > 0) {
                 $alreadySet = false;
                 if(isset($concepts[$row->broader_id])) {
@@ -453,13 +451,12 @@ class TreeController extends BaseController
                     }
                 }
                 $lblArr = [ 'label' => $row->label ];
-                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lblArr, ['intree' => $which]);
+                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lblArr);
             }
         }
         return response()->json([
             'topConcepts' => $topConcepts,
-            'concepts' => $concepts,
-            'conceptNames' => $conceptNames
+            'concepts' => $concepts
         ]);
     }
 
@@ -662,9 +659,14 @@ class TreeController extends BaseController
         $scheme = $request->get('concept_scheme');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
-        $isExport = $request->get('isExport');
+        $tree = $request->get('tree');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $tree == 'project' ? '_export' : '';
+
+        return response()->json([
+            'suffix' => $suffix,
+            'tree' => $tree
+        ]);
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
