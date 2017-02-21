@@ -16,4 +16,7 @@ class ThBroader extends Model
         'broader_id',
         'narrower_id',
     ];
+    public $timestamps = false;
+    public $primaryKey = '';
+    public $incrementing = false;
 }
