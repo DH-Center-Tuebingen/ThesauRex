@@ -97,7 +97,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         main.blockedUi.message = '';
     };
 
-    main.export = function(treeName, id) {
+    main.promisedExport = function(treeName, id) {
         if(!isValidTreeName(treeName)) return;
         var formData = new FormData();
         formData.append('treeName', treeName);

@@ -741,7 +741,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     $scope.export = function(treeName, id) {
         var blockMsg = 'Creating ' + treeName + '_thesaurus.rdf. Please wait.';
         mainService.disableUi(blockMsg);
-        var promise = mainService.export(treeName, id);
+        var promise = mainService.promisedExport(treeName, id);
         promise.then(function(data) {
             mainService.enableUi();
             var filename = treeName + '_thesaurus.rdf';
