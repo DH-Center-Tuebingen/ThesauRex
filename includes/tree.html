@@ -115,7 +115,7 @@
                 <h3>Broader concepts</h3>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Add broader" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, $model, $label, $event, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
+                        <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Add broader" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
                     <i ng-show="loadingBroaderSearchResults" class="glyphicon glyphicon-refresh"></i>

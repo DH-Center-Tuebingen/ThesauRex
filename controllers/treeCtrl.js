@@ -433,7 +433,12 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         }
     };
 
-    $scope.addBroader = function($item, $model, $label, $event, treeName) {
+    $scope.addBroader = function($item, treeName) {
+        console.log($item);
+        console.log(treeName);
+    };
+
+    $scope.addNarrower = function($item, treeName) {
         console.log($item);
         console.log(treeName);
     };
