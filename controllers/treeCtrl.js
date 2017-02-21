@@ -1,29 +1,13 @@
-thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory', 'httpPostPromise', 'httpGetFactory', 'httpGetPromise', 'modalFactory', 'Upload', '$timeout', '$uibModal', '$sce', function($scope, scopeService, httpPostFactory, httpPostPromise, httpGetFactory, httpGetPromise, modalFactory, Upload, $timeout, $uibModal) {
-    var getLanguages = function() {
-        httpGetFactory('api/get/languages', function(callback) {
-            for(var i=0; i<callback.length; i++) {
-                var lg = callback[i];
-                $scope.possibleLanguages.push({
-                    langShort: lg.short_name,
-                    langName: lg.display_name,
-                    id: lg.id
-                });
-            }
-            $scope.selectedPrefLabelLanguage = $scope.possibleLanguages[0];
-            $scope.selectedAltLabelLanguage = $scope.possibleLanguages[0];
-            $scope.preferredLanguage = $scope.possibleLanguages[0];
-        });
-    };
+thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, mainService) {
+    $scope.languages = mainService.languages;
+    $scope.preferredLanguage = mainService.preferredLanguage;
+    $scope.masterTree = mainService.tree.master;
+    $scope.projectTree = mainService.tree.project;
+    $scope.selectedElement = mainService.selectedElement;
 
     $scope.expandedElement = null;
 
     $scope.searchResults = {};
-    $scope.rdfTree = {};
-    $scope.roots = {
-        clone: {},
-        master: {}
-    };
-    $scope.completeTree = {};
     $scope.enableDragDrop = false;
     $scope.enableEditing = false;
     $scope.enableExportDragDrop = false;
@@ -35,10 +19,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
     };
     $scope.matchingBroaderConcepts = [];
     $scope.matchingNarrowerConcepts = [];
-    $scope.possibleLanguages = [];
-    getLanguages();
 
-    var dropped = function(event, isExportTree) {
+    var dropped = function(event, treeNameTree) {
         var oldParentId = event.source.nodeScope.$modelValue.broader_id;
         var destScope = event.dest.nodesScope.$nodeScope;
         var newParent;
@@ -51,8 +33,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
             isFromAnotherTree = true;
         }
         var elem = event.source.nodeScope.$modelValue;
-        var isExport = 'master';
-        if((isFromAnotherTree && !isExportTree) || isExportTree) isExport = 'clone';
+        var treeName = 'master';
+        if((isFromAnotherTree && !treeNameTree) || treeNameTree) treeName = 'project';
         var is_top_concept = false;
         var id = -1;
         var reclevel = -1;
@@ -63,8 +45,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
             reclevel = typeof newParent.reclevel == 'undefined' ? -1 : newParent.reclevel;
         }
         if(isFromAnotherTree) {
-            var src = isExportTree ? 'clone' : 'master';
-            console.log("moving from " + src + " to " + isExport);
+            var src = treeNameTree ? 'project' : 'master';
+            console.log("moving from " + src + " to " + treeName);
             var formData = new FormData();
             formData.append('id', elem.id);
             formData.append('new_broader', id);
@@ -78,7 +60,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
             });
         } else  {
             if(typeof oldParentId == 'undefined') oldParentId = -1;
-            var outerPromise = updateRelation(elem.id, oldParentId, id, isExport);
+            var outerPromise = updateRelation(elem.id, oldParentId, id, treeName);
             outerPromise.then(function(concepts) {
                 elem.reclevel = reclevel + 1;
                 elem.is_top_concept = is_top_concept;
@@ -99,104 +81,45 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         }
     };
 
-    var getTreeType = function(isExport) {
-        return (typeof isExport === 'undefined' || isExport != 'clone') ? 'master' : 'clone';
+    var getTreeType = function(treeName) {
+        return (typeof treeName === 'undefined' || treeName != 'project') ? 'master' : 'project';
     };
 
-    $scope.addConcept = function(name, concept, lang, isExport) {
-        isExport = getTreeType(isExport);
-        if(typeof $scope.currentModal !== 'undefined') $scope.currentModal.close('ok');
-        var projName = (isExport == 'master') ? 'intern' : '<user-project>';
-        var scheme = "https://spacialist.escience.uni-tuebingen.de/schemata#newScheme";
-        var isTC = false;
-        var reclevel = 0;
-        var id = -1;
-        if(typeof concept == 'undefined') {
-            isTC = true;
-        } else {
-            reclevel = parseInt(concept.reclevel) + 1;
-            id = concept.id;
-        }
-        var promise = addConcept(scheme, id, isTC, name, projName, lang.id, isExport);
-        promise.then(function(retElem) {
-            var newId = retElem.newId;
-            var newElem = {
-                id: newId,
-                concept_url: retElem.url,
-                concept_scheme: scheme,
-                is_top_concept: isTC,
-                label: name,
-                intree: isExport,
-                reclevel: reclevel,
-                hasChildren: false,
-                children: []
-            };
-            if(id > 0) {
-                newElem.broader_id = id;
-                publishNewChildrenToAllOccurrences(newElem.broader_id, newElem, isExport);
-            } else {
-                $scope.rdfTree[isExport].push(newElem);
-                $scope.completeTree[isExport].push(newElem);
-            }
-        });
+    $scope.addConcept = function(name, concept, lang, treeName) {
+        mainService.addConcept(name, concept, lang, treeName);
     };
 
-    var addPromisedConcept = function(name, concept, lang, isExport) {
-        isExport = getTreeType(isExport);
-        $scope.addConcept(name, concept, lang, isExport);
+    var addPromisedConcept = function(name, concept, lang, treeName) {
+        $scope.addConcept(name, concept, lang, treeName);
         return $timeout(function(){}, 50);
     };
 
-    var addConcept = function(scheme, broader, tc, label, proj, languageId, isExport) {
-        var formData = new FormData();
-        formData.append('projName', proj);
-        formData.append('concept_scheme', scheme);
-        if(broader > 0) formData.append('broader_id', broader);
-        formData.append('is_top_concept', tc);
-        formData.append('prefLabel', label);
-        formData.append('lang', languageId);
-        formData.append('isExport', isExport);
-        var promise = httpPostPromise.getData('api/add/concept', formData);
-        return promise;
-    };
-
-    var updateRelation = function(narrower, oldBroader, newBroader, isExport) {
-        if(typeof isExport === 'undefined') isExport = 'master';
+    var updateRelation = function(narrower, oldBroader, newBroader, treeName) {
+        if(typeof treeName === 'undefined') treeName = 'master';
         console.log(narrower+","+ oldBroader+","+ newBroader);
         var formData = new FormData();
         formData.append('narrower_id', narrower);
         formData.append('old_broader_id', oldBroader);
         formData.append('broader_id', newBroader);
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         var promise = httpPostPromise.getData('api/update/relation', formData);
         return promise;
     };
 
-    var updateConcept = function(id, broader, isExport) {
-        isExport = getTreeType(isExport);
+    var updateConcept = function(id, broader, treeName) {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('broader_id', broader);
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         var promise = httpPostPromise.getData('api/add/broader', formData);
         return promise;
     };
 
-    $scope.createNewConceptModal = function(which, model) {
-        createNewConceptModal(model, which);
+    $scope.createNewConceptModal = function(which) {
+        mainService.createNewConceptModal(which);
     };
 
-    var createNewConceptModal = function(model, which) {
-        $scope.newConcept = model;
-        $scope.which = which;
-        var modalInstance = $uibModal.open({
-            templateUrl: 'templates/newConceptModal.html',
-            scope: $scope
-        });
-        $scope.currentModal = modalInstance;
-    };
-
-    $scope.getContextMenu = function(item, isExport) {
+    $scope.getContextMenu = function(item, treeName) {
         var menu = [];
         menu.push([
             function($itemScope, $event) {
@@ -210,7 +133,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         menu.push(null);
         menu.push([
             '<i class="fa fa-fw fa-plus-circle light green"></i> Add new concept', function($itemScope, $event) {
-                createNewConceptModal($itemScope.$modelValue, isExport);
+                mainService.createNewConceptModal(treeName, $itemScope.$modelValue);
             }
         ]);
         menu.push(null);
@@ -220,9 +143,9 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
                 function($itemScope) {
                     var formData = new FormData();
                     formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('isExport', isExport);
+                    formData.append('treeName', treeName);
                     httpPostFactory('api/delete/cascade', formData, function(result) {
-                        publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+                        publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, treeName, true);
                         /*$itemScope.remove();
                         var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
                         parent.hasChildren = parent.children.length > 0;*/
@@ -240,9 +163,9 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
                         modalFactory.deleteModal($itemScope.$modelValue.label, function() {
                             var formData = new FormData();
                             formData.append('id', $itemScope.$modelValue.id);
-                            formData.append('isExport', isExport);
+                            formData.append('treeName', treeName);
                             httpPostFactory('api/delete/cascade', formData, function(result) {
-	                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, isExport, true);
+	                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, treeName, true);
                             });
                         }, 'If you delete this element, all of its descendants will be deleted, too!');
                     }],
@@ -250,7 +173,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
                         var formData = new FormData();
                         formData.append('id', $itemScope.$modelValue.id);
                         formData.append('broader_id', $itemScope.$modelValue.broader_id);
-                        formData.append('isExport', isExport);
+                        formData.append('treeName', treeName);
                         httpPostFactory('api/delete/oneup', formData, function(result) {
                             var currChildren = $itemScope.$modelValue.children;
                             for(var i=0; i<currChildren.length; i++) {
@@ -269,25 +192,24 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         menu.push(null);
         menu.push([
             '<i class="fa fa-fw fa-cloud-download light orange"></i> Export', function($itemScope, $event) {
-                $scope.export(isExport, $itemScope.$modelValue.id);
+                $scope.export(treeName, $itemScope.$modelValue.id);
             }
         ]);
         return menu;
     };
 
-    $scope.uploadFile = function(file, errFiles, isExport) {
-        isExport = getTreeType(isExport);
+    $scope.uploadFile = function(file, errFiles, treeName) {
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
         if(file) {
             file.upload = Upload.upload({
                  url: 'api/import',
-                 data: { file: file, isExport: isExport }
+                 data: { file: file, treeName: treeName }
             });
             file.upload.then(function(response) {
                 $timeout(function() {
                     file.result = response.data;
-                    $scope.getTree(isExport);
+                    $scope.getTree(treeName);
                 });
             }, function(reponse) {
                 if(response.status > 0) {
@@ -299,155 +221,23 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         }
     };
 
-    var getChildrenFromArray = function(elem, isExport) {
-        if (typeof $scope.roots[isExport][elem.id] === 'undefined') return [];
-        var children = $scope.roots[isExport][elem.id].slice();
-        for(var i=0; i<children.length; i++) {
-            children[i].children = getChildrenFromArray(children[i], isExport);
-            children[i].hasChildren = children[i].children.length > 0;
-        }
-        return children;
+    var getChildCount = function(id, treeName) {
+        if(typeof $scope.roots[treeName][id] === 'undefined') return 0;
+        return $scope.roots[treeName][id].length;
     };
 
-    $scope.getTree = function(isExport) {
-        isExport = getTreeType(isExport);
-        var formData = new FormData();
-        formData.append('tree', isExport);
-        httpPostFactory('api/get/tree', formData, function(callback) {
-            $scope.rdfTree[isExport] = [];
-            $scope.conceptNames = [];
-            var topConcepts = callback.topConcepts;
-            $scope.roots[isExport] = angular.extend({}, callback.concepts);
-            $scope.conceptNames = callback.conceptNames.slice();
-            for(var k in topConcepts) {
-                if(topConcepts.hasOwnProperty(k)) {
-                    var curr = topConcepts[k];
-                    curr.children = getChildrenFromArray(curr, isExport);
-                    curr.hasChildren = curr.children.length > 0;
-                    $scope.rdfTree[isExport].push(curr);
-                }
-            }
-            $scope.completeTree[isExport] = $scope.rdfTree[isExport].slice();
-        });
-    };
-
-    var getChildCount = function(id, isExport) {
-        isExport = getTreeType(isExport);
-        if(typeof $scope.roots[isExport][id] === 'undefined') return 0;
-        return $scope.roots[isExport][id].length;
-    };
-
-    var hasChildren = function(id, isExport) {
-        isExport = getTreeType(isExport);
-        return getChildCount(id, isExport) > 0;
-    };
-
-    var getSubTree = function(id, isExport) {
-        isExport = getTreeType(isExport);
-        if(typeof $scope.roots[isExport][id] === 'undefined') return [];
-        var children = $scope.roots[isExport][id].slice();
-        delete $scope.roots[isExport][id];
+    var getSubTree = function(id, treeName) {
+        if(typeof $scope.roots[treeName][id] === 'undefined') return [];
+        var children = $scope.roots[treeName][id].slice();
+        delete $scope.roots[treeName][id];
         for(var i=0; i<children.length; i++) {
             children[i].children = getSubTree(children[i].id);
         }
         return children;
     };
 
-    $scope.displayInformation = function(current) {
-        console.log(current);
-        console.log(current.id);
-        var url = current.concept_url;
-        var id = current.id;
-        var label = current.label;
-        var isExport = current.intree;
-        setCurrentEntry(current);
-        $scope.informations = {
-            url: url,
-            id: id,
-            label: label,
-            broaderConcepts: [],
-            narrowerConcepts: [],
-            prefLabels: [],
-            altLabels: [],
-            intree: isExport
-        };
-        $scope.informations.prefLabels.loading = true;
-        $scope.informations.altLabels.loading = true;
-        $scope.informations.broaderConcepts.loading = true;
-        $scope.informations.narrowerConcepts.loading = true;
-        var labelPromise = getLabels(id, isExport);
-        labelPromise.then(function(data) {
-            setLabels(data, $scope.informations.prefLabels, $scope.informations.altLabels);
-        });
-
-        var relationPromise = getRelations(id, isExport);
-        relationPromise.then(function(data) {
-            if(data == -1) return;
-            setRelations(data, $scope.informations.broaderConcepts, $scope.informations.narrowerConcepts);
-        });
-
-        delete $scope.informations.prefLabels.loading;
-        delete $scope.informations.altLabels.loading;
-        delete $scope.informations.broaderConcepts.loading;
-        delete $scope.informations.narrowerConcepts.loading;
-    };
-
-    var getRelations = function(id, isExport) {
-        isExport = getTreeType(isExport);
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('isExport', isExport);
-        var promise = httpPostPromise.getData('api/get/relations', formData);
-        return promise;
-    };
-
-    var setRelations = function(data, broader, narrower) {
-        if(typeof narrower !== 'undefined' && narrower !== null) {
-            angular.forEach(data.narrower, function(n, key) {
-                narrower.push({
-                    id: n.id_th_concept,
-                    label: n.label,
-                    url: n.concept_url
-                });
-            });
-        }
-        if(typeof broader !== 'undefined' && broader !== null) {
-            angular.forEach(data.broader, function(b, key) {
-                broader.push({
-                    id: b.id_th_concept,
-                    label: b.label,
-                    url: b.concept_url
-                });
-            });
-        }
-    };
-
-    var getLabels = function(id, isExport) {
-        isExport = getTreeType(isExport);
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('isExport', isExport);
-        var promise = httpPostPromise.getData('api/get/label', formData);
-        return promise;
-    };
-
-    var setLabels = function(data, prefLabels, altLabels) {
-        var setPrefLabels = typeof prefLabels !== 'undefined' && prefLabels !== null;
-        var setAltLabels = typeof altLabels !== 'undefined' && altLabels !== null;
-        angular.forEach(data, function(lbl, key) {
-            var curr = {
-                id: lbl.id,
-                label: lbl.label,
-                langShort: lbl.short_name,
-                langName: lbl.display_name,
-                langId: lbl.language_id
-            };
-            if(setPrefLabels && lbl.concept_label_type == 1) {
-                prefLabels.push(curr);
-            } else if(setAltLabels && lbl.concept_label_type == 2) {
-                altLabels.push(curr);
-            }
-        });
+    $scope.setSelectedElement = function(element, tree) {
+        mainService.setSelectedElement(element, tree);
     };
 
     $scope.selectPreferredLanguage = function(index) {
@@ -472,10 +262,10 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         $scope.informations.altLabels.editIndex = index;
     };
 
-    $scope.storePrefLabelEdit = function(isExport) {
+    $scope.storePrefLabelEdit = function(treeName) {
         var index = $scope.informations.prefLabels.editIndex;
         var label = $scope.informations.prefLabels[index];
-        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, isExport, label.id);
+        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, treeName, label.id);
         promise.then(function(id) {
             $scope.informations.prefLabels[index].label = $scope.informations.prefLabels.editText;
             delete $scope.informations.prefLabels.editIndex;
@@ -483,10 +273,10 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         });
     };
 
-    $scope.storeAltLabelEdit = function(isExport) {
+    $scope.storeAltLabelEdit = function(treeName) {
         var index = $scope.informations.altLabels.editIndex;
         var label = $scope.informations.altLabels[index];
-        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, isExport, label.id);
+        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, treeName, label.id);
         promise.then(function(id) {
             $scope.informations.altLabels[index].label = $scope.informations.altLabels.editText;
             delete $scope.informations.altLabels.editIndex;
@@ -504,44 +294,43 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         delete $scope.informations.altLabels.editText;
     };
 
-    var addPrefLabel = function(text, langId, isExport, id) {
-        return addLabel(text, langId, 1, id, isExport);
+    var addPrefLabel = function(text, langId, treeName, id) {
+        return addLabel(text, langId, 1, id, treeName);
     };
 
-    var addAltLabel = function(text, langId, isExport, id) {
-        return addLabel(text, langId, 2, id, isExport);
+    var addAltLabel = function(text, langId, treeName, id) {
+        return addLabel(text, langId, 2, id, treeName);
     };
 
-    var removePrefLabel = function(id, isExport) {
-        return removeLabel(id, isExport);
+    var removePrefLabel = function(id, treeName) {
+        return removeLabel(id, treeName);
     };
 
-    var removeAltLabel = function(id, isExport) {
-        return removeLabel(id, isExport);
+    var removeAltLabel = function(id, treeName) {
+        return removeLabel(id, treeName);
     };
 
-    var removeLabel = function(id, isExport) {
-        isExport = getTreeType(isExport);
+    var removeLabel = function(id, treeName) {
         var formData = new FormData();
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         formData.append('id', id);
         var promise = httpPostPromise.getData('api/remove/label', formData);
         return promise;
     };
 
-    var addLabel = function(text, langId, type, id, isExport) {
+    var addLabel = function(text, langId, type, id, treeName) {
         var formData = new FormData();
         formData.append('label', text);
         formData.append('lang', langId);
         formData.append('type', type);
         formData.append('concept_id', $scope.informations.id);
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         if(typeof id !== 'undefined') formData.append('id', id);
         var promise = httpPostPromise.getData('api/add/label', formData);
         return promise;
     };
 
-    $scope.addPrefLabel = function(isExport) {
+    $scope.addPrefLabel = function(treeName) {
         for(var i=0; i<$scope.informations.prefLabels.length; i++) {
             var l = $scope.informations.prefLabels[i];
             if(l.langId == $scope.selectedPrefLabelLanguage.id) {
@@ -554,7 +343,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
                 return;
             }
         }
-        var promise = addPrefLabel($scope.newPrefLabelText.text, $scope.selectedPrefLabelLanguage.id, isExport);
+        var promise = addPrefLabel($scope.newPrefLabelText.text, $scope.selectedPrefLabelLanguage.id, treeName);
         promise.then(function(labelId) {
             if(labelId < 0) return;
             $scope.informations.prefLabels.push({
@@ -568,8 +357,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         });
     };
 
-    $scope.addAltLabel = function(isExport) {
-        var promise = addAltLabel($scope.newAltLabelText.text, $scope.selectedAltLabelLanguage.id, isExport);
+    $scope.addAltLabel = function(treeName) {
+        var promise = addAltLabel($scope.newAltLabelText.text, $scope.selectedAltLabelLanguage.id, treeName);
         promise.then(function(labelId) {
             $scope.informations.altLabels.push({
                 id: labelId,
@@ -582,55 +371,55 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         });
     };
 
-    $scope.deleteBroaderConcept = function($index, isExport) {
-        deleteEntry($index, 1, 1, isExport);
+    $scope.deleteBroaderConcept = function($index, treeName) {
+        deleteEntry($index, 1, 1, treeName);
     };
 
-    $scope.deleteNarrowerConcept = function($index, isExport) {
-        deleteEntry($index, 1, 2, isExport);
+    $scope.deleteNarrowerConcept = function($index, treeName) {
+        deleteEntry($index, 1, 2, treeName);
     };
 
-    $scope.deletePrefLabel = function($index, isExport) {
-        deleteEntry($index, 2, 1, isExport);
+    $scope.deletePrefLabel = function($index, treeName) {
+        deleteEntry($index, 2, 1, treeName);
     };
 
-    $scope.deleteAltLabel = function($index, isExport) {
-        deleteEntry($index, 2, 2, isExport);
+    $scope.deleteAltLabel = function($index, treeName) {
+        deleteEntry($index, 2, 2, treeName);
     };
 
-    var removeBroaderConcept = function(id, broaderId, isExport) {
+    var removeBroaderConcept = function(id, broaderId, treeName) {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('broaderId', broaderId);
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         var promise = httpPostPromise.getData('api/remove/concept', formData);
         return promise;
     };
 
-    var removeNarrowerConcept = function(id, narrowerId, isExport) {
+    var removeNarrowerConcept = function(id, narrowerId, treeName) {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('narrowerId', narrowerId);
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         var promise = httpPostPromise.getData('api/remove/concept', formData);
         return promise;
     };
 
-    var deleteEntry = function(index, type, subType, isExport) {
+    var deleteEntry = function(index, type, subType, treeName) {
         var concept;
         var promise;
         if(type == 1) { //concept
             var currentId = $scope.informations.id;
             if(subType == 1) { //broader
                 concept = $scope.informations.broaderConcepts[index];
-                promise = removeBroaderConcept(currentId, concept.id, isExport);
+                promise = removeBroaderConcept(currentId, concept.id, treeName);
                 promise.then(function(id) {
                     console.log(id);
                     $scope.informations.broaderConcepts.splice(index, 1);
                 });
             } else if(subType == 2) { //narrower
                 concept = $scope.informations.narrowerConcepts[index];
-                promise = removeNarrowerConcept(currentId, concept.id, isExport);
+                promise = removeNarrowerConcept(currentId, concept.id, treeName);
                 promise.then(function(id) {
                     console.log(id);
                     $scope.informations.narrowerConcepts.splice(index, 1);
@@ -639,20 +428,20 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         } else if(type == 2) { //label
             if(subType == 1) { //pref
                 lbl = $scope.informations.prefLabels[index];
-                promise = removePrefLabel(lbl.id, isExport);
+                promise = removePrefLabel(lbl.id, treeName);
                 promise.then(function() {
                     $scope.informations.prefLabels = [];
-                    var nextPromise = getLabels($scope.informations.id, isExport);
+                    var nextPromise = getLabels($scope.informations.id, treeName);
                     nextPromise.then(function(data) {
                         setLabels(data, $scope.informations.prefLabels, null);
                     });
                 });
             } else if(subType == 2) { //alt
                 lbl = $scope.informations.altLabels[index];
-                promise = removeAltLabel(lbl.id, isExport);
+                promise = removeAltLabel(lbl.id, treeName);
                 promise.then(function() {
                     $scope.informations.altLabels = [];
-                    var nextPromise = getLabels($scope.informations.id, isExport);
+                    var nextPromise = getLabels($scope.informations.id, treeName);
                     nextPromise.then(function(data) {
                         setLabels(data, null, $scope.informations.altLabels);
                     });
@@ -661,39 +450,33 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         }
     };
 
-    var setCurrentEntry = function(entry) {
-        $scope.currentEntry = entry;
-    };
-
-    $scope.addBroaderConcept = function(b, isExport) {
+    $scope.addBroaderConcept = function(b, treeName) {
         console.log(b);
-        isExport = getTreeType(isExport);
-        var promise = updateConcept($scope.currentEntry.id, b.id, isExport);
+        var promise = updateConcept($scope.currentEntry.id, b.id, treeName);
         promise.then(function() {
             $scope.informations.broaderConcepts = [];
-            return getRelations($scope.currentEntry.id, isExport);
+            return getRelations($scope.currentEntry.id, treeName);
         }).then(function(data) {
-            publishNewChildrenToAllOccurrences(b.id, $scope.currentEntry, isExport);
+            publishNewChildrenToAllOccurrences(b.id, $scope.currentEntry, treeName);
             setRelations(data, $scope.informations.broaderConcepts, null);
         });
     };
 
-    $scope.addNarrowerConcept = function(n, isExport) {
-        isExport = getTreeType(isExport);
+    $scope.addNarrowerConcept = function(n, treeName) {
         var oldNarrowers;
         var promise;
-        promise = getRelations($scope.currentEntry.id, isExport);
+        promise = getRelations($scope.currentEntry.id, treeName);
         promise.then(function(data) {
             if(n.isNew) {
                 oldNarrowers = data.narrower;
-                promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, isExport);
+                promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, treeName);
             } else {
-                promise = updateConcept(n.id, $scope.currentEntry.id, isExport);
+                promise = updateConcept(n.id, $scope.currentEntry.id, treeName);
             }
             return promise;
         }).then(function() {
             $scope.informations.narrowerConcepts = [];
-            return getRelations($scope.currentEntry.id, isExport);
+            return getRelations($scope.currentEntry.id, treeName);
         }).then(function(data) {
             var inserted;
             if(n.isNew) {
@@ -718,7 +501,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
             } else {
                 inserted = n;
             }
-            publishNewChildrenToAllOccurrences($scope.currentEntry.id, inserted, isExport, false);
+            publishNewChildrenToAllOccurrences($scope.currentEntry.id, inserted, treeName, false);
             setRelations(data, null, $scope.informations.narrowerConcepts);
         });
     };
@@ -775,11 +558,10 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         return promise;
     };
 
-    var getChildren = function(id, isExport) {
-        isExport = getTreeType(isExport);
-        var children = $scope.roots[isExport][id];
+    var getChildren = function(id, treeName) {
+        var children = $scope.roots[treeName][id];
         angular.forEach(children, function(c, key) {
-            c.hasChildren = hasChildren(c.id, isExport);
+            c.hasChildren = hasChildren(c.id, treeName);
         });
         return typeof children === 'undefined' ? children : children.slice();
     };
@@ -791,12 +573,11 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         return false;
     };
 
-    var expandElement = function(id, broader_id, isExport) {
-        isExport = getTreeType(isExport);
+    var expandElement = function(id, broader_id, treeName) {
         var formData = new FormData();
         formData.append('id', id);
         formData.append('broader_id', broader_id);
-        formData.append('tree', isExport);
+        formData.append('tree', treeName);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
             if(parents.length > 1) return;
             parents = parents[0];
@@ -805,7 +586,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
                 broader_id: self
             });
             $scope.$broadcast('angular-ui-tree:collapse-all');
-            var t = angular.element(document.getElementById(isExport + '-tree')).scope();
+            var t = angular.element(document.getElementById(treeName + '-tree')).scope();
             t.$element[0].scrollTop = 0;
             var nodesScope = t.$nodesScope;
             var children = nodesScope.childNodes();
@@ -852,18 +633,17 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         }
     };
 
-    $scope.expandElement = function($item, $model, $label, $event, isExport) {
-        expandElement($item.id, $item.broader_id, isExport);
+    $scope.expandElement = function($item, $model, $label, $event, treeName) {
+        expandElement($item.id, $item.broader_id, treeName);
     };
 
-    var publishNewChildrenToAllOccurrences = function(id, newChildren, isExport, isDelete) {
-        isExport = getTreeType(isExport);
+    var publishNewChildrenToAllOccurrences = function(id, newChildren, treeName, isDelete) {
         isDelete = isDelete || false;
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('tree', isExport);
+        formData.append('tree', treeName);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
-            var t = angular.element(document.getElementById(isExport + '-tree')).scope();
+            var t = angular.element(document.getElementById(treeName + '-tree')).scope();
             var nodesScope = t.$nodesScope;
             var children = nodesScope.childNodes();
             if(parents.length > 0) {
@@ -927,28 +707,26 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'scopeService', 'httpPostFactory'
         }
     };
 
-    $scope.getSearchTree = function(searchString, isExport) {
-        isExport = getTreeType(isExport);
+    $scope.getSearchTree = function(searchString, treeName) {
         var formData = new FormData();
         formData.append('val', searchString);
-        formData.append('tree', isExport);
+        formData.append('tree', treeName);
         return httpPostPromise.getData('api/search', formData).then(function(result) {
             return result;
         });
     };
 
-    $scope.export = function(isExport, id) {
+    $scope.export = function(treeName, id) {
         $scope.waitingForFile = true;
         var formData = new FormData();
-        isExport = getTreeType(isExport);
-        formData.append('isExport', isExport);
+        formData.append('treeName', treeName);
         if(typeof id !== 'undefined' && id > 0) {
             formData.append('root', id);
         }
         var promise = httpPostPromise.getData('api/export', formData);
         promise.then(function(data) {
             $scope.waitingForFile = false;
-            var filename = isExport + '_thesaurus.rdf';
+            var filename = treeName + '_thesaurus.rdf';
             createDownloadFile(data, filename);
         });
     };

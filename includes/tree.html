@@ -1,6 +1,6 @@
 <div ng-controller="treeCtrl" resize-watcher>
     <div class="col-md-6">
-        <div class="col-md-6" ng-init="getTree()">
+        <div class="col-md-6" ng-controller="masterCtrl">
             <div class="control-elements">
                 <h2>Master thesaurus</h2>
                 <div class="btn-group" uib-dropdown>
@@ -28,67 +28,67 @@
                         <i class="glyphicon glyphicon-remove"></i> No Results Found
                     </div>
                 </div>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!rdfTree['master']"/>Enable Drag & Drop</label>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing" ng-disabled="!rdfTree['master']"/>Enable Editing</label>
+                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!masterTree.tree"/>Enable Drag & Drop</label>
+                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing" ng-disabled="!masterTree.tree"/>Enable Editing</label>
             </div>
-            <div id="master-tree" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="rdfTree['master']">
-                <ul ui-tree-nodes ng-model="rdfTree['master']" style="margin-bottom: 8px;">
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal('master')">
+            <div id="master-tree" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="masterTree.tree">
+                <ul ui-tree-nodes ng-model="masterTree.tree" style="margin-bottom: 8px;">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
                         Create new top concept
                     </li>
-                    <li ng-repeat="parent in rdfTree['master']" context-menu="getContextMenu(parent, 'master')" ui-tree-node ng-include="'includes/subTree.html'">
+                    <li ng-repeat="parent in masterTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
                     </li>
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal('master')">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
                         Create new top concept
                     </li>
                 </ul>
             </div>
-            <div ng-hide="rdfTree['master']">
+            <div ng-hide="masterTree.tree">
                 <spinner>
                 </spinner>
             </div>
         </div>
-        <div class="col-md-6" ng-init="getTree('clone')">
+        <div class="col-md-6" ng-controller="projectCtrl">
             <div class="control-elements">
                 <h2>Project thesaurus</h2>
                 <div class="btn-group" uib-dropdown>
-                    <button type="file" id="default-import-clone" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'new', 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
+                    <button type="file" id="default-import-project" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'new', 'project')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
                         Import (.rdf)
                     </button>
                     <button type="button" class="btn btn-default" uib-dropdown-toggle>
                         <span class="caret"></span>
                         <span class="sr-only">Toggle import options</span>
                     </button>
-                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="default-import-clone">
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'extend', 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Only add new concepts</a></li>
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'update', 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Also update existing concepts</a></li>
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new', 'clone')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="default-import-project">
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'extend', 'project')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Only add new concepts</a></li>
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'update', 'project')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Also update existing concepts</a></li>
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new', 'project')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default" ng-click="export('clone')">Export (.rdf)</button>
+                <button type="button" class="btn btn-default" ng-click="export('project')">Export (.rdf)</button>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="selectedSearchVal['clone']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, 'clone')" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'clone')" typeahead-loading="loadingResults['clone']" typeahead-no-results="noResults['clone']">
+                        <input type="text" class="form-control" ng-model="selectedSearchVal['project']" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, 'project')" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, 'project')" typeahead-loading="loadingResults['project']" typeahead-no-results="noResults['project']">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
-                    <i ng-show="loadingResults['clone']" class="glyphicon glyphicon-refresh"></i>
-                    <div ng-show="noResults['clone']">
+                    <i ng-show="loadingResults['project']" class="glyphicon glyphicon-refresh"></i>
+                    <div ng-show="noResults['project']">
                         <i class="glyphicon glyphicon-remove"></i> No Results Found
                     </div>
                 </div>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop" ng-disabled="!rdfTree['clone']"/>Enable Drag & Drop</label>
+                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop" ng-disabled="!projectTree.tree"/>Enable Drag & Drop</label>
             </div>
-            <div id="clone-tree" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="1000" data-expand-on-hover="true">
-                <ul ui-tree-nodes ng-model="rdfTree['clone']" style="margin-bottom: 8px;">
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal('clone')">
+            <div id="project-tree" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="1000" data-expand-on-hover="true">
+                <ul ui-tree-nodes ng-model="projectTree.tree" style="margin-bottom: 8px;">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
                         Create new top concept
                     </li>
-                    <li ng-repeat="parent in rdfTree['clone']" context-menu="getContextMenu(parent, 'clone')" ui-tree-node ng-include="'includes/subTree.html'">
+                    <li ng-repeat="parent in projectTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
                     </li>
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal('clone')">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
                         Create new top concept
                     </li>
@@ -96,24 +96,24 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6" id="information-alert" ng-show="!informations">
+    <div class="col-md-6" id="information-alert" ng-show="!selectedElement">
         <p class="alert alert-warning">
             Please choose one element from the tree on the left to display it's properties.
         </p>
     </div>
-    <div class="col-md-6" ng-class="{'my-hidden': !informations}">
+    <div class="col-md-6" ng-class="{'my-hidden': !selectedElement}">
         <div id="information-header" class="relation-header">
-            <h2>{{ informations.label }} <small>Informations</small></h2>
+            <h2>{{ selectedElement.properties.label }} <small>Informations</small></h2>
             <div class="col-md-12">
                 <p>
-                    <strong>Concept URL:</strong> {{ informations.url }}
+                    <strong>Concept URL:</strong> {{ selectedElement.properties.concept_url }}
                 </p>
             </div>
         </div>
         <div class="col-md-6">
             <div id="broader-header" class="relation-header">
                 <h3>Broader concepts</h3>
-                <ui-select ng-model="newBroaderConcept" on-select="addBroaderConcept($select.selected, informations.intree)">
+                <ui-select ng-model="newBroaderConcept" on-select="addBroaderConcept($select.selected, selectedElement.properties.intree)">
                   <ui-select-match>{{ $select.selected.label }}</ui-select-match>
                   <ui-select-choices repeat="c in matchingBroaderConcepts" refresh="getMatchingConcepts($select.search, 'broader')">
                     <span ng-bind-html="c.label | highlight: $select.search"></span>
@@ -121,22 +121,22 @@
                 </ui-select>
             </div>
             <ul id="broader-list" class="scrollable-list">
-                <li ng-repeat="br in informations.broaderConcepts" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
+                <li ng-repeat="br in selectedElement.relations.broader" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteBroaderConcept($index, informations.intree)">
+                    ng-click="deleteBroaderConcept($index, selectedElement.properties.intree)">
                         &times;
                     </span>
                     <strong>{{ br.label }}</strong>
                     <br/>
                     {{ br.url }}
                 </li>
-                <li class="alert alert-warning" ng-if="!informations.broaderConcepts || informations.broaderConcepts.length == 0">
+                <li class="alert alert-warning" ng-if="!selectedElement.relations.broader || selectedElement.relations.broader.length == 0">
                     No broader concepts found.
                 </li>
             </ul>
             <div id="narrower-header" class="relation-header">
                 <h3>Narrower concepts</h3>
-                <ui-select ng-model="newNarrowerConcept" on-select="addNarrowerConcept($select.selected, informations.intree)">
+                <ui-select ng-model="newNarrowerConcept" on-select="addNarrowerConcept($select.selected, selectedElement.treeName)">
                   <ui-select-match>{{ $select.selected.label }}</ui-select-match>
                   <ui-select-choices repeat="c in matchingNarrowerConcepts" refresh="getMatchingConcepts($select.search, 'narrower')">
                     <span ng-bind-html="c.label | highlight: $select.search"></span>
@@ -145,16 +145,16 @@
                 </ui-select>
             </div>
             <ul id="narrower-list" class="scrollable-list">
-                <li ng-repeat="na in informations.narrowerConcepts" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
+                <li ng-repeat="na in selectedElement.relations.narrower" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteNarrowerConcept($index, informations.intree)">
+                    ng-click="deleteNarrowerConcept($index, selectedElement.properties.intree)">
                         &times;
                     </span>
                     <strong>{{ na.label }}</strong>
                     <br/>
                     {{ na.url }}
                 </li>
-                <li class="alert alert-warning" ng-if="!informations.narrowerConcepts || informations.narrowerConcepts.length == 0">
+                <li class="alert alert-warning" ng-if="!selectedElement.relations.narrower || selectedElement.relations.narrower.length == 0">
                     No narrower concepts found.
                 </li>
             </ul>
@@ -162,14 +162,14 @@
         <div class="col-md-6">
             <div id="preferred-header" class="relation-header">
                 <h3>Preferred labels</h3>
-                <div ng-if="informations.prefLabels.loading">
+                <div ng-if="selectedElement.loading.prefLabels">
                     <spinner/>
                 </div>
-                <div ng-show="!informations.prefLabels.loading">
+                <div ng-show="!selectedElement.loading.prefLabels">
                     <div class="input-group col-md-offset-1 col-md-11">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <flag country="{{ selectedPrefLabelLanguage.langShort }}" size="16"></flag><span class="caret"></span>
+                                <flag country="{{ preferredLanguage.langShort }}" size="16"></flag><span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" uib-dropdown-menu>
                                 <li ng-repeat="lang in possibleLanguages">
@@ -183,48 +183,48 @@
                         <input type="text" class="form-control" ng-model="newPrefLabelText.text" />
                         <span class="input-group-btn">
                             <button class="btn btn-success"
-                            ng-click="addPrefLabel(informations.intree)" ng-disabled="!newPrefLabelText.text || newPrefLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
+                            ng-click="addPrefLabel(selectedElement.properties.intree)" ng-disabled="!newPrefLabelText.text || newPrefLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
                         </span>
                     </div>
                 </div>
             </div>
             <ul id="preferred-list" class="scrollable-list">
-                <li ng-repeat="pl in informations.prefLabels" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
+                <li ng-repeat="pl in selectedElement.labels.pref" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deletePrefLabel($index, informations.intree)">
+                    ng-click="deletePrefLabel($index, selectedElement.properties.intree)">
                         &times;
                     </span>
                     <span class="lang">{{ pl.langName }} <flag country="{{ pl.langShort }}" size="16"></flag></span>
-                    <div ng-show="informations.prefLabels.editIndex != $index">
+                    <div ng-show="selectedElement.labels.pref.editIndex != $index">
                         <i>
                             {{ pl.label }}
                         </i>
                         <i class="fa fa-pencil edit-entry" ng-click="editPrefLabelEntry($index)">
                         </i>
                     </div>
-                    <div ng-if="informations.prefLabels.editIndex == $index">
-                        <input type="text" ng-model="informations.prefLabels.editText" />
-                        <button class="btn btn-success" ng-click="storePrefLabelEdit(informations.intree)"><i class="fa fa-check"></i></button>
+                    <div ng-if="selectedElement.labels.pref.editIndex == $index">
+                        <input type="text" ng-model="selectedElement.labels.pref.editText" />
+                        <button class="btn btn-success" ng-click="storePrefLabelEdit(selectedElement.properties.intree)"><i class="fa fa-check"></i></button>
                         <button class="btn btn-danger" ng-click="resetPrefLabelEdit()"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
-                <li class="alert alert-warning" ng-if="!informations.prefLabels || informations.prefLabels.length == 0">
+                <li class="alert alert-warning" ng-if="!selectedElement.labels.pref || selectedElement.labels.pref.length == 0">
                     No preferred labels found.
                 </li>
             </ul>
             <div id="alternative-header" class="relation-header">
                 <h3>Alternative labels</h3>
-                <div ng-if="informations.altLabels.loading">
+                <div ng-if="selectedElement.loading.altLabels">
                     <spinner/>
                 </div>
-                <div ng-show="!informations.altLabels.loading">
+                <div ng-show="!selectedElement.loading.altLabels">
                     <div class="input-group col-md-offset-1 col-md-11">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <flag country="{{ selectedAltLabelLanguage.langShort }}" size="16"></flag><span class="caret"></span>
+                                <flag country="{{ preferredLanguage.langShort }}" size="16"></flag><span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" uib-dropdown-menu>
-                                <li ng-repeat="lang in possibleLanguages">
+                                <li ng-repeat="lang in languages">
                                     <a href="" ng-click="selectAltLabelLanguage($index)">
                                         <flag class="lang" country="{{ lang.langShort }}" size="16"></flag>
                                         <span style="color: gray;">{{ lang.langName }} ({{ lang.langShort }})</span>
@@ -235,32 +235,32 @@
                         <input type="text" class="form-control" ng-model="newAltLabelText.text" />
                         <span class="input-group-btn">
                             <button class="btn btn-success"
-                            ng-click="addAltLabel(informations.intree)" ng-disabled="!newAltLabelText.text || newAltLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
+                            ng-click="addAltLabel(selectedElement.properties.intree)" ng-disabled="!newAltLabelText.text || newAltLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
                         </span>
                     </div>
                 </div>
             </div>
             <ul id="alternative-list" class="scrollable-list">
-                <li ng-repeat="al in informations.altLabels" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
+                <li ng-repeat="al in selectedElement.labels.alt" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteAltLabel($index, informations.intree)">
+                    ng-click="deleteAltLabel($index, selectedElement.properties.intree)">
                         &times;
                     </span>
                     <span class="lang">{{ al.langName }} <flag country="{{ al.langShort }}" size="16"></flag></span>
-                    <div ng-show="informations.altLabels.editIndex != $index">
+                    <div ng-show="selectedElement.labels.alt.editIndex != $index">
                         <i>
                             {{ al.label }}
                         </i>
                         <i class="fa fa-pencil edit-entry" ng-click="editAltLabelEntry($index)">
                         </i>
                     </div>
-                    <div ng-if="informations.altLabels.editIndex == $index">
-                        <input type="text" ng-model="informations.altLabels.editText" />
-                        <button class="btn btn-success" ng-click="storeAltLabelEdit(informations.intree)"><i class="fa fa-check"></i></button>
+                    <div ng-if="selectedElement.labels.alt.editIndex == $index">
+                        <input type="text" ng-model="selectedElement.labels.alt.editText" />
+                        <button class="btn btn-success" ng-click="storeAltLabelEdit(selectedElement.properties.intree)"><i class="fa fa-check"></i></button>
                         <button class="btn btn-danger" ng-click="resetAltLabelEdit()"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
-                <li class="alert alert-warning" ng-if="!informations.altLabels || informations.altLabels.length == 0">
+                <li class="alert alert-warning" ng-if="!selectedElement.labels.alt || selectedElement.labels.alt.length == 0">
                     No alternative labels found.
                 </li>
             </ul>
