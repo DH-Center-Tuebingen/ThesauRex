@@ -9,6 +9,10 @@ use \DB;
 use Illuminate\Support\Facades\Storage;
 use App\ThBroader;
 use App\ThBroaderProject;
+use App\ThConcept;
+use App\ThConceptProject;
+use App\ThConceptLabel;
+use App\ThConceptLabelProject;
 
 class TreeController extends Controller
 {
@@ -435,7 +439,7 @@ class TreeController extends Controller
                 )
             SELECT  q.*
             FROM    q
-            ORDER BY label ASC
+            ORDER BY is_top_concept DESC, label ASC
         ");
 
         $concepts = [];
@@ -672,11 +676,15 @@ class TreeController extends Controller
         $lang = $request->get('lang');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName == 'project' ? '_export' : '';
-
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
+        if($treeName == 'project') {
+            $thConcept = new ThConceptProject();
+            $thBroader = new ThBroaderProject();
+            $thConceptLabel = new ThConceptLabelProject();
+        } else {
+            $thConcept = new ThConcept();
+            $thBroader = new ThBroader();
+            $thConceptLabel = new ThConceptLabel();
+        }
 
         $tc = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
         if($request->has('broader_id') && $tc) {
@@ -693,35 +701,29 @@ class TreeController extends Controller
 
         $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
 
-        $id = DB::table($thConcept)
-            ->insertGetId([
-                'concept_url' => $url,
-                'concept_scheme' => $scheme,
-                'is_top_concept' => $tc,
-                'lasteditor' => 'postgres'
-            ]);
+        $thConcept->concept_url = $url;
+        $thConcept->concept_scheme = $scheme;
+        $thConcept->is_top_concept = $tc;
+        $thConcept->lasteditor = 'postgres';
+        $thConcept->save();
 
         if($request->has('broader_id')) {
             $broader = $request->get('broader_id');
             if($broader > 0) {
-                DB::table($thBroader)
-                    ->insert([
-                        'broader_id' => $broader,
-                        'narrower_id' => $id
-                    ]);
+                $thBroader->broader_id = $broader;
+                $thBroader->narrower_id = $thConcept->id;
+                $thBroader->save();
             }
         }
 
-        DB::table($thLabel)
-            ->insert([
-                'label' => $label,
-                'concept_id' => $id,
-                'language_id' => $lang,
-                'lasteditor' => 'postgres'
-            ]);
+        $thConceptLabel->label = $label;
+        $thConceptLabel->concept_id = $thConcept->id;
+        $thConceptLabel->language_id = $lang;
+        $thConceptLabel->lasteditor = 'postgres';
+        $thConceptLabel->save();
+
         return response()->json([
-            'newId' => $id,
-            'url' => $url
+            'entry' => $thConcept
         ]);
     }
 
@@ -740,54 +742,53 @@ class TreeController extends Controller
     }
 
     public function addLabel(Request $request) {
-        $label = $request->get('label');
+        $label = $request->get('text');
         $lang = $request->get('lang');
         $type = $request->get('type');
         $cid = $request->get('concept_id');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName === 'project' ? '_export' : '';
-        $thLabel = 'th_concept_label' . $suffix;
-
         if($request->has('id')) {
             $id = $request->get('id');
-            $cond = array(
-                ['id', '=', $id],
-                ['concept_id', '=', $cid],
-                ['language_id', '=', $lang],
-                ['concept_label_type', '=', $type]
-            );
-            DB::table($thLabel)
-                ->where($cond)
-                ->update([
-                    'label' => $label
-                ]);
+            if($treeName == 'project') {
+                $thLabel = ThConceptLabelProject::find($id);
+            } else {
+                $thLabel = ThConceptLabel::find($id);;
+            }
+            $thLabel->label = $label;
         } else {
+            if($treeName == 'project') {
+                $thLabel = new ThConceptLabelProject();
+            } else {
+                $thLabel = new ThConceptLabel();
+            }
             if($type == 1) {
-                $lblCount = DB::table($thLabel)
-                    ->where([
-                        ['language_id', '=', $lang],
-                        ['concept_id', '=', $cid]
-                    ])
-                    ->count();
-
+                $cond = [
+                    ['language_id', '=', $lang],
+                    ['concept_id', '=', $cid]
+                ];
+                if($treeName == 'project') {
+                    $query = ThConceptLabelProject::where($cond);
+                } else {
+                    $query = ThConceptLabel::where($cond);
+                }
+                $lblCount = $query->count();
                 if($lblCount > 0) { //existing prefLabel for desired language, abort
                     return response()->json([
                         'error' => 'Duplicate entry for language ' . $lang
                     ]);
                 }
             }
-
-            $id = DB::table($thLabel)
-                ->insertGetId([
-                    'label' => $label,
-                    'concept_id' => $cid,
-                    'language_id' => $lang,
-                    'concept_label_type' => $type,
-                    'lasteditor' => 'postgres'
-                ]);
+            $thLabel->label = $label;
+            $thLabel->concept_id = $cid;
+            $thLabel->language_id = $lang;
+            $thLabel->concept_label_type = $type;
+            $thLabel->lasteditor = 'postgres';
         }
-        return response()->json($id);
+        $thLabel->save();
+        return response()->json([
+            'label' => $thLabel
+        ]);
     }
 
     public function copy(Request $request) {

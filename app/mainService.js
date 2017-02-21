@@ -2,7 +2,11 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     var trees = ['master', 'project'];
     var main = {};
     main.languages = [];
-    main.preferredLanguage = {};
+    main.preferredLanguages = {
+        pref: {},
+        alt: {},
+        main: {}
+    };
     main.tree = {
         project: {
             tree: [],
@@ -31,15 +35,16 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         message: ''
     };
 
-    main.createNewConceptModal = function(treeName, parent) {
+    main.createNewConceptModal = function(treeName, parent, name) {
         if(!isValidTreeName(treeName)) return;
         var modalInstance = $uibModal.open({
             templateUrl: 'templates/newConceptModal.html',
             controller: function($uibModalInstance) {
                 this.parent = parent;
+                this.newConceptName = name;
                 this.treeName = treeName;
                 this.languages = main.languages;
-                this.preferredLanguage = main.preferredLanguage;
+                this.preferredLanguage = main.preferredLanguages.main;
                 this.addConcept = main.addConcept;
             },
             controllerAs: 'mc'
@@ -63,17 +68,11 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         }
         var promise = addConcept(scheme, parentId, isTC, name, projName, lang.id, treeName);
         promise.then(function(retElem) {
-            var newId = retElem.newId;
-            var newElem = {
-                id: newId,
-                concept_url: retElem.url,
-                concept_scheme: scheme,
-                is_top_concept: isTC,
-                label: name,
-                reclevel: reclevel,
-                children: [],
-                broader_id: parentId
-            };
+            var newElem = retElem.entry;
+            newElem.label = name;
+            newElem.reclevel = reclevel;
+            newElem.broader_id = parentId;
+            main.tree[treeName].concepts.push(newElem);
             addElement(newElem, treeName);
         });
     };
@@ -132,10 +131,26 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return httpPostPromise.getData('api/export', formData);
     };
 
+    main.setPrefLabelLanguage = function(index) {
+        main.preferredLanguages.pref = main.languages[index];
+    };
+
+    main.setAltLabelLanguage = function(index) {
+        main.preferredLanguages.alt = main.languages[index];
+    };
+
+    main.setLanguage = function(index) {
+        main.preferredLanguages.main = main.languages[index];
+    };
+
     main.addBroader = function(parent, treeName) {
         if(!isValidTreeName(treeName)) return;
-        var formData = new FormData();
         var id = main.selectedElement.properties.id;
+        addBroaderWithId(id, parent, treeName);
+    };
+
+    function addBroaderWithId(id, parent, treeName) {
+        var formData = new FormData();
         formData.append('id', id);
         formData.append('broader_id', parent.id);
         formData.append('treeName', treeName);
@@ -146,7 +161,51 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             main.tree[treeName].childList[parent.id].push(id);
             main.tree[treeName].concepts[parent.id].children = getChildrenById(parent.id, treeName);
         });
+    }
+
+    main.addNarrower = function(item, treeName) {
+        var parent = main.selectedElement.properties;
+        if(item.isNew) {
+            main.createNewConceptModal(treeName, parent, item.label);
+        } else {
+            addBroaderWithId(item.id, parent, treeName);
+        }
     };
+
+    main.addPrefLabel = function(labelText, language, cid, treeName, id) {
+        addLabel(1, labelText, language, cid, treeName, id);
+    };
+
+    main.addAltLabel = function(labelText, language, cid, treeName, id) {
+        addLabel(2, labelText, language, cid, treeName, id);
+    };
+
+    function addLabel(labelType, labelText, language, cid, treeName, id) {
+        var isEdit = typeof id != 'undefined';
+        var formData = new FormData();
+        formData.append('text', labelText);
+        formData.append('lang', language.id);
+        formData.append('type', labelType);
+        formData.append('concept_id', cid);
+        formData.append('treeName', treeName);
+        if(isEdit) formData.append('id', id);
+        httpPostFactory('api/add/label', formData, function(response) {
+            var label = response.label;
+            if(!isEdit) {
+                var data = [];
+                var curr = {
+                    id: label.id,
+                    label: label.label,
+                    concept_label_type: label.concept_label_type,
+                    short_name: language.langShort,
+                    display_name: language.langName,
+                    language_id: language.id
+                };
+                data.push(curr);
+                setLabels(data);
+            }
+        });
+    }
 
     main.getSearchResults = function(searchString, treeName, appendSearchString) {
         appendSearchString = appendSearchString || false;
@@ -200,7 +259,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return httpPostPromise.getData('api/get/label', formData);
     }
 
-    function setLabels(data, prefLabels, altLabels) {
+    function setLabels(data) {
         // var setPrefLabels = typeof prefLabels !== 'undefined' && prefLabels !== null;
         // var setAltLabels = typeof altLabels !== 'undefined' && altLabels !== null;
         angular.forEach(data, function(lbl, key) {
@@ -211,9 +270,9 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 langName: lbl.display_name,
                 langId: lbl.language_id
             };
-            if(/*setPrefLabels && */lbl.concept_label_type == 1) {
+            if(lbl.concept_label_type == 1) {
                 main.selectedElement.labels.pref.push(curr);
-            } else if(/*setAltLabels && */lbl.concept_label_type == 2) {
+            } else if(lbl.concept_label_type == 2) {
                 main.selectedElement.labels.alt.push(curr);
             }
         });
@@ -248,7 +307,11 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         if(typeof parentId == 'undefined' || parentId < 0) {
             main.tree[treeName].tree.push(element);
         } else {
-            main.tree[treeName].concepts[parentId].push(element);
+            if(typeof main.tree[treeName].childList[parentId] == 'undefined') {
+                main.tree[treeName].childList[parentId] = [];
+            }
+            main.tree[treeName].childList[parentId].push(element.id);
+            main.tree[treeName].concepts[parentId].children = getChildrenById(parentId, treeName);
         }
     }
 
@@ -284,7 +347,9 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             var l = main.languages[0];
             for(var k in l) {
                 if(l.hasOwnProperty(k)) {
-                    main.preferredLanguage[k] = l[k];
+                    main.preferredLanguages.main[k] = l[k];
+                    main.preferredLanguages.pref[k] = l[k];
+                    main.preferredLanguages.alt[k] = l[k];
                 }
             }
         });
@@ -331,6 +396,17 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     function getChildrenById(id, treeName) {
         return getChildren(id, main.tree[treeName].childList, main.tree[treeName].concepts);
     }
+
+    main.displayAlert = function(title, message) {
+        var modalInstance = $uibModal.open({
+            templateUrl: 'templates/alertModal.html',
+            controller: function($uibModalInstance) {
+                this.alertTitle = title;
+                this.alertMsg = message;
+            },
+            controllerAs: 'mc'
+        });
+    };
 
     return main;
 }]);

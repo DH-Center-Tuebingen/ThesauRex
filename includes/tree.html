@@ -96,12 +96,12 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6" id="information-alert" ng-show="!selectedElement">
+    <div class="col-md-6" id="information-alert" ng-show="!selectedElement.properties.id">
         <p class="alert alert-warning">
             Please choose one element from the tree on the left to display it's properties.
         </p>
     </div>
-    <div class="col-md-6" ng-class="{'my-hidden': !selectedElement}">
+    <div class="col-md-6" ng-class="{'my-hidden': !selectedElement.properties.id}">
         <div id="information-header" class="relation-header">
             <h2>{{ selectedElement.properties.label }} <small>Informations</small></h2>
             <div class="col-md-12">
@@ -176,10 +176,10 @@
                     <div class="input-group col-md-offset-1 col-md-11">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <flag country="{{ preferredLanguage.langShort }}" size="16"></flag><span class="caret"></span>
+                                <flag country="{{ preferredLanguages.pref.langShort }}" size="16"></flag><span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" uib-dropdown-menu>
-                                <li ng-repeat="lang in possibleLanguages">
+                                <li ng-repeat="lang in languages">
                                     <a href="" ng-click="selectPrefLabelLanguage($index)">
                                         <flag class="lang" country="{{ lang.langShort }}" size="16"></flag>
                                         <span style="color: gray;">{{ lang.langName }} ({{ lang.langShort }})</span>
@@ -190,7 +190,7 @@
                         <input type="text" class="form-control" ng-model="newPrefLabelText.text" />
                         <span class="input-group-btn">
                             <button class="btn btn-success"
-                            ng-click="addPrefLabel(selectedElement.properties.intree)" ng-disabled="!newPrefLabelText.text || newPrefLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
+                            ng-click="addPrefLabel(newPrefLabelText.text, preferredLanguages.pref, selectedElement.treeName)" ng-disabled="!newPrefLabelText.text || newPrefLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
                         </span>
                     </div>
                 </div>
@@ -228,7 +228,7 @@
                     <div class="input-group col-md-offset-1 col-md-11">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <flag country="{{ preferredLanguage.langShort }}" size="16"></flag><span class="caret"></span>
+                                <flag country="{{ preferredLanguages.alt.langShort }}" size="16"></flag><span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" uib-dropdown-menu>
                                 <li ng-repeat="lang in languages">
@@ -241,8 +241,7 @@
                         </div>
                         <input type="text" class="form-control" ng-model="newAltLabelText.text" />
                         <span class="input-group-btn">
-                            <button class="btn btn-success"
-                            ng-click="addAltLabel(selectedElement.properties.intree)" ng-disabled="!newAltLabelText.text || newAltLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
+                            <button class="btn btn-success" ng-click="addAltLabel(newAltLabelText.text, preferredLanguages.alt, selectedElement.treeName)" ng-disabled="!newAltLabelText.text || newAltLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
                         </span>
                     </div>
                 </div>

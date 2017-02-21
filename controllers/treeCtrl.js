@@ -1,6 +1,6 @@
 thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, mainService) {
     $scope.languages = mainService.languages;
-    $scope.preferredLanguage = mainService.preferredLanguage;
+    $scope.preferredLanguages = mainService.preferredLanguages;
     $scope.masterTree = mainService.tree.master;
     $scope.projectTree = mainService.tree.project;
     $scope.selectedElement = mainService.selectedElement;
@@ -204,7 +204,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     };
 
     $scope.selectPrefLabelLanguage = function(index) {
-        $scope.selectedPrefLabelLanguage = $scope.possibleLanguages[index];
+        mainService.setPrefLabelLanguage(index);
     };
 
     $scope.editPrefLabelEntry = function(index) {
@@ -249,14 +249,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         delete $scope.informations.altLabels.editText;
     };
 
-    var addPrefLabel = function(text, langId, treeName, id) {
-        return addLabel(text, langId, 1, id, treeName);
-    };
-
-    var addAltLabel = function(text, langId, treeName, id) {
-        return addLabel(text, langId, 2, id, treeName);
-    };
-
     var removePrefLabel = function(id, treeName) {
         return removeLabel(id, treeName);
     };
@@ -273,57 +265,23 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         return promise;
     };
 
-    var addLabel = function(text, langId, type, id, treeName) {
-        var formData = new FormData();
-        formData.append('label', text);
-        formData.append('lang', langId);
-        formData.append('type', type);
-        formData.append('concept_id', $scope.informations.id);
-        formData.append('treeName', treeName);
-        if(typeof id !== 'undefined') formData.append('id', id);
-        var promise = httpPostPromise.getData('api/add/label', formData);
-        return promise;
-    };
-
-    $scope.addPrefLabel = function(treeName) {
-        for(var i=0; i<$scope.informations.prefLabels.length; i++) {
-            var l = $scope.informations.prefLabels[i];
-            if(l.langId == $scope.selectedPrefLabelLanguage.id) {
-                $scope.alertTitle = 'prefLabel vorhanden';
-                $scope.alertMsg = "Es ist bereits ein prefLabel für " + $scope.selectedPrefLabelLanguage.langName + " vorhanden.";
-                var modalInstance = $uibModal.open({
-                    templateUrl: 'templates/alertModal.html',
-                    scope: $scope
-                });
+    $scope.addPrefLabel = function(labelText, language, treeName) {
+        for(var i=0; i<$scope.selectedElement.labels.pref.length; i++) {
+            var l = $scope.selectedElement.labels.pref[i];
+            if(l.langId == $scope.preferredLanguages.pref.id) {
+                var alertTitle = 'prefLabel vorhanden';
+                var alertMsg = "Es ist bereits ein prefLabel für " + $scope.preferredLanguages.pref.langName + " vorhanden.";
+                mainService.displayAlert(alertTitle, alertMsg);
                 return;
             }
         }
-        var promise = addPrefLabel($scope.newPrefLabelText.text, $scope.selectedPrefLabelLanguage.id, treeName);
-        promise.then(function(labelId) {
-            if(labelId < 0) return;
-            $scope.informations.prefLabels.push({
-                id: labelId,
-                label: $scope.newPrefLabelText.text,
-                langShort: $scope.selectedPrefLabelLanguage.langShort,
-                langName: $scope.selectedPrefLabelLanguage.langName,
-                langId: $scope.selectedPrefLabelLanguage.id
-            });
-            $scope.newPrefLabelText.text = "";
-        });
+        var cid = $scope.selectedElement.properties.id;
+        mainService.addPrefLabel(labelText, language, cid, treeName);
     };
 
-    $scope.addAltLabel = function(treeName) {
-        var promise = addAltLabel($scope.newAltLabelText.text, $scope.selectedAltLabelLanguage.id, treeName);
-        promise.then(function(labelId) {
-            $scope.informations.altLabels.push({
-                id: labelId,
-                label: $scope.newAltLabelText.text,
-                langShort: $scope.selectedAltLabelLanguage.langShort,
-                langName: $scope.selectedAltLabelLanguage.langName,
-                langId: $scope.selectedAltLabelLanguage.id
-            });
-            $scope.newAltLabelText.text = "";
-        });
+    $scope.addAltLabel = function(labelText, language, treeName) {
+        var cid = $scope.selectedElement.properties.id;
+        mainService.addAltLabel(labelText, language, cid, treeName);
     };
 
     $scope.deleteBroaderConcept = function($index, treeName) {
@@ -425,70 +383,11 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     };
 
     $scope.addBroader = function($item, treeName) {
-        console.log($item);
-        console.log(treeName);
         mainService.addBroader($item, treeName);
     };
 
     $scope.addNarrower = function($item, treeName) {
-        console.log($item);
-        console.log(treeName);
-    };
-
-    $scope.addBroaderConcept = function(b, treeName) {
-        console.log(b);
-        var promise = updateConcept($scope.currentEntry.id, b.id, treeName);
-        promise.then(function() {
-            $scope.informations.broaderConcepts = [];
-            return getRelations($scope.currentEntry.id, treeName);
-        }).then(function(data) {
-            publishNewChildrenToAllOccurrences(b.id, $scope.currentEntry, treeName);
-            setRelations(data, $scope.informations.broaderConcepts, null);
-        });
-    };
-
-    $scope.addNarrowerConcept = function(n, treeName) {
-        var oldNarrowers;
-        var promise;
-        promise = getRelations($scope.currentEntry.id, treeName);
-        promise.then(function(data) {
-            if(n.isNew) {
-                oldNarrowers = data.narrower;
-                promise = addPromisedConcept(n.label, $scope.currentEntry, $scope.preferredLanguage, treeName);
-            } else {
-                promise = updateConcept(n.id, $scope.currentEntry.id, treeName);
-            }
-            return promise;
-        }).then(function() {
-            $scope.informations.narrowerConcepts = [];
-            return getRelations($scope.currentEntry.id, treeName);
-        }).then(function(data) {
-            var inserted;
-            if(n.isNew) {
-                var narrowers = data.narrower;
-                for(var i=0; i<narrowers.length; i++) {
-                    var curr = narrowers[i];
-                    var found = false;
-                    for(var j=0; j<oldNarrowers.length; j++) {
-                        var old = oldNarrowers[j];
-                        if(old.id == curr.id) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if(!found) {
-                        inserted = curr;
-                        break;
-                    }
-
-                    if(inserted) break;
-                }
-            } else {
-                inserted = n;
-            }
-            publishNewChildrenToAllOccurrences($scope.currentEntry.id, inserted, treeName, false);
-            setRelations(data, null, $scope.informations.narrowerConcepts);
-        });
+        mainService.addNarrower($item, treeName);
     };
 
     angular.element(document).ready(function () {
