@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ThConceptLabel extends Model
+class ThConceptLabelProject extends Model
 {
     protected $table = 'th_concept_label_export';
     /**

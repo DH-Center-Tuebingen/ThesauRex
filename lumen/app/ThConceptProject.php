@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ThConcept extends Model
+class ThConceptProject extends Model
 {
     protected $table = 'th_concept_export';
     /**

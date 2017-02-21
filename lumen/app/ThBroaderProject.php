@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ThBroader extends Model
+class ThBroaderProject extends Model
 {
     protected $table = 'th_broaders_export';
     /**
