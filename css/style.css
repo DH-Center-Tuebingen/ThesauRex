@@ -36,7 +36,7 @@
     overflow: auto;
 }
 
-#master-tree, #clone-tree, .scrollable-list {
+#master-tree, #project-tree, .scrollable-list {
     overflow: auto;
 }
 

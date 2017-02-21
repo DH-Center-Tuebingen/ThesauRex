@@ -130,6 +130,25 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return httpPostPromise.getData('api/export', formData);
     };
 
+    main.getSearchResults = function(searchString, treeName, appendSearchString) {
+        appendSearchString = appendSearchString || false;
+        var formData = new FormData();
+        formData.append('val', searchString);
+        formData.append('tree', treeName);
+        return httpPostPromise.getData('api/search', formData).then(function(result) {
+            if(appendSearchString) {
+                var item = {
+                    label: searchString,
+                    id: -1,
+                    broader_label: 'Add new',
+                    broader_id: -1
+                };
+                result.push(item);
+            }
+            return result;
+        });
+    };
+
     function isValidTreeName(treeName) {
         return trees.indexOf(treeName) > -1;
     }

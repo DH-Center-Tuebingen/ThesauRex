@@ -113,12 +113,16 @@
         <div class="col-md-6">
             <div id="broader-header" class="relation-header">
                 <h3>Broader concepts</h3>
-                <ui-select ng-model="newBroaderConcept" on-select="addBroaderConcept($select.selected, selectedElement.properties.intree)">
-                  <ui-select-match>{{ $select.selected.label }}</ui-select-match>
-                  <ui-select-choices repeat="c in matchingBroaderConcepts" refresh="getMatchingConcepts($select.search, 'broader')">
-                    <span ng-bind-html="c.label | highlight: $select.search"></span>
-                  </ui-select-choices>
-                </ui-select>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Add broader" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, $model, $label, $event, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
+                        <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
+                    </div>
+                    <i ng-show="loadingBroaderSearchResults" class="glyphicon glyphicon-refresh"></i>
+                    <div ng-show="noBroaderFound">
+                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    </div>
+                </div>
             </div>
             <ul id="broader-list" class="scrollable-list">
                 <li ng-repeat="br in selectedElement.relations.broader" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
@@ -136,13 +140,16 @@
             </ul>
             <div id="narrower-header" class="relation-header">
                 <h3>Narrower concepts</h3>
-                <ui-select ng-model="newNarrowerConcept" on-select="addNarrowerConcept($select.selected, selectedElement.treeName)">
-                  <ui-select-match>{{ $select.selected.label }}</ui-select-match>
-                  <ui-select-choices repeat="c in matchingNarrowerConcepts" refresh="getMatchingConcepts($select.search, 'narrower')">
-                    <span ng-bind-html="c.label | highlight: $select.search"></span>
-                    <small ng-if="c.additionalInfo && c.additionalInfo.length > 0"> ({{ c.additionalInfo }})</small>
-                  </ui-select-choices>
-                </ui-select>
+                <div class="search-container">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="narrowerSearch" ng-model-options="{ debounce: 250 }" placeholder="Add narrower" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName, true)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addNarrower($item, selectedElement.treeName)" typeahead-loading="loadingNarrowerSearchResults" typeahead-no-results="noNarrowerFound" />
+                        <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
+                    </div>
+                    <i ng-show="loadingNarrowerSearchResults" class="glyphicon glyphicon-refresh"></i>
+                    <div ng-show="noNarrowerFound">
+                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    </div>
+                </div>
             </div>
             <ul id="narrower-list" class="scrollable-list">
                 <li ng-repeat="na in selectedElement.relations.narrower" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">

@@ -433,6 +433,11 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         }
     };
 
+    $scope.addBroader = function($item, $model, $label, $event, treeName) {
+        console.log($item);
+        console.log(treeName);
+    };
+
     $scope.addBroaderConcept = function(b, treeName) {
         console.log(b);
         var promise = updateConcept($scope.currentEntry.id, b.id, treeName);
@@ -667,13 +672,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         }
     };
 
-    $scope.getSearchTree = function(searchString, treeName) {
-        var formData = new FormData();
-        formData.append('val', searchString);
-        formData.append('tree', treeName);
-        return httpPostPromise.getData('api/search', formData).then(function(result) {
-            return result;
-        });
+    $scope.getSearchTree = function(searchString, treeName, appendSearchString) {
+        return mainService.getSearchResults(searchString, treeName, appendSearchString);
     };
 
     $scope.export = function(treeName, id) {

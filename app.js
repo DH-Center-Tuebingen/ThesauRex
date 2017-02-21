@@ -55,7 +55,7 @@ thesaurexApp.directive('resizeWatcher', function($window) {
             var controlHeight = controlElement.offsetHeight + controlElement.offsetTop;
             if(isSm) {
                 $('#master-tree').css('height', '');
-                $('#clone-tree').css('height', '');
+                $('#project-tree').css('height', '');
                 $('#broader-list').css('height', '');
                 $('#narrower-list').css('height', '');
                 $('#preferred-list').css('height', '');
@@ -74,7 +74,7 @@ thesaurexApp.directive('resizeWatcher', function($window) {
                 var labelHeight = (rightHeight - (2 * subHeaderHeight)) / 2;
 
                 $('#master-tree').css('height', containerHeight);
-                $('#clone-tree').css('height', containerHeight);
+                $('#project-tree').css('height', containerHeight);
                 $('#broader-list').css('height', labelHeight);
                 $('#narrower-list').css('height', labelHeight);
                 $('#preferred-list').css('height', labelHeight);
