@@ -80,7 +80,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         main.selectedElement.labels.alt.length = 0;
         main.selectedElement.relations.broader.length = 0;
         main.selectedElement.relations.narrower.length = 0;
-        displayInformation(element);
+        displayInformation(element, treeName);
     };
 
     function isValidTreeName(treeName) {
