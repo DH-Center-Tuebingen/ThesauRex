@@ -82,10 +82,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         }
     };
 
-    var getTreeType = function(treeName) {
-        return (typeof treeName === 'undefined' || treeName != 'project') ? 'master' : 'project';
-    };
-
     $scope.addConcept = function(name, concept, lang, treeName) {
         mainService.addConcept(name, concept, lang, treeName);
     };
@@ -96,7 +92,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     };
 
     var updateRelation = function(narrower, oldBroader, newBroader, treeName) {
-        if(typeof treeName === 'undefined') treeName = 'master';
         console.log(narrower+","+ oldBroader+","+ newBroader);
         var formData = new FormData();
         formData.append('narrower_id', narrower);
@@ -202,26 +197,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     $scope.uploadFile = function(file, errFiles, type, treeName) {
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
-        if(file) {
-            mainService.disableUi('Uploading file. Please wait.');
-            file.upload = Upload.upload({
-                 url: 'api/import',
-                 data: { file: file, treeName: treeName, type: type }
-            });
-            file.upload.then(function(response) {
-                $timeout(function() {
-                    file.result = response.data;
-                    $scope.getTree(treeName);
-                    mainService.enableUi();
-                });
-            }, function(reponse) {
-                if(response.status > 0) {
-                    $scope.errorMsg = response.status + ': ' + response.data;
-                }
-            }, function(evt) {
-                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-            });
-        }
+        mainService.uploadFile(file, errFiles, type, treeName);
     };
 
     var getChildCount = function(id, treeName) {

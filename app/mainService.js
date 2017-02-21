@@ -97,6 +97,29 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         main.blockedUi.message = '';
     };
 
+    main.uploadFile = function(file, errFiles, type, treeName) {
+        if(file) {
+            main.disableUi('Uploading file. Please wait.');
+            file.upload = Upload.upload({
+                 url: 'api/import',
+                 data: { file: file, treeName: treeName, type: type }
+            });
+            file.upload.then(function(response) {
+                $timeout(function() {
+                    file.result = response.data;
+                    main.fillTree(treeName);
+                    main.enableUi();
+                });
+            }, function(reponse) {
+                if(response.status > 0) {
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function(evt) {
+                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+            });
+        }
+    };
+
     main.promisedExport = function(treeName, id) {
         if(!isValidTreeName(treeName)) return;
         var formData = new FormData();
