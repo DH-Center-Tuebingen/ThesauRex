@@ -72,6 +72,12 @@
     cursor: pointer;
 }
 
+.inline-edit {
+    border: none;
+    border-bottom: 1px solid gray;
+    font-style: italic;
+}
+
 textarea {
     resize: vertical;
 }

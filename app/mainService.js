@@ -149,6 +149,16 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         addBroaderWithId(id, parent, treeName);
     };
 
+    main.setEditLabelEntry = function(label) {
+        label.editText = label.label;
+        label.editMode = true;
+    };
+
+    main.resetLabelEdit = function(label) {
+        label.editText = '';
+        label.editMode = false;
+    };
+
     function addBroaderWithId(id, parent, treeName) {
         var formData = new FormData();
         formData.append('id', id);
@@ -173,39 +183,58 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     };
 
     main.addPrefLabel = function(labelText, language, cid, treeName, id) {
-        addLabel(1, labelText, language, cid, treeName, id);
+        var promise = addLabel(1, labelText, language, cid, treeName, id);
+        promise.then(function(response) {
+            postAdd(response);
+        });
     };
 
     main.addAltLabel = function(labelText, language, cid, treeName, id) {
-        addLabel(2, labelText, language, cid, treeName, id);
+        var promise = addLabel(2, labelText, language, cid, treeName, id);
+        promise.then(function(response) {
+            postAdd(response);
+        });
     };
 
-    function addLabel(labelType, labelText, language, cid, treeName, id) {
-        var isEdit = typeof id != 'undefined';
-        var formData = new FormData();
-        formData.append('text', labelText);
-        formData.append('lang', language.id);
-        formData.append('type', labelType);
-        formData.append('concept_id', cid);
-        formData.append('treeName', treeName);
-        if(isEdit) formData.append('id', id);
-        httpPostFactory('api/add/label', formData, function(response) {
-            var label = response.label;
-            if(!isEdit) {
-                var data = [];
-                var curr = {
-                    id: label.id,
-                    label: label.label,
-                    concept_label_type: label.concept_label_type,
-                    short_name: language.langShort,
-                    display_name: language.langName,
-                    language_id: language.id
-                };
-                data.push(curr);
-                setLabels(data);
-            }
+    main.updatePrefLabel = function(label, cid, treeName) {
+        var language = {
+            id: label.langId,
+            langShort: label.langShort,
+            langName: label.langName
+        };
+        var promise = addLabel(1, label.editText, language, cid, treeName, label.id);
+        promise.then(function(response) {
+            postUpdate(label);
         });
-    }
+    };
+
+    main.updateAltLabel = function(label, cid, treeName) {
+        var language = {
+            id: label.langId,
+            langShort: label.langShort,
+            langName: label.langName
+        };
+        var promise = addLabel(2, label.editText, language, cid, treeName, label.id);
+        promise.then(function(response) {
+            postUpdate(label);
+        });
+    };
+
+    main.deleteLabel = function(labelType, index, label, treeName) {
+        var formData = new FormData();
+        formData.append('treeName', treeName);
+        formData.append('id', label.id);
+        var promise = httpPostPromise.getData('api/remove/label', formData);
+        promise.then(function(response) {
+            var labelList;
+            if(labelType == 1) {
+                labelList = main.selectedElement.labels.pref;
+            } else if(labelType == 2) {
+                labelList = main.selectedElement.labels.alt;
+            }
+            labelList.splice(index, 1);
+        });
+    };
 
     main.getSearchResults = function(searchString, treeName, appendSearchString) {
         appendSearchString = appendSearchString || false;
@@ -226,6 +255,38 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             return result;
         });
     };
+
+    function addLabel(labelType, labelText, language, cid, treeName, id) {
+        var isEdit = typeof id != 'undefined';
+        var formData = new FormData();
+        formData.append('text', labelText);
+        formData.append('lang', language.id);
+        formData.append('type', labelType);
+        formData.append('concept_id', cid);
+        formData.append('treeName', treeName);
+        if(isEdit) formData.append('id', id);
+        return httpPostPromise.getData('api/add/label', formData);
+    }
+
+    function postUpdate(label) {
+        label.label = label.editText;
+        main.resetLabelEdit(label);
+    }
+
+    function postAdd(response) {
+        var label = response.label;
+        var data = [];
+        var curr = {
+            id: label.id,
+            label: label.label,
+            concept_label_type: label.concept_label_type,
+            short_name: language.langShort,
+            display_name: language.langName,
+            language_id: language.id
+        };
+        data.push(curr);
+        setLabels(data);
+    }
 
     function isValidTreeName(treeName) {
         return trees.indexOf(treeName) > -1;

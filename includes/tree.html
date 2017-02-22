@@ -198,21 +198,21 @@
             <ul id="preferred-list" class="scrollable-list">
                 <li ng-repeat="pl in selectedElement.labels.pref" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deletePrefLabel($index, selectedElement.properties.intree)">
+                    ng-click="deletePrefLabel($index, pl, selectedElement.treeName)">
                         &times;
                     </span>
                     <span class="lang">{{ pl.langName }} <flag country="{{ pl.langShort }}" size="16"></flag></span>
-                    <div ng-show="selectedElement.labels.pref.editIndex != $index">
+                    <div ng-show="!pl.editMode">
                         <i>
                             {{ pl.label }}
                         </i>
-                        <i class="fa fa-pencil edit-entry" ng-click="editPrefLabelEntry($index)">
+                        <i class="fa fa-pencil edit-entry" ng-click="editPrefLabelEntry(pl)">
                         </i>
                     </div>
-                    <div ng-if="selectedElement.labels.pref.editIndex == $index">
-                        <input type="text" ng-model="selectedElement.labels.pref.editText" />
-                        <button class="btn btn-success" ng-click="storePrefLabelEdit(selectedElement.properties.intree)"><i class="fa fa-check"></i></button>
-                        <button class="btn btn-danger" ng-click="resetPrefLabelEdit()"><i class="fa fa-ban"></i></button>
+                    <div ng-if="pl.editMode">
+                        <input type="text" class="inline-edit" ng-model="pl.editText" />
+                        <button class="btn btn-success btn-xs" ng-click="storePrefLabelEdit(pl, selectedElement.treeName)"><i class="fa fa-check"></i></button>
+                        <button class="btn btn-danger btn-xs" ng-click="resetPrefLabelEdit(pl)"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
                 <li class="alert alert-warning" ng-if="!selectedElement.labels.pref || selectedElement.labels.pref.length == 0">
@@ -249,21 +249,21 @@
             <ul id="alternative-list" class="scrollable-list">
                 <li ng-repeat="al in selectedElement.labels.alt" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteAltLabel($index, selectedElement.properties.intree)">
+                    ng-click="deleteAltLabel($index, al, selectedElement.treeName)">
                         &times;
                     </span>
                     <span class="lang">{{ al.langName }} <flag country="{{ al.langShort }}" size="16"></flag></span>
-                    <div ng-show="selectedElement.labels.alt.editIndex != $index">
+                    <div ng-show="!al.editMode">
                         <i>
                             {{ al.label }}
                         </i>
-                        <i class="fa fa-pencil edit-entry" ng-click="editAltLabelEntry($index)">
+                        <i class="fa fa-pencil edit-entry" ng-click="editAltLabelEntry(al)">
                         </i>
                     </div>
-                    <div ng-if="selectedElement.labels.alt.editIndex == $index">
-                        <input type="text" ng-model="selectedElement.labels.alt.editText" />
-                        <button class="btn btn-success" ng-click="storeAltLabelEdit(selectedElement.properties.intree)"><i class="fa fa-check"></i></button>
-                        <button class="btn btn-danger" ng-click="resetAltLabelEdit()"><i class="fa fa-ban"></i></button>
+                    <div ng-if="al.editMode">
+                        <input type="text" class="inline-edit" ng-model="al.editText" />
+                        <button class="btn btn-success btn-xs" ng-click="storeAltLabelEdit(al, selectedElement.treeName)"><i class="fa fa-check"></i></button>
+                        <button class="btn btn-danger btn-xs" ng-click="resetAltLabelEdit(al)"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
                 <li class="alert alert-warning" ng-if="!selectedElement.labels.alt || selectedElement.labels.alt.length == 0">

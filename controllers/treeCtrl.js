@@ -207,62 +207,30 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         mainService.setPrefLabelLanguage(index);
     };
 
-    $scope.editPrefLabelEntry = function(index) {
-        $scope.informations.prefLabels.editText = $scope.informations.prefLabels[index].label;
-        $scope.informations.prefLabels.editIndex = index;
+    $scope.editPrefLabelEntry = function(label) {
+        mainService.setEditLabelEntry(label);
     };
 
-    $scope.editAltLabelEntry = function(index) {
-        $scope.informations.altLabels.editText = $scope.informations.altLabels[index].label;
-        $scope.informations.altLabels.editIndex = index;
+    $scope.editAltLabelEntry = function(label) {
+        mainService.setEditLabelEntry(label);
     };
 
-    $scope.storePrefLabelEdit = function(treeName) {
-        var index = $scope.informations.prefLabels.editIndex;
-        var label = $scope.informations.prefLabels[index];
-        var promise = addPrefLabel($scope.informations.prefLabels.editText, label.langId, treeName, label.id);
-        promise.then(function(id) {
-            $scope.informations.prefLabels[index].label = $scope.informations.prefLabels.editText;
-            delete $scope.informations.prefLabels.editIndex;
-            delete $scope.informations.prefLabels.editText;
-        });
+    $scope.resetPrefLabelEdit = function(label) {
+        mainService.resetLabelEdit(label);
     };
 
-    $scope.storeAltLabelEdit = function(treeName) {
-        var index = $scope.informations.altLabels.editIndex;
-        var label = $scope.informations.altLabels[index];
-        var promise = addAltLabel($scope.informations.altLabels.editText, label.langId, treeName, label.id);
-        promise.then(function(id) {
-            $scope.informations.altLabels[index].label = $scope.informations.altLabels.editText;
-            delete $scope.informations.altLabels.editIndex;
-            delete $scope.informations.altLabels.editText;
-        });
+    $scope.resetAltLabelEdit = function(label) {
+        mainService.resetLabelEdit(label);
     };
 
-    $scope.resetPrefLabelEdit = function() {
-        delete $scope.informations.prefLabels.editIndex;
-        delete $scope.informations.prefLabels.editText;
+    $scope.storePrefLabelEdit = function(label, treeName) {
+        var cid = $scope.selectedElement.properties.id;
+        mainService.updatePrefLabel(label, cid, treeName);
     };
 
-    $scope.resetAltLabelEdit = function() {
-        delete $scope.informations.altLabels.editIndex;
-        delete $scope.informations.altLabels.editText;
-    };
-
-    var removePrefLabel = function(id, treeName) {
-        return removeLabel(id, treeName);
-    };
-
-    var removeAltLabel = function(id, treeName) {
-        return removeLabel(id, treeName);
-    };
-
-    var removeLabel = function(id, treeName) {
-        var formData = new FormData();
-        formData.append('treeName', treeName);
-        formData.append('id', id);
-        var promise = httpPostPromise.getData('api/remove/label', formData);
-        return promise;
+    $scope.storeAltLabelEdit = function(label, treeName) {
+        var cid = $scope.selectedElement.properties.id;
+        mainService.updateAltLabel(label, cid, treeName);
     };
 
     $scope.addPrefLabel = function(labelText, language, treeName) {
@@ -292,12 +260,12 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         deleteEntry($index, 1, 2, treeName);
     };
 
-    $scope.deletePrefLabel = function($index, treeName) {
-        deleteEntry($index, 2, 1, treeName);
+    $scope.deletePrefLabel = function($index, label, treeName) {
+        mainService.deleteLabel(1, $index, label, treeName);
     };
 
-    $scope.deleteAltLabel = function($index, treeName) {
-        deleteEntry($index, 2, 2, treeName);
+    $scope.deleteAltLabel = function($index, label, treeName) {
+        mainService.deleteLabel(2, $index, label, treeName);
     };
 
     var removeBroaderConcept = function(id, broaderId, treeName) {
@@ -316,70 +284,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         formData.append('treeName', treeName);
         var promise = httpPostPromise.getData('api/remove/concept', formData);
         return promise;
-    };
-
-    var deleteEntry = function(index, type, subType, treeName) {
-        var concept;
-        var promise;
-        if(type == 1) { //concept
-            var currentId = $scope.informations.id;
-            if(subType == 1) { //broader
-                concept = $scope.informations.broaderConcepts[index];
-                promise = removeBroaderConcept(currentId, concept.id, treeName);
-                promise.then(function(id) {
-                    console.log(id);
-                    $scope.informations.broaderConcepts.splice(index, 1);
-                });
-            } else if(subType == 2) { //narrower
-                concept = $scope.informations.narrowerConcepts[index];
-                var removedItem = null;
-                promise = removeNarrowerConcept(currentId, concept.id, treeName);
-                promise.then(function(id) {
-                    console.log(id);
-                    var remId = $scope.informations.narrowerConcepts.splice(index, 1)[0].id;
-                    var children = $scope.currentEntry.children;
-                    for(var i=0; i<children.length; i++) {
-                        var curr = children[i];
-                        if(curr.id == remId) {
-                            removedItem = $scope.currentEntry.children.splice(i, 1)[0];
-                            break;
-                        }
-                    }
-                    $scope.currentEntry.hasChildren = $scope.currentEntry.children.length > 0;
-                    //check if the removed item has no remaining broader concept. If so, move it to the top
-                    //var relationPromise = getRelations(removedItem.id, isExport);
-                    return getRelations(removedItem.id, isExport);
-                }).then(function(data) {
-                    if(data.broader.length === 0) {
-                        removedItem.is_top_concept = true;
-                        removedItem.reclevel = 0;
-                        $scope.rdfTree[isExport].push(removedItem);
-                    }
-                });
-            }
-        } else if(type == 2) { //label
-            if(subType == 1) { //pref
-                lbl = $scope.informations.prefLabels[index];
-                promise = removePrefLabel(lbl.id, treeName);
-                promise.then(function() {
-                    $scope.informations.prefLabels = [];
-                    var nextPromise = getLabels($scope.informations.id, treeName);
-                    nextPromise.then(function(data) {
-                        setLabels(data, $scope.informations.prefLabels, null);
-                    });
-                });
-            } else if(subType == 2) { //alt
-                lbl = $scope.informations.altLabels[index];
-                promise = removeAltLabel(lbl.id, treeName);
-                promise.then(function() {
-                    $scope.informations.altLabels = [];
-                    var nextPromise = getLabels($scope.informations.id, treeName);
-                    nextPromise.then(function(data) {
-                        setLabels(data, null, $scope.informations.altLabels);
-                    });
-                });
-            }
-        }
     };
 
     $scope.addBroader = function($item, treeName) {
