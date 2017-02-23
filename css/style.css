@@ -244,41 +244,47 @@ li .angular-ui-tree-placeholder {
     border-radius: inherit !important;
 }
 
-.tree-level-0 {
+.tree-level-1 {
+    background-color: #817acc;
     background-color: rgba(129, 122, 204, 0.75);
     color: white;
     border-radius: 3px;
     padding: 0 5px;
 }
 
-.tree-level-1 {
+.tree-level-2 {
+    background-color: #29963a;
     background-color: rgba(41, 150, 58, 0.75);
     color: white;
     border-radius: 3px;
     padding: 0 5px;
 }
 
-.tree-level-2 {
+.tree-level-3 {
+    background-color: #dd7d2f;
     background-color: rgba(221, 125, 47, 0.75);
     color: white;
     border-radius: 3px;
     padding: 0 5px;
 }
 
-.tree-level-3 {
+.tree-level-4 {
+    background-color: #d45f5f;
     background-color: rgba(212, 95, 95, 0.75);
     color: white;
     border-radius: 3px;
     padding: 0 5px;
 }
 
-.tree-level-4 {
+.tree-level-5 {
+    background-color: #e2cc0c;
     background-color: rgba(226, 204, 12, 0.75);
     border-radius: 3px;
     padding: 0 5px;
 }
 
-.tree-level-5, .tree-level-6, .tree-level-7, .tree-level-8, .tree-level-9, .tree-level-10 {
+.tree-level-6, .tree-level-7, .tree-level-8, .tree-level-9, .tree-level-10, .tree-level-11 {
+    background-color: #232388;
     background-color: rgba(35, 35, 136, 0.75);
     color: white;
     border-radius: 3px;

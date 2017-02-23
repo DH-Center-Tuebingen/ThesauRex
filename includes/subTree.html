@@ -5,7 +5,7 @@
     </a>
     <span class="fa fa-fw" ng-if="parent.children.length == 0"></span>
     <span>
-        <a ng-click="setSelectedElement(parent, treeName)" class="tree-level-{{ parent.reclevel }}" ng-class="{ 'tree-level-leaf': parent.children.length == 0, 'selected': parent.id == selectedElement.properties.id && treeName == selectedElement.treeName && parent.broader_id == selectedElement.properties.broader_id };">
+        <a ng-click="setSelectedElement(parent, treeName)" class="tree-level-{{ this.depth() }}" ng-class="{ 'tree-level-leaf': parent.children.length == 0, 'selected': parent.id == selectedElement.properties.id && treeName == selectedElement.treeName && parent.broader_id == selectedElement.properties.broader_id };">
             {{ parent.label }}
         </a>
     </span>
