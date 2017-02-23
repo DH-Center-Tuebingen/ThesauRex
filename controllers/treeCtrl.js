@@ -124,22 +124,14 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
             }
         ]);
         menu.push(null);
-        if(!item.hasChildren || item.children.length === 0) {
+        if(item.children.length === 0) {
             menu.push([
                 '<i class="fa fa-fw fa-trash light red"></i> Delete',
                 function($itemScope) {
-                    var formData = new FormData();
-                    formData.append('id', $itemScope.$modelValue.id);
-                    formData.append('treeName', treeName);
-                    httpPostFactory('api/delete/cascade', formData, function(result) {
-                        publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, treeName, true);
-                        /*$itemScope.remove();
-                        var parent = $itemScope.$parent.$parent.$nodeScope.$modelValue;
-                        parent.hasChildren = parent.children.length > 0;*/
-                    });
+                    mainService.deleteSingleElement($itemScope.$modelValue.id, treeName);
                 },
                 function($itemScope) {
-                    return !$itemScope.$modelValue.hasChildren || $itemScope.$modelValue.children.length === 0;
+                    return $itemScope.$modelValue.children.length === 0;
                 }
             ]);
         } else {
@@ -147,32 +139,14 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
                 '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
                 [
                     ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
-                        modalFactory.deleteModal($itemScope.$modelValue.label, function() {
-                            var formData = new FormData();
-                            formData.append('id', $itemScope.$modelValue.id);
-                            formData.append('treeName', treeName);
-                            httpPostFactory('api/delete/cascade', formData, function(result) {
-	                            publishNewChildrenToAllOccurrences($itemScope.$modelValue.id, { id: $itemScope.$modelValue.id }, treeName, true);
-                            });
-                        }, 'If you delete this element, all of its descendants will be deleted, too!');
+                        mainService.deleteElementWithChildren($itemScope.$modelValue.id, $itemScope.$modelValue.label, treeName);
                     }],
                     ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
-                        var formData = new FormData();
-                        formData.append('id', $itemScope.$modelValue.id);
-                        formData.append('broader_id', $itemScope.$modelValue.broader_id);
-                        formData.append('treeName', treeName);
-                        httpPostFactory('api/delete/oneup', formData, function(result) {
-                            var currChildren = $itemScope.$modelValue.children;
-                            for(var i=0; i<currChildren.length; i++) {
-                                currChildren[i].reclevel = currChildren[i].reclevel - 1;
-                                $itemScope.$parent.$parent.$modelValue.push(currChildren[i]);
-                            }
-                            $itemScope.remove();
-                        });
+                        mainService.deleteElementAndMoveUp($itemScope.$modelValue.id, $itemScope.$modelValue.broader_id, treeName);
                     }]
                 ],
                 function($itemScope) {
-                    return $itemScope.$modelValue.hasChildren && $itemScope.$modelValue.children.length > 0;
+                    return $itemScope.$modelValue.children.length > 0;
                 }
             ]);
         }
@@ -252,12 +226,12 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         mainService.addAltLabel(labelText, language, cid, treeName);
     };
 
-    $scope.deleteBroaderConcept = function($index, treeName) {
-        deleteEntry($index, 1, 1, treeName);
+    $scope.deleteBroaderConcept = function($index, broader, treeName) {
+        mainService.deleteBroaderConcept($index, broader, treeName);
     };
 
-    $scope.deleteNarrowerConcept = function($index, treeName) {
-        deleteEntry($index, 1, 2, treeName);
+    $scope.deleteNarrowerConcept = function($index, narrower, treeName) {
+        mainService.deleteNarrowerConcept($index, narrower, treeName);
     };
 
     $scope.deletePrefLabel = function($index, label, treeName) {
@@ -400,76 +374,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
 
     $scope.expandElement = function($item, $model, $label, $event, treeName) {
         expandElement($item.id, $item.broader_id, treeName);
-    };
-
-    var publishNewChildrenToAllOccurrences = function(id, newChildren, treeName, isDelete) {
-        isDelete = isDelete || false;
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('tree', treeName);
-        httpPostFactory('api/get/parents/all', formData, function(parents) {
-            var t = angular.element(document.getElementById(treeName + '-tree')).scope();
-            var nodesScope = t.$nodesScope;
-            var children = nodesScope.childNodes();
-            if(parents.length > 0) {
-                angular.forEach(parents, function(parent, key) {
-                    var self = parent[parent.length-1].narrower_id;
-                    parent.push({
-                        broader_id: self
-                    });
-                    recursiveChildrenPublisher(parent, children, newChildren, isDelete);
-                });
-            } else { //element with id `id` has no parents (= is_top_concept)
-                var parent = [{
-                    broader_id: id
-                }];
-                recursiveChildrenPublisher(parent, children, newChildren, isDelete);
-            }
-        });
-    };
-
-    var recursiveChildrenPublisher = function(parents, children, newChildren, isDelete) {
-        recursiveChildrenPublisherHelper(parents, children, 0, newChildren, isDelete);
-    };
-
-    var recursiveChildrenPublisherHelper = function(parents, children, lvl, newChildren, isDelete) {
-        for(var i=0; i<children.length; i++) {
-            var currParent = parents[lvl];
-            var currChild = children[i];
-            if(currChild.$modelValue.id == currParent.broader_id) {
-                if(lvl+1 == parents.length) {
-                    if(isDelete) {
-                        var siblings = currChild.$parent.parent.children;
-                        for(var j=0; j<siblings.length; j++) {
-                            var sibling = siblings[j];
-                            if(sibling.id == newChildren.id) {
-                                currChild.$parent.parent.children.splice(j, 1);
-                                currChild.$parent.parent.hasChildren = currChild.$parent.parent.children.length > 0;
-                                break;
-                            }
-                        }
-                    } else {
-                        newChildren.reclevel = lvl + 1;
-                        newChildren.broader_id = currChild.$modelValue.id;
-                        if(typeof currChild.$parent.parent.children == 'undefined') {
-                            currChild.$parent.parent.children = [];
-                        }
-                        currChild.$parent.parent.children.push(newChildren);
-                        currChild.$parent.parent.hasChildren = true;
-                    }
-                } else {
-                    $timeout(function() {
-                        //we have to expand the element if it is collapsed to get access to the childnodes
-                        var wasCollapsed = currChild.collapsed;
-                        if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
-                        recursiveChildrenPublisherHelper(parents, currChild.childNodes(), lvl+1, newChildren, isDelete);
-                        //collapse it afterwards if we expanded it
-                        if(wasCollapsed) currChild.$element[0].firstChild.childNodes[2].click();
-                    }, 0, false);
-                }
-                break;
-            }
-        }
     };
 
     $scope.getSearchTree = function(searchString, treeName, appendSearchString) {

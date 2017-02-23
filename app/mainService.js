@@ -1,4 +1,4 @@
-thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpPostPromise', '$uibModal', function(httpGetFactory, httpPostFactory, httpPostPromise, $uibModal) {
+thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpPostPromise', 'modalFactory', '$uibModal', function(httpGetFactory, httpPostFactory, httpPostPromise, modalFactory, $uibModal) {
     var trees = ['master', 'project'];
     var main = {};
     main.languages = [];
@@ -185,14 +185,14 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     main.addPrefLabel = function(labelText, language, cid, treeName, id) {
         var promise = addLabel(1, labelText, language, cid, treeName, id);
         promise.then(function(response) {
-            postAdd(response);
+            postAdd(response, language);
         });
     };
 
     main.addAltLabel = function(labelText, language, cid, treeName, id) {
         var promise = addLabel(2, labelText, language, cid, treeName, id);
         promise.then(function(response) {
-            postAdd(response);
+            postAdd(response, language);
         });
     };
 
@@ -220,6 +220,29 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         });
     };
 
+    main.deleteBroaderConcept = function(index, broader, treeName) {
+        var id = main.selectedElement.properties.id;
+        var promise = deleteBroaderConcept(id, broader.id, treeName);
+        promise.then(function(response) {
+            deleteFromChildren(broader.id, id, treeName);
+            updateChildren(broader.id, treeName);
+            main.selectedElement.relations.broader.splice(index, 1);
+            if(main.selectedElement.relations.broader.length === 0) {
+                main.tree[treeName].tree.push(main.tree[treeName].concepts[id]);
+            }
+        });
+    };
+
+    main.deleteNarrowerConcept = function(index, narrower, treeName) {
+        var id = main.selectedElement.properties.id;
+        var promise = deleteNarrowerConcept(id, narrower.id, treeName);
+        promise.then(function(response) {
+            deleteFromChildren(id, narrower.id, treeName);
+            updateChildren(id, treeName);
+            main.selectedElement.relations.narrower.splice(index, 1);
+        });
+    };
+
     main.deleteLabel = function(labelType, index, label, treeName) {
         var formData = new FormData();
         formData.append('treeName', treeName);
@@ -233,6 +256,49 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 labelList = main.selectedElement.labels.alt;
             }
             labelList.splice(index, 1);
+        });
+    };
+
+    main.deleteSingleElement = function(id, treeName) {
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('treeName', treeName);
+        httpPostFactory('api/delete/cascade', formData, function(result) {
+            deleteById(id, treeName);
+        });
+    };
+
+    main.deleteElementWithChildren = function(id, label, treeName) {
+        modalFactory.deleteModal(label, function() {
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('treeName', treeName);
+            httpPostFactory('api/delete/cascade', formData, function(result) {
+                var deleteElements = main.tree[treeName].childList[id].slice();
+                deleteElements.push(id);
+                angular.forEach(deleteElements, function(elemId, key) {
+                    deleteById(elemId, treeName);
+                });
+            });
+        }, 'If you delete this element, all of its descendants will be deleted, too!');
+    };
+
+    main.deleteElementAndMoveUp = function(id, broader_id, treeName) {
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('broader_id', broader_id);
+        formData.append('treeName', treeName);
+        httpPostFactory('api/delete/oneup', formData, function(result) {
+            var children = main.tree[treeName].childList[id].slice();
+            delete(main.tree[treeName].concepts[id]);
+            delete(main.tree[treeName].childList[id]);
+            angular.forEach(main.tree[treeName].childList, function(entry, key) {
+                var index = entry.indexOf(id);
+                if(index > -1) {
+                    addChildren(key, treeName, children);
+                    main.tree[treeName].concepts[key].children = getChildrenById(key, treeName, true);
+                }
+            });
         });
     };
 
@@ -273,7 +339,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         main.resetLabelEdit(label);
     }
 
-    function postAdd(response) {
+    function postAdd(response, language) {
         var label = response.label;
         var data = [];
         var curr = {
@@ -286,6 +352,50 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         };
         data.push(curr);
         setLabels(data);
+    }
+
+    function deleteBroaderConcept(id, broaderId, treeName) {
+        return deleteConcept(id, broaderId, treeName, true);
+    }
+
+    function deleteNarrowerConcept(id, narrowerId, treeName) {
+        return deleteConcept(id, narrowerId, treeName, false);
+    }
+
+    function deleteConcept(id, relatedId, treeName, removeBroader) {
+        var relationKey = removeBroader ? 'broader_id' : 'narrower_id';
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append(relationKey, relatedId);
+        formData.append('treeName', treeName);
+        var promise = httpPostPromise.getData('api/remove/concept', formData);
+        return promise;
+    }
+
+    function deleteById(id, treeName) {
+        delete(main.tree[treeName].concepts[id]);
+        delete(main.tree[treeName].childList[id]);
+        angular.forEach(main.tree[treeName].childList, function(entry, key) {
+            var index = entry.indexOf(id);
+            if(index > -1) {
+                main.tree[treeName].concepts[key].children = getChildrenById(key, treeName, true);
+            }
+        });
+    }
+
+    function deleteFromChildren(id, childId, treeName) {
+        var children = main.tree[treeName].childList[id];
+        // remove selected element from broaders childList
+        for(var i=0; i<children.length; i++) {
+            if(childId == children[i]) {
+                children.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    function updateChildren(id, treeName) {
+        main.tree[treeName].concepts[id].children = getChildrenById(id, treeName, true);
     }
 
     function isValidTreeName(treeName) {
@@ -431,7 +541,10 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             var tC = callback.topConcepts;
             angular.extend(main.tree[t].concepts, callback.topConcepts, callback.conceptList);
             main.tree[t].childList = callback.concepts;
-            console.log(callback.concepts);
+            console.log("concepts");
+            console.log(main.tree[t].concepts);
+            console.log("childList");
+            console.log(main.tree[t].childList);
             for(var k in tC) {
                 if(tC.hasOwnProperty(k)) {
                     var c = tC[k];
@@ -442,20 +555,33 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         });
     }
 
-    function getChildren(id, children, list) {
+    function getChildren(id, children, list, nonRecursive) {
+        nonRecursive = nonRecursive || false;
         if(typeof children[id] === 'undefined') return [];
         var contextChildren = children[id];
         var newChildren = [];
         for(var i=0; i<contextChildren.length; i++) {
             var child = list[contextChildren[i]];
-            child.children = getChildren(contextChildren[i], children, list);
+            // if child no longer exists in concepts hash map => remove it from childList
+            if(!child) {
+                children[id].splice(i, 1);
+                i--; //decrement index after splice
+                continue;
+            }
+            if(!nonRecursive) child.children = getChildren(contextChildren[i], children, list);
             newChildren.push(child);
         }
         return newChildren;
     }
 
-    function getChildrenById(id, treeName) {
-        return getChildren(id, main.tree[treeName].childList, main.tree[treeName].concepts);
+    function getChildrenById(id, treeName, nonRecursive) {
+        return getChildren(id, main.tree[treeName].childList, main.tree[treeName].concepts, nonRecursive);
+    }
+
+    function addChildren(id, treeName, children) {
+        for(var i=0; i<children.length; i++) {
+            main.tree[treeName].childList[id].push(children[i]);
+        }
     }
 
     main.displayAlert = function(title, message) {

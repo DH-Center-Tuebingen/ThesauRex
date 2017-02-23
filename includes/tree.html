@@ -127,7 +127,7 @@
             <ul id="broader-list" class="scrollable-list">
                 <li ng-repeat="br in selectedElement.relations.broader" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteBroaderConcept($index, selectedElement.properties.intree)">
+                    ng-click="deleteBroaderConcept($index, br, selectedElement.treeName)">
                         &times;
                     </span>
                     <strong>{{ br.label }}</strong>
@@ -154,7 +154,7 @@
             <ul id="narrower-list" class="scrollable-list">
                 <li ng-repeat="na in selectedElement.relations.narrower" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteNarrowerConcept($index, selectedElement.properties.intree)">
+                    ng-click="deleteNarrowerConcept($index, na, selectedElement.treeName)">
                         &times;
                     </span>
                     <strong>{{ na.label }}</strong>

@@ -601,8 +601,8 @@ class TreeController extends Controller
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        if($request->has('broaderId')) { //is broader
-            $broaderId = $request->get('broaderId');
+        if($request->has('broader_id')) { //is broader
+            $broaderId = $request->get('broader_id');
             DB::table($thBroader)
                 ->where([
                     ['broader_id', '=', $broaderId],
@@ -620,8 +620,8 @@ class TreeController extends Controller
                         'is_top_concept' => 't'
                     ]);
             }
-        } else if($request->has('narrowerId')) { //is narrower
-            $narrowerId = $request->get('narrowerId');
+        } else if($request->has('narrower_id')) { //is narrower
+            $narrowerId = $request->get('narrower_id');
             DB::table($thBroader)
                 ->where([
                     ['broader_id', '=', $id],
