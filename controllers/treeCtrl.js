@@ -8,18 +8,9 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
 
     $scope.expandedElement = null;
 
-    $scope.searchResults = {};
     $scope.enableDragDrop = false;
     $scope.enableEditing = false;
     $scope.enableExportDragDrop = false;
-    $scope.newPrefLabelText = {
-        text: ""
-    };
-    $scope.newAltLabelText = {
-        text: ""
-    };
-    $scope.matchingBroaderConcepts = [];
-    $scope.matchingNarrowerConcepts = [];
 
     var dropped = function(event, treeNameTree) {
         var oldParentId = event.source.nodeScope.$modelValue.broader_id;
@@ -84,11 +75,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
 
     $scope.addConcept = function(name, concept, lang, treeName) {
         mainService.addConcept(name, concept, lang, treeName);
-    };
-
-    var addPromisedConcept = function(name, concept, lang, treeName) {
-        $scope.addConcept(name, concept, lang, treeName);
-        return $timeout(function(){}, 50);
     };
 
     var updateRelation = function(narrower, oldBroader, newBroader, treeName) {
@@ -242,24 +228,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         mainService.deleteLabel(2, $index, label, treeName);
     };
 
-    var removeBroaderConcept = function(id, broaderId, treeName) {
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('broaderId', broaderId);
-        formData.append('treeName', treeName);
-        var promise = httpPostPromise.getData('api/remove/concept', formData);
-        return promise;
-    };
-
-    var removeNarrowerConcept = function(id, narrowerId, treeName) {
-        var formData = new FormData();
-        formData.append('id', id);
-        formData.append('narrowerId', narrowerId);
-        formData.append('treeName', treeName);
-        var promise = httpPostPromise.getData('api/remove/concept', formData);
-        return promise;
-    };
-
     $scope.addBroader = function($item, treeName) {
         mainService.addBroader($item, treeName);
     };
@@ -271,46 +239,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     angular.element(document).ready(function () {
         $scope.getWindowSize();
     });
-
-    $scope.getMatchingConcepts = function(searchString, type) {
-        if(typeof $scope.informations == 'undefined') return;
-        var currentSet = [];
-        if(type === 'broader') {
-            $scope.matchingBroaderConcepts = [];
-            currentSet = $scope.informations.broaderConcepts.slice();
-        } else if(type === 'narrower') {
-            $scope.matchingNarrowerConcepts = [];
-            currentSet = $scope.informations.narrowerConcepts.slice();
-        }
-        if(searchString.length < 3) return;
-        var ss = searchString.toLowerCase();
-        var matchingConcepts = [];
-        var exactMatch = false;
-        angular.forEach($scope.conceptNames, function(c, key) {
-            if(c.label.toLowerCase().indexOf(ss) > -1) {
-                var alreadySet = false;
-                for(var i=0; i<currentSet.length; i++) {
-                    if(currentSet[i].id === c.id) {
-                        alreadySet = true;
-                        break;
-                    }
-                }
-                if(!alreadySet) {
-                    matchingConcepts.push(c);
-                    if(c.label.toLowerCase() == ss) exactMatch = true;
-                }
-            }
-        });
-        if(type === 'broader') $scope.matchingBroaderConcepts = matchingConcepts;
-        else if(type === 'narrower') {
-            if(!exactMatch) matchingConcepts.push({
-                label: searchString,
-                isNew: true,
-                additionalInfo: 'Add new'
-            });
-            $scope.matchingNarrowerConcepts = matchingConcepts;
-        }
-    };
 
     var expandElement = function(id, broader_id, treeName) {
         var formData = new FormData();
