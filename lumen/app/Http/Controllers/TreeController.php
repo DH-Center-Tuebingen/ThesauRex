@@ -441,11 +441,19 @@ class TreeController extends Controller
             FROM    q
             ORDER BY is_top_concept DESC, label ASC
         ");
+        $concepts = $this->createConceptLists($rows);
+        return response()->json([
+            'topConcepts' => $concepts['topConcepts'],
+            'conceptList' => $concepts['conceptList'],
+            'concepts' => $concepts['concepts']
+        ]);
+    }
 
+    private function createConceptLists($rows) {
         $concepts = [];
         $topConcepts = [];
         $conceptList = [];
-        foreach($rows as $k => $concept) {
+        foreach($rows as $concept) {
             if($concept->is_top_concept) {
                 $topConcepts[$concept->id] = $concept;
             } else {
@@ -465,11 +473,11 @@ class TreeController extends Controller
                 if(!$alreadySet) $concepts[$concept->broader_id][] = $concept->id;
             }
         }
-        return response()->json([
+        return [
             'topConcepts' => $topConcepts,
             'conceptList' => $conceptList,
             'concepts' => $concepts
-        ]);
+        ];
     }
 
     public function getRelations(Request $request) {
@@ -797,6 +805,8 @@ class TreeController extends Controller
         $newBroader = $request->get('new_broader');
         $src = $request->get('src'); // 'master' or 'project'
         $isTopConcept = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
+        if($request->has('lang')) $lang = $request->get('lang');
+        else $lang = 'de';
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
@@ -805,6 +815,7 @@ class TreeController extends Controller
             $thConceptSrc = $thConcept.'_export';
             $thLabelSrc = $thLabel.'_export';
             $thBroaderSrc = $thBroader.'_export';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
         } else {
             $thConceptSrc = $thConcept;
             $thLabelSrc = $thLabel;
@@ -812,17 +823,18 @@ class TreeController extends Controller
             $thConcept .= '_export';
             $thLabel .= '_export';
             $thBroader .= '_export';
+            $labelView = 'getFirstLabelForLanguagesFromExport';
         }
 
         $rows = DB::select("
         WITH RECURSIVE
-        q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id) AS
+        q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, lvl) AS
             (
-                SELECT  conc.*, -1
+                SELECT  conc.*, -1, 0
                 FROM    $thConceptSrc conc
                 WHERE   conc.id = $elemId
                 UNION ALL
-                SELECT  conc2.*, broad.broader_id
+                SELECT  conc2.*, broad.broader_id, lvl + 1
                 FROM    $thConceptSrc conc2
                 JOIN    $thBroaderSrc broad
                 ON      conc2.id = broad.narrower_id
@@ -831,37 +843,49 @@ class TreeController extends Controller
             )
         SELECT  q.*
         FROM    q
-        ORDER BY concept_url ASC
+        ORDER BY lvl ASC
         ");
-        $tmpBroaders = [];
+
         $newElemId = -1;
+        $relations = [];
         foreach($rows as $row) {
+            $oldId = $row->id;
+            if($oldId == $elemId) $row->is_top_concept = $isTopConcept;
             $conceptAlreadyExists = false;
-            $tmpRow = $row;
-            $id = $row->id;
-            $broaderId = $row->broader_id;
-            unset($tmpRow->broader_id);
-            unset($tmpRow->id);
-            if($tmpRow->created_at == '') unset($tmpRow->created_at);
-            if($tmpRow->updated_at == '') unset($tmpRow->updated_at);
-            if($id == $elemId) $tmpRow->is_top_concept = $isTopConcept;
-            $cnt = DB::table($thConcept)
-                ->where('concept_url', '=', $tmpRow->concept_url)
-                ->count();
-            if($cnt > 0) {
-                $conceptAlreadyExists = true;
-                $newId = DB::table($thConcept)
-                    ->where('concept_url', '=', $tmpRow->concept_url)
-                    ->value('id');
+            $newId = DB::table($thConcept)
+                ->where('concept_url', '=', $row->concept_url)
+                ->value('id');
+            if($newId === null) {
+                if($src == 'project') $currentConcept = new ThConcept();
+                else $currentConcept = new ThConceptProject();
+                $currentConcept->concept_url = $row->concept_url;
+                $currentConcept->concept_scheme = $row->concept_scheme;
+                $currentConcept->lasteditor = 'postgres';
+                $currentConcept->is_top_concept = $row->is_top_concept;
+                $currentConcept->save();
             } else {
-                $newId = DB::table($thConcept)
-                    ->insertGetId(get_object_vars($tmpRow));
+                $conceptAlreadyExists = true;
+                if($src == 'project') $currentConcept = ThConcept::find($newId);
+                else $currentConcept = ThConceptProject::find($newId);
+            }
+            $newId = $currentConcept->id;
+            if($oldId == $elemId) {
+                $newElemId = $newId;
+                $relations[$oldId] = [
+                    'oldId' => $oldId,
+                    'newId' => $newId
+                ];
+            } else {
+                $relations[$oldId] = [
+                    'oldId' => $oldId,
+                    'newId' => $newId,
+                    'broader' => $row->broader_id
+                ];
             }
             $labels = DB::table($thLabelSrc)
-                ->where('concept_id', '=', $id)
+                ->where('concept_id', '=', $oldId)
                 ->get();
             foreach($labels as $l) {
-                unset($l->id);
                 $l->concept_id = $newId;
                 $cnt = DB::table($thLabel)
                     ->where([
@@ -873,32 +897,33 @@ class TreeController extends Controller
                 if($cnt > 0) continue;
                 //if the concept already exists, set label type of copied label to alt label (2)
                 if($conceptAlreadyExists) $l->concept_label_type = 2;
-                DB::table($thLabel)
-                    ->insert(get_object_vars($l));
-            }
-            if($id == $elemId) {
-                $newElemId = $newId;
-            } else {
-                $broader = DB::table($thBroaderSrc . ' as b')
-                    ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
-                    ->where('narrower_id', '=', $id)
-                    ->value('c.concept_url');
-                if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
-                $tmpBroaders[$newId][] = $broader;
+                if($src == 'project') $currentLabel = new ThConceptLabel();
+                else $currentLabel = new ThConceptLabelProject();
+                $currentLabel->lasteditor = 'postgres';
+                $currentLabel->label = $l->label;
+                $currentLabel->concept_id = $l->concept_id;
+                $currentLabel->language_id = $l->language_id;
+                $currentLabel->concept_label_type = $l->concept_label_type;
+                $currentLabel->save();
             }
         }
-        foreach($tmpBroaders as $k => $v) {
-            foreach($v as $b) {
-                $bId = DB::table($thConcept)
-                    ->where('concept_url', '=', $b)
-                    ->value('id');
-                if($bId === null) continue;
-                DB::table($thBroader)
-                    ->insert([
-                        'broader_id' => $bId,
-                        'narrower_id' => $k
-                    ]);
-            }
+        foreach($relations as $relation) {
+            if(!isset($relation['broader'])) continue;
+            $oldBroaderId = $relation['broader'];
+            $broaderId = $relations[$oldBroaderId]['newId'];
+            $narrowerId = $relation['newId'];
+            $cnt = DB::table($thBroader)
+                ->where([
+                    ['broader_id', '=', $broaderId],
+                    ['narrower_id', '=', $narrowerId]
+                ])
+                ->count();
+            if($cnt > 0) continue; //if relation already exists, do not add it again
+            DB::table($thBroader)
+                ->insert([
+                    'broader_id' => $broaderId,
+                    'narrower_id' => $narrowerId
+                ]);
         }
         if($newBroader != -1 && $newElemId != -1) {
             DB::table($thBroader)
@@ -907,7 +932,58 @@ class TreeController extends Controller
                     'narrower_id' => $newElemId
                 ]);
         }
-        return response()->json($rows);
+
+        //get new elements
+        $elements = DB::select("
+            WITH RECURSIVE
+            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
+                (
+                    SELECT  conc.*, f.label, $newBroader, 0
+                    FROM    $thConcept conc
+                    JOIN    \"$labelView\" as f
+                    ON      conc.concept_url = f.concept_url
+                    WHERE   conc.id = $newElemId
+                    AND     f.lang = '$lang'
+                    UNION ALL
+                    SELECT  conc2.*, f.label, broad.broader_id, reclevel + 1
+                    FROM    $thConcept conc2
+                    JOIN    $thBroader broad
+                    ON      conc2.id = broad.narrower_id
+                    JOIN    q
+                    ON      broad.broader_id = q.id
+                    JOIN    \"$labelView\" as f
+                    ON      conc2.concept_url = f.concept_url
+                    WHERE   f.lang = '$lang'
+                )
+            SELECT  q.*
+            FROM    q
+            ORDER BY label ASC
+        ");
+
+        $concepts = $this->createConceptLists($elements);
+        foreach($concepts['topConcepts'] as $tc) {
+            $concepts['conceptList'][$tc->id] = $tc;
+        }
+        $clonedElement = '';
+        foreach($concepts['conceptList'] as $k => $c) {
+            if($c->id == $newElemId) {
+                $clonedElement = $c;
+                if(($key = array_search($c->id, $concepts['concepts'][$c->broader_id])) !== false) {
+                    unset($concepts['concepts'][$c->broader_id][$key]);
+                    if(count($concepts['concepts'][$c->broader_id]) === 0) {
+                        unset($concepts['concepts'][$c->broader_id]);
+                    }
+                }
+                unset($concepts['conceptList'][$k]);
+                break;
+            }
+        }
+        return response()->json([
+            'conceptList' => $concepts['conceptList'],
+            'concepts' => $concepts['concepts'],
+            'clonedElement' => $clonedElement,
+            'id' => $newElemId
+        ]);
     }
 
     public function updateRelation(Request $request) {

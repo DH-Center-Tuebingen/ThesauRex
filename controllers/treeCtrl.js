@@ -12,80 +12,20 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     $scope.enableEditing = false;
     $scope.enableExportDragDrop = false;
 
-    var dropped = function(event, treeNameTree) {
-        var oldParentId = event.source.nodeScope.$modelValue.broader_id;
-        var destScope = event.dest.nodesScope.$nodeScope;
-        var newParent;
-        if(destScope !== null) {
-            newParent = destScope.$modelValue;
-            newParent.hasChildren = true;
-        }
-        var isFromAnotherTree = false;
-        if(event.source.nodesScope.$treeScope.$id != event.dest.nodesScope.$treeScope.$id) {
-            isFromAnotherTree = true;
-        }
-        var elem = event.source.nodeScope.$modelValue;
-        var treeName = 'master';
-        if((isFromAnotherTree && !treeNameTree) || treeNameTree) treeName = 'project';
-        var is_top_concept = false;
-        var id = -1;
-        var reclevel = -1;
-        if(typeof newParent == 'undefined' || newParent.id == -1) {
-            is_top_concept = true;
-        } else {
-            id = newParent.id;
-            reclevel = typeof newParent.reclevel == 'undefined' ? -1 : newParent.reclevel;
-        }
-        if(isFromAnotherTree) {
-            var src = treeNameTree ? 'project' : 'master';
-            console.log("moving from " + src + " to " + treeName);
-            var formData = new FormData();
-            formData.append('id', elem.id);
-            formData.append('new_broader', id);
-            formData.append('src', src);
-            formData.append('is_top_concept', is_top_concept);
-            var promise = httpPostPromise.getData('api/copy', formData);
-            promise.then(function(data) {
-                elem.reclevel = reclevel + 1;
-                elem.is_top_concept = is_top_concept;
-                elem.broader_id = id;
-            });
-        } else  {
-            if(typeof oldParentId == 'undefined') oldParentId = -1;
-            var outerPromise = updateRelation(elem.id, oldParentId, id, treeName);
-            outerPromise.then(function(concepts) {
-                elem.reclevel = reclevel + 1;
-                elem.is_top_concept = is_top_concept;
-                elem.broader_id = id;
-            });
-        }
-    };
-
     $scope.treeOptions = {
         dropped: function(event) {
-            dropped(event, false);
+            mainService.dropped(event, false);
         }
     };
 
     $scope.exportTreeOptions = {
         dropped: function(event) {
-            dropped(event, true);
+            mainService.dropped(event, true);
         }
     };
 
     $scope.addConcept = function(name, concept, lang, treeName) {
         mainService.addConcept(name, concept, lang, treeName);
-    };
-
-    var updateRelation = function(narrower, oldBroader, newBroader, treeName) {
-        console.log(narrower+","+ oldBroader+","+ newBroader);
-        var formData = new FormData();
-        formData.append('narrower_id', narrower);
-        formData.append('old_broader_id', oldBroader);
-        formData.append('broader_id', newBroader);
-        formData.append('treeName', treeName);
-        var promise = httpPostPromise.getData('api/update/relation', formData);
-        return promise;
     };
 
     $scope.createNewConceptModal = function(which) {

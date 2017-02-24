@@ -302,6 +302,109 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         });
     };
 
+    main.dropped = function(event, isProjectTree) {
+        var src = event.source;
+        var dst = event.dest;
+        var droppedElement = event.source.nodeScope.$modelValue;
+        var srcTreeId = src.nodesScope.$treeScope.$id;
+        var dstTreeId = dst.nodesScope.$treeScope.$id;
+        var isFromAnotherTree = srcTreeId != dstTreeId;
+        var id = droppedElement.id;
+        var oldParentId = droppedElement.broader_id;
+        var from = isProjectTree ? 'project' : 'master';
+        var to = ((isFromAnotherTree && !isProjectTree) || isProjectTree) ? 'project' : 'master';
+        var destScope = dst.nodesScope.$nodeScope;
+        var newParent;
+        if(destScope !== null) {
+            newParent = destScope.$modelValue;
+        }
+        var is_top_concept = false;
+        var newParentId = -1;
+        if(typeof newParent == 'undefined' || newParent.id == -1) {
+            is_top_concept = true;
+        } else {
+            newParentId = newParent.id;
+        }
+        if(isFromAnotherTree) {
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('new_broader', newParentId);
+            formData.append('src', from);
+            formData.append('is_top_concept', is_top_concept);
+            var promise = httpPostPromise.getData('api/copy', formData);
+            promise.then(function(response) {
+                var newChildren = dst.nodesScope.childNodes();
+                for(var i=0; i<newChildren.length; i++) {
+                    var childId = newChildren[i].$modelValue.id;
+                    var conceptUrl = newChildren[i].$modelValue.concept_url;
+                    if(childId == droppedElement.id && conceptUrl == droppedElement.concept_url) {
+                        newChildren[i].remove();
+                        break;
+                    }
+                }
+                var clonedElement = response.clonedElement;
+                if(!main.tree[to].concepts[clonedElement.id]) {
+                    main.tree[to].concepts[clonedElement.id] = clonedElement;
+                }
+                if(!main.tree[to].childList[clonedElement.broader_id]) {
+                    main.tree[to].childList[clonedElement.broader_id] = [];
+                }
+                main.tree[to].childList[clonedElement.broader_id].push(clonedElement.id);
+                setChildren(clonedElement.broader_id, to);
+                var concepts = response.conceptList;
+                var childList = response.concepts;
+                for(var k in concepts) {
+                    if(concepts.hasOwnProperty(k)) {
+                        var c = concepts[k];
+                        if(!main.tree[to].concepts[c.id]) {
+                            main.tree[to].concepts[c.id] = c;
+                        }
+                    }
+                }
+                for(var k in childList) {
+                    if(childList.hasOwnProperty(k)) {
+                        if(!main.tree[to].childList[k]) {
+                            main.tree[to].childList[k] = [];
+                        }
+                        for(var i=0; i<childList[k].length; i++) {
+                            main.tree[to].childList[k].push(childList[k][i]);
+                        }
+                        setChildren(k, to);
+                    }
+                }
+            });
+        } else  {
+            if(typeof oldParentId == 'undefined') oldParentId = -1;
+            updateRelation(id, oldParentId, newParentId, to).then(function() {
+                var modifiedValues = {};
+                modifiedValues.is_top_concept = is_top_concept;
+                modifiedValues.broader_id = newParentId;
+                updateConcept(id, modifiedValues, from);
+                var index = main.tree[to].childList[oldParentId].indexOf(id);
+                if(index > -1) {
+                    main.tree[to].childList[oldParentId].splice(index, 1);
+                    setChildren(oldParentId, to);
+                }
+                index = main.tree[to].childList[newParentId].indexOf(id);
+                if(index == -1) {
+                    main.tree[to].childList[newParentId].push(id);
+                    setChildren(newParentId, to);
+                }
+            });
+        }
+    };
+
+    var updateRelation = function(narrower, oldBroader, newBroader, treeName) {
+        console.log(narrower+","+ oldBroader+","+ newBroader);
+        var formData = new FormData();
+        formData.append('narrower_id', narrower);
+        formData.append('old_broader_id', oldBroader);
+        formData.append('broader_id', newBroader);
+        formData.append('treeName', treeName);
+        var promise = httpPostPromise.getData('api/update/relation', formData);
+        return promise;
+    };
+
     main.getSearchResults = function(searchString, treeName, appendSearchString) {
         appendSearchString = appendSearchString || false;
         var formData = new FormData();
@@ -337,6 +440,12 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     function postUpdate(label) {
         label.label = label.editText;
         main.resetLabelEdit(label);
+    }
+
+    function updateConcept(id, newValues, treeName) {
+        for(var v in newValues) {
+            main.tree[treeName].concepts[id][v] = newValues[v];
+        }
     }
 
     function postAdd(response, language) {
@@ -541,10 +650,6 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             var tC = callback.topConcepts;
             angular.extend(main.tree[t].concepts, callback.topConcepts, callback.conceptList);
             main.tree[t].childList = callback.concepts;
-            console.log("concepts");
-            console.log(main.tree[t].concepts);
-            console.log("childList");
-            console.log(main.tree[t].childList);
             for(var k in tC) {
                 if(tC.hasOwnProperty(k)) {
                     var c = tC[k];
@@ -576,6 +681,10 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
 
     function getChildrenById(id, treeName, nonRecursive) {
         return getChildren(id, main.tree[treeName].childList, main.tree[treeName].concepts, nonRecursive);
+    }
+
+    function setChildren(id, treeName) {
+        main.tree[treeName].concepts[id].children = getChildrenById(id, treeName, true);
     }
 
     function addChildren(id, treeName, children) {
