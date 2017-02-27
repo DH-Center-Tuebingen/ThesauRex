@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Laravel\Lumen\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
 use Easyrdf\Easyrdf\Lib\EasyRdf;
 use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
 use Illuminate\Support\Facades\Storage;
+use App\ThBroader;
+use App\ThBroaderProject;
+use App\ThConcept;
+use App\ThConceptProject;
+use App\ThConceptLabel;
+use App\ThConceptLabelProject;
 
-class TreeController extends BaseController
+class TreeController extends Controller
 {
     private $importTypes = ['extend', 'update', 'new'];
 
@@ -37,8 +42,8 @@ class TreeController extends BaseController
             ]);
         }
 
-        $isExport = $request->get('isExport');
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -207,8 +212,8 @@ class TreeController extends BaseController
     public function export(Request $request) {
         if($request->has('format')) $format = $request->get('format');
         else $format = 'rdf';
-        $isExport = $request->get('isExport');
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -360,8 +365,8 @@ class TreeController extends BaseController
 
     public function getLabels(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -384,12 +389,12 @@ class TreeController extends BaseController
     }
 
     public function getTree(Request $request) {
-        if($request->has('tree')) $which = $request->get('tree');
+        if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        if($which === 'clone') {
+        if($which === 'project') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
         } else {
@@ -402,7 +407,7 @@ class TreeController extends BaseController
 
         $topConcepts = DB::table($thConcept . ' as c')
             ->select('id', 'c.concept_url', 'concept_scheme', 'is_top_concept', 'f.label',
-                DB::raw("0 as reclevel, '$which' as intree"))
+                DB::raw("0 as reclevel"))
             ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
             ->where([
                 ['is_top_concept', '=', true],
@@ -434,33 +439,45 @@ class TreeController extends BaseController
                 )
             SELECT  q.*
             FROM    q
-            ORDER BY label ASC
+            ORDER BY is_top_concept DESC, label ASC
         ");
+        $concepts = $this->createConceptLists($rows);
+        return response()->json([
+            'topConcepts' => $concepts['topConcepts'],
+            'conceptList' => $concepts['conceptList'],
+            'concepts' => $concepts['concepts']
+        ]);
+    }
 
-        $concepts = array();
-        $conceptNames = array();
-        foreach($rows as $row) {
-            if(empty($row)) continue;
-            $conceptNames[] = array('label' => $row->label, 'url' => $row->concept_url, 'id' => $row->id);
-            if($row->broader_id > 0) {
+    private function createConceptLists($rows) {
+        $concepts = [];
+        $topConcepts = [];
+        $conceptList = [];
+        foreach($rows as $concept) {
+            if($concept->is_top_concept) {
+                $topConcepts[$concept->id] = $concept;
+            } else {
+                $conceptList[$concept->id] = $concept;
+            }
+            if(empty($concept)) continue;
+            if($concept->broader_id > 0) {
                 $alreadySet = false;
-                if(isset($concepts[$row->broader_id])) {
-                    foreach($concepts[$row->broader_id] as $con) {
-                        if($con['id'] == $row->id) {
+                if(isset($concepts[$concept->broader_id])) {
+                    foreach($concepts[$concept->broader_id] as $con) {
+                        if($con['id'] == $concept->id) {
                             $alreadySet = true;
                             break;
                         }
                     }
                 }
-                $lblArr = [ 'label' => $row->label ];
-                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lblArr, ['intree' => $which]);
+                if(!$alreadySet) $concepts[$concept->broader_id][] = $concept->id;
             }
         }
-        return response()->json([
+        return [
             'topConcepts' => $topConcepts,
-            'concepts' => $concepts,
-            'conceptNames' => $conceptNames
-        ]);
+            'conceptList' => $conceptList,
+            'concepts' => $concepts
+        ];
     }
 
     public function getRelations(Request $request) {
@@ -473,9 +490,9 @@ class TreeController extends BaseController
 
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        if($isExport === 'clone') {
+        if($treeName === 'project') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
         } else {
@@ -522,9 +539,9 @@ class TreeController extends BaseController
 
     public function deleteElementCascade(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -538,9 +555,9 @@ class TreeController extends BaseController
     public function deleteElementOneUp(Request $request) {
         $id = $request->get('id');
         $broader_id = $request->get('broader_id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
@@ -584,16 +601,16 @@ class TreeController extends BaseController
 
     public function removeConcept(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '_export' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        if($request->has('broaderId')) { //is broader
-            $broaderId = $request->get('broaderId');
+        if($request->has('broader_id')) { //is broader
+            $broaderId = $request->get('broader_id');
             DB::table($thBroader)
                 ->where([
                     ['broader_id', '=', $broaderId],
@@ -611,8 +628,8 @@ class TreeController extends BaseController
                         'is_top_concept' => 't'
                     ]);
             }
-        } else if($request->has('narrowerId')) { //is narrower
-            $narrowerId = $request->get('narrowerId');
+        } else if($request->has('narrower_id')) { //is narrower
+            $narrowerId = $request->get('narrower_id');
             DB::table($thBroader)
                 ->where([
                     ['broader_id', '=', $id],
@@ -642,19 +659,22 @@ class TreeController extends BaseController
     public function addBroader(Request $request) {
         $id = $request->get('id');
         $broader = $request->get('broader_id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
+        $entry;
+        if($treeName == 'project') {
+            $entry = new ThBroaderProject();
+        } else {
+            $entry = new ThBroader();
+        }
 
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
+        $entry->broader_id = $broader;
+        $entry->narrower_id = $id;
+        $entry->save();
 
-        DB::table($thBroader)
-            ->insert([
-                'broader_id' => $broader,
-                'narrower_id' => $id
-            ]);
+        return response()->json([
+            'broader' => $entry
+        ]);
     }
 
     public function addConcept(Request $request) {
@@ -662,13 +682,17 @@ class TreeController extends BaseController
         $scheme = $request->get('concept_scheme');
         $label = $request->get('prefLabel');
         $lang = $request->get('lang');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport == 'clone' ? '_export' : '';
-
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
+        if($treeName == 'project') {
+            $thConcept = new ThConceptProject();
+            $thBroader = new ThBroaderProject();
+            $thConceptLabel = new ThConceptLabelProject();
+        } else {
+            $thConcept = new ThConcept();
+            $thBroader = new ThBroader();
+            $thConceptLabel = new ThConceptLabel();
+        }
 
         $tc = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
         if($request->has('broader_id') && $tc) {
@@ -685,43 +709,37 @@ class TreeController extends BaseController
 
         $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
 
-        $id = DB::table($thConcept)
-            ->insertGetId([
-                'concept_url' => $url,
-                'concept_scheme' => $scheme,
-                'is_top_concept' => $tc,
-                'lasteditor' => 'postgres'
-            ]);
+        $thConcept->concept_url = $url;
+        $thConcept->concept_scheme = $scheme;
+        $thConcept->is_top_concept = $tc;
+        $thConcept->lasteditor = 'postgres';
+        $thConcept->save();
 
         if($request->has('broader_id')) {
             $broader = $request->get('broader_id');
             if($broader > 0) {
-                DB::table($thBroader)
-                    ->insert([
-                        'broader_id' => $broader,
-                        'narrower_id' => $id
-                    ]);
+                $thBroader->broader_id = $broader;
+                $thBroader->narrower_id = $thConcept->id;
+                $thBroader->save();
             }
         }
 
-        DB::table($thLabel)
-            ->insert([
-                'label' => $label,
-                'concept_id' => $id,
-                'language_id' => $lang,
-                'lasteditor' => 'postgres'
-            ]);
+        $thConceptLabel->label = $label;
+        $thConceptLabel->concept_id = $thConcept->id;
+        $thConceptLabel->language_id = $lang;
+        $thConceptLabel->lasteditor = 'postgres';
+        $thConceptLabel->save();
+
         return response()->json([
-            'newId' => $id,
-            'url' => $url
+            'entry' => $thConcept
         ]);
     }
 
     public function removeLabel(Request $request) {
         $id = $request->get('id');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        $suffix = $isExport === 'clone' ? '_export' : '';
+        $suffix = $treeName === 'project' ? '_export' : '';
         $thLabel = 'th_concept_label' . $suffix;
 
         DB::table($thLabel)
@@ -732,70 +750,72 @@ class TreeController extends BaseController
     }
 
     public function addLabel(Request $request) {
-        $label = $request->get('label');
+        $label = $request->get('text');
         $lang = $request->get('lang');
         $type = $request->get('type');
         $cid = $request->get('concept_id');
-        $isExport = $request->get('isExport');
-
-        $suffix = $isExport === 'clone' ? '_export' : '';
-        $thLabel = 'th_concept_label' . $suffix;
+        $treeName = $request->get('treeName');
 
         if($request->has('id')) {
             $id = $request->get('id');
-            $cond = array(
-                ['id', '=', $id],
-                ['concept_id', '=', $cid],
-                ['language_id', '=', $lang],
-                ['concept_label_type', '=', $type]
-            );
-            DB::table($thLabel)
-                ->where($cond)
-                ->update([
-                    'label' => $label
-                ]);
+            if($treeName == 'project') {
+                $thLabel = ThConceptLabelProject::find($id);
+            } else {
+                $thLabel = ThConceptLabel::find($id);;
+            }
+            $thLabel->label = $label;
         } else {
+            if($treeName == 'project') {
+                $thLabel = new ThConceptLabelProject();
+            } else {
+                $thLabel = new ThConceptLabel();
+            }
             if($type == 1) {
-                $lblCount = DB::table($thLabel)
-                    ->where([
-                        ['language_id', '=', $lang],
-                        ['concept_id', '=', $cid]
-                    ])
-                    ->count();
-
+                $cond = [
+                    ['language_id', '=', $lang],
+                    ['concept_id', '=', $cid]
+                ];
+                if($treeName == 'project') {
+                    $query = ThConceptLabelProject::where($cond);
+                } else {
+                    $query = ThConceptLabel::where($cond);
+                }
+                $lblCount = $query->count();
                 if($lblCount > 0) { //existing prefLabel for desired language, abort
                     return response()->json([
                         'error' => 'Duplicate entry for language ' . $lang
                     ]);
                 }
             }
-
-            $id = DB::table($thLabel)
-                ->insertGetId([
-                    'label' => $label,
-                    'concept_id' => $cid,
-                    'language_id' => $lang,
-                    'concept_label_type' => $type,
-                    'lasteditor' => 'postgres'
-                ]);
+            $thLabel->label = $label;
+            $thLabel->concept_id = $cid;
+            $thLabel->language_id = $lang;
+            $thLabel->concept_label_type = $type;
+            $thLabel->lasteditor = 'postgres';
         }
-        return response()->json($id);
+        $thLabel->save();
+        return response()->json([
+            'label' => $thLabel
+        ]);
     }
 
     public function copy(Request $request) {
         // Copy elements from source tree to cloned tree and vice versa
         $elemId = $request->get('id');
         $newBroader = $request->get('new_broader');
-        $src = $request->get('src'); // 'master' or 'clone'
+        $src = $request->get('src'); // 'master' or 'project'
         $isTopConcept = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
+        if($request->has('lang')) $lang = $request->get('lang');
+        else $lang = 'de';
 
         $thConcept = 'th_concept';
         $thLabel = 'th_concept_label';
         $thBroader = 'th_broaders';
-        if($src == 'clone') {
+        if($src == 'project') {
             $thConceptSrc = $thConcept.'_export';
             $thLabelSrc = $thLabel.'_export';
             $thBroaderSrc = $thBroader.'_export';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
         } else {
             $thConceptSrc = $thConcept;
             $thLabelSrc = $thLabel;
@@ -803,17 +823,18 @@ class TreeController extends BaseController
             $thConcept .= '_export';
             $thLabel .= '_export';
             $thBroader .= '_export';
+            $labelView = 'getFirstLabelForLanguagesFromExport';
         }
 
         $rows = DB::select("
         WITH RECURSIVE
-        q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id) AS
+        q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, lvl) AS
             (
-                SELECT  conc.*, -1
+                SELECT  conc.*, -1, 0
                 FROM    $thConceptSrc conc
                 WHERE   conc.id = $elemId
                 UNION ALL
-                SELECT  conc2.*, broad.broader_id
+                SELECT  conc2.*, broad.broader_id, lvl + 1
                 FROM    $thConceptSrc conc2
                 JOIN    $thBroaderSrc broad
                 ON      conc2.id = broad.narrower_id
@@ -822,37 +843,49 @@ class TreeController extends BaseController
             )
         SELECT  q.*
         FROM    q
-        ORDER BY concept_url ASC
+        ORDER BY lvl ASC
         ");
-        $tmpBroaders = [];
+
         $newElemId = -1;
+        $relations = [];
         foreach($rows as $row) {
+            $oldId = $row->id;
+            if($oldId == $elemId) $row->is_top_concept = $isTopConcept;
             $conceptAlreadyExists = false;
-            $tmpRow = $row;
-            $id = $row->id;
-            $broaderId = $row->broader_id;
-            unset($tmpRow->broader_id);
-            unset($tmpRow->id);
-            if($tmpRow->created_at == '') unset($tmpRow->created_at);
-            if($tmpRow->updated_at == '') unset($tmpRow->updated_at);
-            if($id == $elemId) $tmpRow->is_top_concept = $isTopConcept;
-            $cnt = DB::table($thConcept)
-                ->where('concept_url', '=', $tmpRow->concept_url)
-                ->count();
-            if($cnt > 0) {
-                $conceptAlreadyExists = true;
-                $newId = DB::table($thConcept)
-                    ->where('concept_url', '=', $tmpRow->concept_url)
-                    ->value('id');
+            $newId = DB::table($thConcept)
+                ->where('concept_url', '=', $row->concept_url)
+                ->value('id');
+            if($newId === null) {
+                if($src == 'project') $currentConcept = new ThConcept();
+                else $currentConcept = new ThConceptProject();
+                $currentConcept->concept_url = $row->concept_url;
+                $currentConcept->concept_scheme = $row->concept_scheme;
+                $currentConcept->lasteditor = 'postgres';
+                $currentConcept->is_top_concept = $row->is_top_concept;
+                $currentConcept->save();
             } else {
-                $newId = DB::table($thConcept)
-                    ->insertGetId(get_object_vars($tmpRow));
+                $conceptAlreadyExists = true;
+                if($src == 'project') $currentConcept = ThConcept::find($newId);
+                else $currentConcept = ThConceptProject::find($newId);
+            }
+            $newId = $currentConcept->id;
+            if($oldId == $elemId) {
+                $newElemId = $newId;
+                $relations[$oldId] = [
+                    'oldId' => $oldId,
+                    'newId' => $newId
+                ];
+            } else {
+                $relations[$oldId] = [
+                    'oldId' => $oldId,
+                    'newId' => $newId,
+                    'broader' => $row->broader_id
+                ];
             }
             $labels = DB::table($thLabelSrc)
-                ->where('concept_id', '=', $id)
+                ->where('concept_id', '=', $oldId)
                 ->get();
             foreach($labels as $l) {
-                unset($l->id);
                 $l->concept_id = $newId;
                 $cnt = DB::table($thLabel)
                     ->where([
@@ -864,32 +897,33 @@ class TreeController extends BaseController
                 if($cnt > 0) continue;
                 //if the concept already exists, set label type of copied label to alt label (2)
                 if($conceptAlreadyExists) $l->concept_label_type = 2;
-                DB::table($thLabel)
-                    ->insert(get_object_vars($l));
-            }
-            if($id == $elemId) {
-                $newElemId = $newId;
-            } else {
-                $broader = DB::table($thBroaderSrc . ' as b')
-                    ->join($thConceptSrc . ' as c', 'c.id', '=', 'b.broader_id')
-                    ->where('narrower_id', '=', $id)
-                    ->value('c.concept_url');
-                if(!isset($tmpBroaders[$newId])) $tmpBroaders[$newId] = [];
-                $tmpBroaders[$newId][] = $broader;
+                if($src == 'project') $currentLabel = new ThConceptLabel();
+                else $currentLabel = new ThConceptLabelProject();
+                $currentLabel->lasteditor = 'postgres';
+                $currentLabel->label = $l->label;
+                $currentLabel->concept_id = $l->concept_id;
+                $currentLabel->language_id = $l->language_id;
+                $currentLabel->concept_label_type = $l->concept_label_type;
+                $currentLabel->save();
             }
         }
-        foreach($tmpBroaders as $k => $v) {
-            foreach($v as $b) {
-                $bId = DB::table($thConcept)
-                    ->where('concept_url', '=', $b)
-                    ->value('id');
-                if($bId === null) continue;
-                DB::table($thBroader)
-                    ->insert([
-                        'broader_id' => $bId,
-                        'narrower_id' => $k
-                    ]);
-            }
+        foreach($relations as $relation) {
+            if(!isset($relation['broader'])) continue;
+            $oldBroaderId = $relation['broader'];
+            $broaderId = $relations[$oldBroaderId]['newId'];
+            $narrowerId = $relation['newId'];
+            $cnt = DB::table($thBroader)
+                ->where([
+                    ['broader_id', '=', $broaderId],
+                    ['narrower_id', '=', $narrowerId]
+                ])
+                ->count();
+            if($cnt > 0) continue; //if relation already exists, do not add it again
+            DB::table($thBroader)
+                ->insert([
+                    'broader_id' => $broaderId,
+                    'narrower_id' => $narrowerId
+                ]);
         }
         if($newBroader != -1 && $newElemId != -1) {
             DB::table($thBroader)
@@ -898,7 +932,58 @@ class TreeController extends BaseController
                     'narrower_id' => $newElemId
                 ]);
         }
-        return response()->json($rows);
+
+        //get new elements
+        $elements = DB::select("
+            WITH RECURSIVE
+            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
+                (
+                    SELECT  conc.*, f.label, $newBroader, 0
+                    FROM    $thConcept conc
+                    JOIN    \"$labelView\" as f
+                    ON      conc.concept_url = f.concept_url
+                    WHERE   conc.id = $newElemId
+                    AND     f.lang = '$lang'
+                    UNION ALL
+                    SELECT  conc2.*, f.label, broad.broader_id, reclevel + 1
+                    FROM    $thConcept conc2
+                    JOIN    $thBroader broad
+                    ON      conc2.id = broad.narrower_id
+                    JOIN    q
+                    ON      broad.broader_id = q.id
+                    JOIN    \"$labelView\" as f
+                    ON      conc2.concept_url = f.concept_url
+                    WHERE   f.lang = '$lang'
+                )
+            SELECT  q.*
+            FROM    q
+            ORDER BY label ASC
+        ");
+
+        $concepts = $this->createConceptLists($elements);
+        foreach($concepts['topConcepts'] as $tc) {
+            $concepts['conceptList'][$tc->id] = $tc;
+        }
+        $clonedElement = '';
+        foreach($concepts['conceptList'] as $k => $c) {
+            if($c->id == $newElemId) {
+                $clonedElement = $c;
+                if(($key = array_search($c->id, $concepts['concepts'][$c->broader_id])) !== false) {
+                    unset($concepts['concepts'][$c->broader_id][$key]);
+                    if(count($concepts['concepts'][$c->broader_id]) === 0) {
+                        unset($concepts['concepts'][$c->broader_id]);
+                    }
+                }
+                unset($concepts['conceptList'][$k]);
+                break;
+            }
+        }
+        return response()->json([
+            'conceptList' => $concepts['conceptList'],
+            'concepts' => $concepts['concepts'],
+            'clonedElement' => $clonedElement,
+            'id' => $newElemId
+        ]);
     }
 
     public function updateRelation(Request $request) {
@@ -906,9 +991,9 @@ class TreeController extends BaseController
         $oldBroader = $request->get('old_broader_id');
         $broader = $request->get('broader_id');
         $lang = $request->get('lang');
-        $isExport = $request->get('isExport');
+        $treeName = $request->get('treeName');
 
-        if($isExport === 'clone') {
+        if($treeName === 'project') {
             $suffix = '_export';
             $labelView = 'getFirstLabelForLanguagesFromExport';
         } else {
@@ -999,12 +1084,12 @@ class TreeController extends BaseController
     public function search(Request $request) {
         if(!$request->has('val')) return response()->json();
         $val = $request->get('val');
-        if($request->has('tree')) $which = $request->get('tree');
+        if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        $suffix = $which == 'clone' ? '_export' : '';
+        $suffix = $which == 'project' ? '_export' : '';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -1038,10 +1123,10 @@ class TreeController extends BaseController
         if(!$request->has('id')) return response()->json();
         $id = $request->get('id');
         $where = "WHERE narrower_id = $id";
-        if($request->has('tree')) $which = $request->get('tree');
+        if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
 
-        $suffix = $which == 'clone' ? '_export' : '';
+        $suffix = $which == 'project' ? '_export' : '';
         $thBroader = 'th_broaders' . $suffix;
 
         $parents = array();

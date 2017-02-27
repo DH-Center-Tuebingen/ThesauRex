@@ -1,6 +1,6 @@
-var spacialistApp = angular.module('tutorialApp', ['ngAnimate', 'ngRoute', 'ngMessages', 'nemLogging', 'ui.select', 'ngSanitize', 'ngFlag', 'ui.bootstrap', 'ngFileUpload', 'ui.tree', 'ui.bootstrap.contextMenu']);
+var thesaurexApp = angular.module('tutorialApp', ['ngAnimate', 'ngRoute', 'ngMessages', 'nemLogging', 'ui.select', 'ngSanitize', 'ngFlag', 'ui.bootstrap', 'ngFileUpload', 'ui.tree', 'ui.bootstrap.contextMenu']);
 
-spacialistApp.directive('spinner', function() {
+thesaurexApp.directive('spinner', function() {
     return {
         template: '<div class="spinner-container">' +
             '<svg class="circle-img-path" viewBox="25 25 50 50">' +
@@ -10,7 +10,15 @@ spacialistApp.directive('spinner', function() {
     };
 });
 
-spacialistApp.service('modalFactory', ['$uibModal', function($uibModal) {
+thesaurexApp.controller('masterCtrl', ['$scope', function($scope) {
+    $scope.treeName = 'master';
+}]);
+
+thesaurexApp.controller('projectCtrl', ['$scope', function($scope) {
+    $scope.treeName = 'project';
+}]);
+
+thesaurexApp.service('modalFactory', ['$uibModal', function($uibModal) {
     this.deleteModal = function(elementName, onConfirm, additionalWarning) {
         if(typeof additionalWarning != 'undefined' && additionalWarning !== '') {
             var warning = additionalWarning;
@@ -34,7 +42,7 @@ spacialistApp.service('modalFactory', ['$uibModal', function($uibModal) {
     };
 }]);
 
-spacialistApp.directive('resizeWatcher', function($window) {
+thesaurexApp.directive('resizeWatcher', function($window) {
     return function($scope) {
         var bottomPadding = 20;
         var listPadding = 40;
@@ -47,7 +55,7 @@ spacialistApp.directive('resizeWatcher', function($window) {
             var controlHeight = controlElement.offsetHeight + controlElement.offsetTop;
             if(isSm) {
                 $('#master-tree').css('height', '');
-                $('#clone-tree').css('height', '');
+                $('#project-tree').css('height', '');
                 $('#broader-list').css('height', '');
                 $('#narrower-list').css('height', '');
                 $('#preferred-list').css('height', '');
@@ -66,7 +74,7 @@ spacialistApp.directive('resizeWatcher', function($window) {
                 var labelHeight = (rightHeight - (2 * subHeaderHeight)) / 2;
 
                 $('#master-tree').css('height', containerHeight);
-                $('#clone-tree').css('height', containerHeight);
+                $('#project-tree').css('height', containerHeight);
                 $('#broader-list').css('height', labelHeight);
                 $('#narrower-list').css('height', labelHeight);
                 $('#preferred-list').css('height', labelHeight);
@@ -89,7 +97,7 @@ spacialistApp.directive('resizeWatcher', function($window) {
     };
 });
 
-spacialistApp.directive('myDirective', function(httpPostFactory, scopeService) {
+thesaurexApp.directive('myDirective', function(httpPostFactory, scopeService) {
     return {
         restrict: 'A',
         scope: false,
@@ -102,7 +110,7 @@ spacialistApp.directive('myDirective', function(httpPostFactory, scopeService) {
     };
 });
 
-spacialistApp.directive('formField', function() {
+thesaurexApp.directive('formField', function() {
     return {
         restrict: 'E',
         templateUrl: 'includes/inputFields.html',
@@ -113,7 +121,7 @@ spacialistApp.directive('formField', function() {
     };
 });
 
-spacialistApp.directive("number", function() {
+thesaurexApp.directive("number", function() {
     return {
         restrict: "A",
         require: "ngModel",
@@ -125,7 +133,7 @@ spacialistApp.directive("number", function() {
     };
 });
 
-spacialistApp.filter('bytes', function() {
+thesaurexApp.filter('bytes', function() {
 	return function(bytes, precision) {
         var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 		if(isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '0 ' + units[0];
@@ -135,7 +143,7 @@ spacialistApp.filter('bytes', function() {
 	};
 });
 
-spacialistApp.filter('overallLength', function() {
+thesaurexApp.filter('overallLength', function() {
     return function(obj) {
         var count = 0;
         angular.forEach(obj, function(value, key) {
@@ -145,7 +153,7 @@ spacialistApp.filter('overallLength', function() {
     };
 });
 
-spacialistApp.filter('truncate', function () {
+thesaurexApp.filter('truncate', function () {
     return function (value, max, atword, suffix) {
         if(!value) return '';
         if(!max || value.length <= max) return value;
@@ -162,7 +170,7 @@ spacialistApp.filter('truncate', function () {
     };
 });
 
-spacialistApp.factory('httpPostPromise', function($http) {
+thesaurexApp.factory('httpPostPromise', function($http) {
     var getData = function(file, data) {
         return $http({
             url: file,
@@ -178,7 +186,7 @@ spacialistApp.factory('httpPostPromise', function($http) {
     return { getData: getData };
 });
 
-spacialistApp.factory('httpPostFactory', function($http) {
+thesaurexApp.factory('httpPostFactory', function($http) {
     return function(file, data, callback) {
         $http({
             url: file,
@@ -193,7 +201,7 @@ spacialistApp.factory('httpPostFactory', function($http) {
     };
 });
 
-spacialistApp.factory('httpGetPromise', function($http) {
+thesaurexApp.factory('httpGetPromise', function($http) {
     var getData = function(file) {
         return $http({
             url: file,
@@ -208,7 +216,7 @@ spacialistApp.factory('httpGetPromise', function($http) {
     return { getData: getData };
 });
 
-spacialistApp.factory('httpGetFactory', function($http) {
+thesaurexApp.factory('httpGetFactory', function($http) {
     return function(file, callback) {
         $http({
             url: file,
@@ -222,13 +230,13 @@ spacialistApp.factory('httpGetFactory', function($http) {
     };
 });
 
-spacialistApp.factory('scopeService', function($http) {
+thesaurexApp.factory('scopeService', function($http) {
     var service = {
     };
     return service;
 });
 
-spacialistApp.config(function($routeProvider, $locationProvider) {
+thesaurexApp.config(function($routeProvider, $locationProvider) {
     $routeProvider
         .when('/tree', {
             templateUrl: 'includes/tree.html'
