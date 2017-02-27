@@ -361,12 +361,12 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                         }
                     }
                 }
-                for(var k in childList) {
+                for(k in childList) {
                     if(childList.hasOwnProperty(k)) {
                         if(!main.tree[to].childList[k]) {
                             main.tree[to].childList[k] = [];
                         }
-                        for(var i=0; i<childList[k].length; i++) {
+                        for(i=0; i<childList[k].length; i++) {
                             main.tree[to].childList[k].push(childList[k][i]);
                         }
                         setChildren(k, to);
