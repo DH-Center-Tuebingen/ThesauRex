@@ -17,7 +17,7 @@
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default" ng-click="export()">Export (.rdf)</button>
+                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export (.rdf)</button>
                 <div class="search-container">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
