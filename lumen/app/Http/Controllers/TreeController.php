@@ -350,7 +350,6 @@ class TreeController extends Controller
     public function getLabelById($id, $suffix = '', $lang = 'de') {
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
         $label = DB::table($thLabel .' as lbl')
             ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
             ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
@@ -378,6 +377,36 @@ class TreeController extends Controller
             ->where('concept_id', '=', $id)
             ->get();
         return response()->json($labels);
+    }
+
+    public function getDisplayLabel(Request $request) {
+        $id = $request->get('id');
+        if($request->has('lang')) $lang = $request->get('lang');
+        else $lang = 'de';
+        $treeName = $request->get('treeName');
+
+        if($treeName === 'project') {
+            $suffix = '_export';
+            $labelView = 'getFirstLabelForLanguagesFromExport';
+        } else {
+            $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
+        }
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $concept = DB::table($thConcept . ' as c')
+            ->select('c.id', 'c.concept_url', 'concept_scheme', 'is_top_concept', 'f.label')
+            ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
+            ->join($thLabel . ' as l', 'c.id', '=', 'l.concept_id')
+            ->where([
+                ['l.id', '=', $id],
+                ['f.lang', '=', $lang]
+            ])
+            ->first();
+        return response()->json([
+            'concept' => $concept
+        ]);
     }
 
     public function getLanguages() {

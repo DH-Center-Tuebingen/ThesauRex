@@ -185,14 +185,14 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     main.addPrefLabel = function(labelText, language, cid, treeName, id) {
         var promise = addLabel(1, labelText, language, cid, treeName, id);
         promise.then(function(response) {
-            postAdd(response, language);
+            postAdd(response, language, treeName);
         });
     };
 
     main.addAltLabel = function(labelText, language, cid, treeName, id) {
         var promise = addLabel(2, labelText, language, cid, treeName, id);
         promise.then(function(response) {
-            postAdd(response, language);
+            postAdd(response, language, treeName);
         });
     };
 
@@ -204,7 +204,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         };
         var promise = addLabel(1, label.editText, language, cid, treeName, label.id);
         promise.then(function(response) {
-            postUpdate(label);
+            postUpdate(label, treeName);
         });
     };
 
@@ -216,7 +216,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         };
         var promise = addLabel(2, label.editText, language, cid, treeName, label.id);
         promise.then(function(response) {
-            postUpdate(label);
+            postUpdate(label, treeName);
         });
     };
 
@@ -437,9 +437,10 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return httpPostPromise.getData('api/add/label', formData);
     }
 
-    function postUpdate(label) {
+    function postUpdate(label, treeName) {
         label.label = label.editText;
         main.resetLabelEdit(label);
+        getUpdatedDisplayLabel(label, treeName);
     }
 
     function updateConcept(id, newValues, treeName) {
@@ -448,7 +449,19 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         }
     }
 
-    function postAdd(response, language) {
+    function getUpdatedDisplayLabel(label, treeName) {
+        var formData = new FormData();
+        formData.append('id', label.id);
+        formData.append('treeName', treeName);
+        httpPostFactory('api/get/label/display', formData, function(response) {
+            var newValues = {
+                label: response.concept.label
+            };
+            updateConcept(response.concept.id, newValues, treeName);
+        });
+    }
+
+    function postAdd(response, language, treeName) {
         var label = response.label;
         var data = [];
         var curr = {
@@ -461,6 +474,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         };
         data.push(curr);
         setLabels(data);
+        getUpdatedDisplayLabel(label, treeName);
     }
 
     function deleteBroaderConcept(id, broaderId, treeName) {
