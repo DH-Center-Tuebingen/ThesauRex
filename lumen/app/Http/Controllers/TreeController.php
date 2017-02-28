@@ -405,28 +405,18 @@ class TreeController extends Controller
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        $topConcepts = DB::table($thConcept . ' as c')
-            ->select('id', 'c.concept_url', 'concept_scheme', 'is_top_concept', 'f.label',
-                DB::raw("0 as reclevel"))
-            ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
-            ->where([
-                ['is_top_concept', '=', true],
-                ['f.lang', '=', $lang]
-            ])
-            ->get();
-
         $rows = DB::select("
             WITH RECURSIVE
-            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
+            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, label, broader_id) AS
                 (
-                    SELECT  conc.*, f.label, -1, 0
+                    SELECT  conc.id, conc.concept_url, conc.concept_scheme, conc.lasteditor, conc.is_top_concept, f.label, -1
                     FROM    $thConcept conc
                     JOIN    \"$labelView\" as f
                     ON      conc.concept_url = f.concept_url
                     WHERE   is_top_concept = true
                     AND     f.lang = '$lang'
                     UNION ALL
-                    SELECT  conc2.*, f.label, broad.broader_id, reclevel + 1
+                    SELECT  conc2.id, conc2.concept_url, conc2.concept_scheme, conc2.lasteditor, conc2.is_top_concept, f.label, broad.broader_id
                     FROM    $thConcept conc2
                     JOIN    $thBroader broad
                     ON      conc2.id = broad.narrower_id
