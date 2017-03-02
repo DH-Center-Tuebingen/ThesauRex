@@ -139,19 +139,21 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         for(var i=0; i<$scope.selectedElement.labels.pref.length; i++) {
             var l = $scope.selectedElement.labels.pref[i];
             if(l.langId == $scope.preferredLanguages.pref.id) {
-                var alertTitle = 'prefLabel vorhanden';
-                var alertMsg = "Es ist bereits ein prefLabel für " + $scope.preferredLanguages.pref.langName + " vorhanden.";
+                var alertTitle = 'Problem with Preferred Label';
+                var alertMsg = "For the language <i>" + $scope.preferredLanguages.pref.langName + "</i> there is already a preferred label defined.";
                 mainService.displayAlert(alertTitle, alertMsg);
                 return;
             }
         }
         var cid = $scope.selectedElement.properties.id;
         mainService.addPrefLabel(labelText, language, cid, treeName);
+        $scope.newPrefLabelText.text = '';
     };
 
     $scope.addAltLabel = function(labelText, language, treeName) {
         var cid = $scope.selectedElement.properties.id;
         mainService.addAltLabel(labelText, language, cid, treeName);
+        $scope.newAltLabelText.text = '';
     };
 
     $scope.deleteBroaderConcept = function($index, broader, treeName) {
@@ -172,10 +174,12 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
 
     $scope.addBroader = function($item, treeName) {
         mainService.addBroader($item, treeName);
+        $scope.broaderSearch = '';
     };
 
     $scope.addNarrower = function($item, treeName) {
         mainService.addNarrower($item, treeName);
+        $scope.narrowerSearch = '';
     };
 
     angular.element(document).ready(function () {

@@ -2,22 +2,22 @@
     <div class="col-md-6">
         <div class="col-md-6" ng-controller="masterCtrl">
             <div class="control-elements">
-                <h2>Master thesaurus</h2>
+                <h2>Master Thesaurus</h2>
                 <div class="btn-group" uib-dropdown>
                     <button type="file" id="default-import-master" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
-                        Import (.rdf)
+                        Import RDF
                     </button>
                     <button type="button" class="btn btn-default" uib-dropdown-toggle>
                         <span class="caret"></span>
-                        <span class="sr-only">Toggle import options</span>
+                        <span class="sr-only">Toggle Import Options</span>
                     </button>
                     <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="default-import-master">
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'extend')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Only add new concepts</a></li>
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'extend')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Import only new concepts</a></li>
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'update')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Also update existing concepts</a></li>
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Replace thesaurus with import</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export (.rdf)</button>
+                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export RDF</button>
                 <div class="search-container">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
@@ -35,13 +35,13 @@
                 <ul ui-tree-nodes ng-model="masterTree.tree" style="margin-bottom: 8px;">
                     <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
-                        Create new top concept
+                        Create New Top-Level Concept
                     </li>
                     <li ng-repeat="parent in masterTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
                     </li>
                     <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
-                        Create new top concept
+                        Create New Top-Level Concept
                     </li>
                 </ul>
             </div>
@@ -52,22 +52,22 @@
         </div>
         <div class="col-md-6" ng-controller="projectCtrl">
             <div class="control-elements">
-                <h2>Project thesaurus</h2>
+                <h2>Project Thesaurus</h2>
                 <div class="btn-group" uib-dropdown>
                     <button type="file" id="default-import-project" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'new', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
-                        Import (.rdf)
+                        Import RDF
                     </button>
                     <button type="button" class="btn btn-default" uib-dropdown-toggle>
                         <span class="caret"></span>
-                        <span class="sr-only">Toggle import options</span>
+                        <span class="sr-only">Toggle Import Options</span>
                     </button>
                     <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="default-import-project">
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'extend', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Only add new concepts</a></li>
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'extend', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Import only new concepts</a></li>
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'update', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Also update existing concepts</a></li>
-                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Create new thesaurus from upload</a></li>
+                        <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Replace thesaurus with upload</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export (.rdf)</button>
+                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export RDF</button>
                 <div class="search-container">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
@@ -84,13 +84,13 @@
                 <ul ui-tree-nodes ng-model="projectTree.tree" style="margin-bottom: 8px;">
                     <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
-                        Create new top concept
+                        Create New Top-Level Concept
                     </li>
                     <li ng-repeat="parent in projectTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
                     </li>
                     <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
                         <i class="fa fa-fw"></i>
-                        Create new top concept
+                        Create New Top-Level Concept
                     </li>
                 </ul>
             </div>
@@ -98,24 +98,24 @@
     </div>
     <div class="col-md-6" id="information-alert" ng-show="!selectedElement.properties.id">
         <p class="alert alert-warning">
-            Please choose one element from the tree on the left to display it's properties.
+            Choose an element from either tree to display its properties.
         </p>
     </div>
     <div class="col-md-6" ng-class="{'my-hidden': !selectedElement.properties.id}">
         <div id="information-header" class="relation-header">
-            <h2>{{ selectedElement.properties.label }} <small>Informations</small></h2>
+            <h2>{{ selectedElement.properties.label }} <small>Concept Details</small></h2>
             <div class="col-md-12">
                 <p>
-                    <strong>Concept URL:</strong> {{ selectedElement.properties.concept_url }}
+                    <strong>Concept URI:</strong> {{ selectedElement.properties.concept_url }}
                 </p>
             </div>
         </div>
         <div class="col-md-6">
             <div id="broader-header" class="relation-header">
-                <h3>Broader concepts</h3>
+                <h3>Broader Concepts</h3>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Add broader" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
+                        <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Type to search broader concept" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
                     <i ng-show="loadingBroaderSearchResults" class="glyphicon glyphicon-refresh"></i>
@@ -125,6 +125,9 @@
                 </div>
             </div>
             <ul id="broader-list" class="scrollable-list">
+                <div ng-if="!selectedElement.relations.broader || selectedElement.relations.broader.length == 0">
+                    <i>No broader concepts defined.</i>
+                </div>
                 <li ng-repeat="br in selectedElement.relations.broader" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
                     ng-click="deleteBroaderConcept($index, br, selectedElement.treeName)">
@@ -134,15 +137,12 @@
                     <br/>
                     {{ br.url }}
                 </li>
-                <li class="alert alert-warning" ng-if="!selectedElement.relations.broader || selectedElement.relations.broader.length == 0">
-                    No broader concepts found.
-                </li>
             </ul>
             <div id="narrower-header" class="relation-header">
-                <h3>Narrower concepts</h3>
+                <h3>Narrower Concepts</h3>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="narrowerSearch" ng-model-options="{ debounce: 250 }" placeholder="Add narrower" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName, true)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addNarrower($item, selectedElement.treeName)" typeahead-loading="loadingNarrowerSearchResults" typeahead-no-results="noNarrowerFound" />
+                        <input type="text" class="form-control" ng-model="narrowerSearch" ng-model-options="{ debounce: 250 }" placeholder="Type to search or create narrower concept" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName, true)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addNarrower($item, selectedElement.treeName)" typeahead-loading="loadingNarrowerSearchResults" typeahead-no-results="noNarrowerFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
                     <i ng-show="loadingNarrowerSearchResults" class="glyphicon glyphicon-refresh"></i>
@@ -152,6 +152,9 @@
                 </div>
             </div>
             <ul id="narrower-list" class="scrollable-list">
+                <div ng-if="!selectedElement.relations.narrower || selectedElement.relations.narrower.length == 0">
+                    <i>No narrower concepts defined.</i>
+                </div>
                 <li ng-repeat="na in selectedElement.relations.narrower" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
                     ng-click="deleteNarrowerConcept($index, na, selectedElement.treeName)">
@@ -161,19 +164,16 @@
                     <br/>
                     {{ na.url }}
                 </li>
-                <li class="alert alert-warning" ng-if="!selectedElement.relations.narrower || selectedElement.relations.narrower.length == 0">
-                    No narrower concepts found.
-                </li>
             </ul>
         </div>
         <div class="col-md-6">
             <div id="preferred-header" class="relation-header">
-                <h3>Preferred labels</h3>
+                <h3>Preferred Labels</h3>
                 <div ng-if="selectedElement.loading.prefLabels">
                     <spinner/>
                 </div>
                 <div ng-show="!selectedElement.loading.prefLabels">
-                    <div class="input-group col-md-offset-1 col-md-11">
+                    <div class="input-group">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <flag country="{{ getLanguageCode(preferredLanguages.pref.langShort) }}" size="16"></flag><span class="caret"></span>
@@ -196,6 +196,9 @@
                 </div>
             </div>
             <ul id="preferred-list" class="scrollable-list">
+                <div ng-if="!selectedElement.labels.pref || selectedElement.labels.pref.length == 0">
+                    <i>No preferred labels defined.</i>
+                </div>
                 <li ng-repeat="pl in selectedElement.labels.pref" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
                     ng-click="deletePrefLabel($index, pl, selectedElement.treeName)">
@@ -215,17 +218,14 @@
                         <button class="btn btn-danger btn-xs" ng-click="resetPrefLabelEdit(pl)"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
-                <li class="alert alert-warning" ng-if="!selectedElement.labels.pref || selectedElement.labels.pref.length == 0">
-                    No preferred labels found.
-                </li>
             </ul>
             <div id="alternative-header" class="relation-header">
-                <h3>Alternative labels</h3>
+                <h3>Alternative Labels</h3>
                 <div ng-if="selectedElement.loading.altLabels">
                     <spinner/>
                 </div>
                 <div ng-show="!selectedElement.loading.altLabels">
-                    <div class="input-group col-md-offset-1 col-md-11">
+                    <div class="input-group">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <flag country="{{ getLanguageCode(preferredLanguages.alt.langShort) }}" size="16"></flag><span class="caret"></span>
@@ -247,6 +247,9 @@
                 </div>
             </div>
             <ul id="alternative-list" class="scrollable-list">
+                <div ng-if="!selectedElement.labels.alt || selectedElement.labels.alt.length == 0">
+                    <i>No alternative labels defined.</i>
+                </div>
                 <li ng-repeat="al in selectedElement.labels.alt" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
                     ng-click="deleteAltLabel($index, al, selectedElement.treeName)">
@@ -265,9 +268,6 @@
                         <button class="btn btn-success btn-xs" ng-click="storeAltLabelEdit(al, selectedElement.treeName)"><i class="fa fa-check"></i></button>
                         <button class="btn btn-danger btn-xs" ng-click="resetAltLabelEdit(al)"><i class="fa fa-ban"></i></button>
                     </div>
-                </li>
-                <li class="alert alert-warning" ng-if="!selectedElement.labels.alt || selectedElement.labels.alt.length == 0">
-                    No alternative labels found.
                 </li>
             </ul>
         </div>
