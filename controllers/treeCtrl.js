@@ -254,11 +254,16 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         var blockMsg = 'Creating ' + treeName + '_thesaurus.rdf. Please wait.';
         mainService.disableUi(blockMsg);
         var promise = mainService.promisedExport(treeName, id);
-        promise.then(function(data) {
+        if(!promise) {
             mainService.enableUi();
-            var filename = treeName + '_thesaurus.rdf';
-            createDownloadFile(data, filename);
-        });
+            console.log("Something bad happened to your export...");
+        } else {
+            promise.then(function(data) {
+                mainService.enableUi();
+                var filename = treeName + '_thesaurus.rdf';
+                createDownloadFile(data, filename);
+            });
+        }
     };
 
     var createDownloadFile = function(data, filename) {
