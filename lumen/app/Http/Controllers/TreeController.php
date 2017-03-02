@@ -436,16 +436,15 @@ class TreeController extends Controller
 
         $rows = DB::select("
             WITH RECURSIVE
-            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, label, broader_id) AS
+            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, label, lang, broader_id) AS
                 (
-                    SELECT  conc.id, conc.concept_url, conc.concept_scheme, conc.lasteditor, conc.is_top_concept, f.label, -1
+                    SELECT  conc.id, conc.concept_url, conc.concept_scheme, conc.lasteditor, conc.is_top_concept, f.label, f.lang, -1
                     FROM    $thConcept conc
                     JOIN    \"$labelView\" as f
                     ON      conc.concept_url = f.concept_url
                     WHERE   is_top_concept = true
-                    AND     f.lang = '$lang'
                     UNION ALL
-                    SELECT  conc2.id, conc2.concept_url, conc2.concept_scheme, conc2.lasteditor, conc2.is_top_concept, f.label, broad.broader_id
+                    SELECT  conc2.id, conc2.concept_url, conc2.concept_scheme, conc2.lasteditor, conc2.is_top_concept, f.label, f.lang, broad.broader_id
                     FROM    $thConcept conc2
                     JOIN    $thBroader broad
                     ON      conc2.id = broad.narrower_id
@@ -454,11 +453,10 @@ class TreeController extends Controller
                     JOIN    \"$labelView\" as f
                     ON      conc2.concept_url = f.concept_url
                     WHERE   conc2.is_top_concept = false
-                    AND     f.lang = '$lang'
                 )
             SELECT  q.*
             FROM    q
-            ORDER BY is_top_concept DESC, label ASC
+            ORDER BY lang = '$lang' ASC, is_top_concept DESC, label ASC
         ");
         $concepts = $this->createConceptLists($rows);
         return response()->json([
