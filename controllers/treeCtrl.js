@@ -85,6 +85,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         return menu;
     };
 
+    $scope.getLanguageCode = mainService.getLanguageCode;
+
     $scope.uploadFile = function(file, errFiles, type, treeName) {
         $scope.f = file;
         $scope.errFiles = errFiles && errFiles[0];
@@ -100,7 +102,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
     };
 
     $scope.selectAltLabelLanguage = function(index) {
-        $scope.selectedAltLabelLanguage = $scope.possibleLanguages[index];
+        mainService.setAltLabelLanguage(index);
     };
 
     $scope.selectPrefLabelLanguage = function(index) {

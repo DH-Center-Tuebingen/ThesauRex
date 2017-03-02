@@ -425,6 +425,11 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         });
     };
 
+    main.getLanguageCode = function(shortName) {
+        if(shortName == 'en') return 'us';
+        return shortName;
+    };
+
     function addLabel(labelType, labelText, language, cid, treeName, id) {
         var isEdit = typeof id != 'undefined';
         var formData = new FormData();
