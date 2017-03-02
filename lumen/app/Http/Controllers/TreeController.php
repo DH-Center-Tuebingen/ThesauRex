@@ -483,7 +483,7 @@ class TreeController extends Controller
                 $alreadySet = false;
                 if(isset($concepts[$concept->broader_id])) {
                     foreach($concepts[$concept->broader_id] as $con) {
-                        if($con['id'] == $concept->id) {
+                        if($con == $concept->id) {
                             $alreadySet = true;
                             break;
                         }
@@ -1118,7 +1118,7 @@ class TreeController extends Controller
             ->select('c.concept_url', 'c.id', 'b.broader_id')
             ->join($thConcept . ' as c', 'c.id', '=', 'l.concept_id')
             ->join('th_language as lng', 'l.language_id', '=', 'lng.id')
-            ->join($thBroader . ' as b', 'b.narrower_id', '=', 'c.id')
+            ->leftJoin($thBroader . ' as b', 'b.narrower_id', '=', 'c.id')
             ->where([
                 ['label', 'ilike', '%' . $val . '%'],
                 ['lng.short_name', '=', $lang]
@@ -1128,12 +1128,15 @@ class TreeController extends Controller
             ->get();
         $labels = [];
         foreach($matchedConcepts as $concept) {
-            $labels[] = [
+            $label = [
                 'label' => $this->getLabel($concept->concept_url, $suffix, $lang)->label,
-                'id' => $concept->id,
-                'broader_label' => $this->getLabelById($concept->broader_id, $suffix, $lang)->label,
-                'broader_id' => $concept->broader_id
+                'id' => $concept->id
             ];
+            if($concept->broader_id !== null) {
+                $label['broader_label'] = $this->getLabelById($concept->broader_id, $suffix, $lang)->label;
+                $label['broader_id'] = $concept->broader_id;
+            }
+            $labels[] = $label;
         }
         usort($labels, [$this, 'sortLabels']);
         return response()->json($labels);

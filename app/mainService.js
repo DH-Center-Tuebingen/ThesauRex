@@ -159,7 +159,8 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         label.editMode = false;
     };
 
-    function addBroaderWithId(id, parent, treeName) {
+    function addBroaderWithId(id, parent, treeName, isNarrower) {
+        isNarrower = isNarrower || false;
         var formData = new FormData();
         formData.append('id', id);
         formData.append('broader_id', parent.id);
@@ -170,6 +171,8 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             }
             main.tree[treeName].childList[parent.id].push(id);
             main.tree[treeName].concepts[parent.id].children = getChildrenById(parent.id, treeName);
+            if(!isNarrower) updateRelations(id, treeName);
+            else updateRelations(parent.id, treeName);
         });
     }
 
@@ -178,7 +181,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         if(item.isNew) {
             main.createNewConceptModal(treeName, parent, item.label);
         } else {
-            addBroaderWithId(item.id, parent, treeName);
+            addBroaderWithId(item.id, parent, treeName, true);
         }
     };
 
@@ -543,6 +546,12 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             setLabels(data);
         });
 
+        updateRelations(id, treeName);
+    }
+
+    function updateRelations(id, treeName) {
+        main.selectedElement.relations.broader.length = 0;
+        main.selectedElement.relations.narrower.length = 0;
         getRelations(id, treeName).then(function(data) {
             main.selectedElement.loading.broaderConcepts = false;
             main.selectedElement.loading.narrowerConcepts = false;
@@ -611,6 +620,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             }
             main.tree[treeName].childList[parentId].push(element.id);
             main.tree[treeName].concepts[parentId].children = getChildrenById(parentId, treeName);
+            updateRelations(parentId, treeName);
         }
     }
 
