@@ -792,7 +792,8 @@ class TreeController extends Controller
             if($type == 1) {
                 $cond = [
                     ['language_id', '=', $lang],
-                    ['concept_id', '=', $cid]
+                    ['concept_id', '=', $cid],
+                    ['concept_label_type', '=', $type]
                 ];
                 if($treeName == 'project') {
                     $query = ThConceptLabelProject::where($cond);
