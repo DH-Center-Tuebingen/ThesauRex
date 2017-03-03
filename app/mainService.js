@@ -74,6 +74,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             newElem.broader_id = parentId;
             main.tree[treeName].concepts.push(newElem);
             addElement(newElem, treeName);
+            main.setSelectedElement(newElem, treeName);
         });
     };
 
@@ -620,7 +621,6 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             }
             main.tree[treeName].childList[parentId].push(element.id);
             main.tree[treeName].concepts[parentId].children = getChildrenById(parentId, treeName);
-            updateRelations(parentId, treeName);
         }
     }
 
