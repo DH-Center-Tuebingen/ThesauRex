@@ -72,6 +72,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             newElem.label = name;
             newElem.reclevel = reclevel;
             newElem.broader_id = parentId;
+            newElem.children = [];
             main.tree[treeName].concepts.push(newElem);
             addElement(newElem, treeName);
         });
