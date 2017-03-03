@@ -54,7 +54,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
             menu.push([
                 '<i class="fa fa-fw fa-trash light red"></i> Delete',
                 function($itemScope) {
-                    mainService.deleteSingleElement($itemScope.$modelValue.id, treeName);
+                    mainService.deleteSingleElement($itemScope.$modelValue, treeName);
                 },
                 function($itemScope) {
                     return $itemScope.$modelValue.children.length === 0;
@@ -65,10 +65,10 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
                 '<i class="fa fa-fw fa-trash light red"></i> Delete&hellip;',
                 [
                     ['<i class="fa fa-fw fa-eraser light red"></i> and remove descendants', function($itemScope) {
-                        mainService.deleteElementWithChildren($itemScope.$modelValue.id, $itemScope.$modelValue.label, treeName);
+                        mainService.deleteElementWithChildren($itemScope.$modelValue, $itemScope.$modelValue.label, treeName);
                     }],
                     ['<i class="fa fa-fw fa-angle-up light red"></i> and move descendants one level up', function($itemScope) {
-                        mainService.deleteElementAndMoveUp($itemScope.$modelValue.id, $itemScope.$modelValue.broader_id, treeName);
+                        mainService.deleteElementAndMoveUp($itemScope.$modelValue, $itemScope.$modelValue.broader_id, treeName);
                     }]
                 ],
                 function($itemScope) {

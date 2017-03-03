@@ -72,6 +72,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             newElem.label = name;
             newElem.reclevel = reclevel;
             newElem.broader_id = parentId;
+            newElem.children = [];
             main.tree[treeName].concepts.push(newElem);
             addElement(newElem, treeName);
             main.setSelectedElement(newElem, treeName);
@@ -263,16 +264,21 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         });
     };
 
-    main.deleteSingleElement = function(id, treeName) {
+    main.deleteSingleElement = function(elem, treeName) {
+        var id = elem.id;
         var formData = new FormData();
         formData.append('id', id);
         formData.append('treeName', treeName);
         httpPostFactory('api/delete/cascade', formData, function(result) {
             deleteById(id, treeName);
+            if(elem.is_top_concept) {
+                deleteTopConcept(elem, treeName);
+            }
         });
     };
 
-    main.deleteElementWithChildren = function(id, label, treeName) {
+    main.deleteElementWithChildren = function(elem, label, treeName) {
+        var id = elem.id;
         modalFactory.deleteModal(label, function() {
             var formData = new FormData();
             formData.append('id', id);
@@ -283,11 +289,15 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 angular.forEach(deleteElements, function(elemId, key) {
                     deleteById(elemId, treeName);
                 });
+                if(elem.is_top_concept) {
+                    deleteTopConcept(elem, treeName);
+                }
             });
         }, 'If you delete this element, all of its descendants will be deleted, too!');
     };
 
-    main.deleteElementAndMoveUp = function(id, broader_id, treeName) {
+    main.deleteElementAndMoveUp = function(elem, broader_id, treeName) {
+        var id = elem.id;
         var formData = new FormData();
         formData.append('id', id);
         formData.append('broader_id', broader_id);
@@ -303,6 +313,9 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                     main.tree[treeName].concepts[key].children = getChildrenById(key, treeName, true);
                 }
             });
+            if(elem.is_top_concept) {
+                deleteTopConcept(elem, treeName);
+            }
         });
     };
 
@@ -502,6 +515,17 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         formData.append('treeName', treeName);
         var promise = httpPostPromise.getData('api/remove/concept', formData);
         return promise;
+    }
+
+    function deleteTopConcept(elem, treeName) {
+        if(!elem.is_top_concept) return;
+        for(var i=0; i<main.tree[treeName].tree.length; i++) {
+            var curr = main.tree[treeName].tree[i];
+            if(curr.id == elem.id) {
+                main.tree[treeName].tree.splice(i, 1);
+                break;
+            }
+        }
     }
 
     function deleteById(id, treeName) {
