@@ -29,7 +29,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     };
 
     $scope.createNewConceptModal = function(which) {
-        mainService.createNewConceptModal(which);
+        mainService.createNewConceptModal(which, undefined, undefined, expandElement);
     };
 
     $scope.getContextMenu = function(item, treeName) {
@@ -46,7 +46,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
         menu.push(null);
         menu.push([
             '<i class="fa fa-fw fa-plus-circle light green"></i> Add new concept', function($itemScope, $event) {
-                mainService.createNewConceptModal(treeName, $itemScope.$modelValue);
+                mainService.createNewConceptModal(treeName, $itemScope.$modelValue, undefined, expandElement);
             }
         ]);
         menu.push(null);
@@ -247,7 +247,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
         }
     };
 
-    $scope.expandElement = function($item, $model, $label, $event, treeName) {
+    $scope.expandElement = function($item, treeName) {
         expandElement($item.id, $item.broader_id, treeName);
     };
 

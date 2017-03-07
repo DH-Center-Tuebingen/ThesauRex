@@ -20,7 +20,7 @@
                 <button type="button" class="btn btn-default" ng-click="export(treeName)">Export RDF</button>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
+                        <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
                     <i ng-show="loadingResults[treeName]" class="glyphicon glyphicon-refresh"></i>
@@ -70,7 +70,7 @@
                 <button type="button" class="btn btn-default" ng-click="export(treeName)">Export RDF</button>
                 <div class="search-container">
                     <div class="input-group">
-                        <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, $model, $label, $event, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
+                        <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
                     <i ng-show="loadingResults[treeName]" class="glyphicon glyphicon-refresh"></i>
