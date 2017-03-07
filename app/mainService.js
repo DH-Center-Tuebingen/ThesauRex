@@ -35,7 +35,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         message: ''
     };
 
-    main.createNewConceptModal = function(treeName, parent, name) {
+    main.createNewConceptModal = function(treeName, parent, name, expandFunction) {
         if(!isValidTreeName(treeName)) return;
         var modalInstance = $uibModal.open({
             templateUrl: 'templates/newConceptModal.html',
@@ -46,13 +46,14 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 this.languages = main.languages;
                 this.preferredLanguage = main.preferredLanguages.main;
                 this.addConcept = main.addConcept;
+                this.expandFunction = expandFunction;
             },
             controllerAs: 'mc'
         });
         main.currentModal = modalInstance;
     };
 
-    main.addConcept = function(name, concept, lang, treeName) {
+    main.addConcept = function(name, concept, lang, treeName, expandFunction) {
         if(!isValidTreeName(treeName)) return;
         if(typeof main.currentModal !== 'undefined') main.currentModal.close('ok');
         var projName = (treeName == 'master') ? 'intern' : '<user-project>';
@@ -76,6 +77,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             main.tree[treeName].concepts.push(newElem);
             addElement(newElem, treeName);
             main.setSelectedElement(newElem, treeName);
+            expandFunction(newElem.id, newElem.broader_id, treeName);
         });
     };
 
