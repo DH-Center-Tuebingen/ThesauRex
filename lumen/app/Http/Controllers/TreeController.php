@@ -1169,11 +1169,11 @@ class TreeController extends Controller
                 WITH RECURSIVE
                     q (broader_id, narrower_id, lvl) AS
                     (
-                        SELECT b1.*, 0
+                        SELECT b1.broader_id, b1.narrower_id, 0
                         FROM $thBroader b1
                         $currentWhere
                         UNION ALL
-                        SELECT b2.*, lvl + 1
+                        SELECT b2.broader_id, b2.narrower_id, lvl + 1
                         FROM $thBroader b2
                         JOIN q ON q.broader_id = b2.narrower_id
                     )
