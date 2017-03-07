@@ -1,4 +1,4 @@
-thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, mainService) {
+thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService', '$timeout', function($scope, httpPostFactory, mainService, $timeout) {
     $scope.languages = mainService.languages;
     $scope.preferredLanguages = mainService.preferredLanguages;
     $scope.masterTree = mainService.tree.master;
@@ -190,7 +190,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
         var formData = new FormData();
         formData.append('id', id);
         if(typeof broader_id != 'undefined') formData.append('broader_id', broader_id);
-        formData.append('tree', treeName);
+        formData.append('treeName', treeName);
         httpPostFactory('api/get/parents/all', formData, function(parents) {
             if(parents.length > 1) return;
             parents = parents[0];
@@ -215,21 +215,22 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
                 expandWatcher();
                 $scope.expandedElement = null;
             });
-            recursiveExpansion(parents, children);
+            recursiveExpansion(parents, children, treeName);
         });
     };
 
-    var recursiveExpansion = function(parents, children) {
-        recursiveExpansionHelper(parents, children, 0);
+    var recursiveExpansion = function(parents, children, treeName) {
+        recursiveExpansionHelper(parents, children, 0, treeName);
     };
 
-    var recursiveExpansionHelper = function(parents, children, lvl) {
+    var recursiveExpansionHelper = function(parents, children, lvl, treeName) {
         for(var i=0; i<children.length; i++) {
             var currParent = parents[lvl];
             var currChild = children[i];
             if(currChild.$modelValue.id == currParent.broader_id) {
                 if(lvl+1 == parents.length) {
-                    $scope.displayInformation(currChild.$modelValue);
+                    //$scope.displayInformation(currChild.$modelValue);
+                    mainService.setSelectedElement(currChild.$modelValue, treeName);
                     $scope.expandedElement = currChild.$element[0];
                 } else {
                     //currChild.expand();
@@ -238,7 +239,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'mainService', function($scope, m
                     //This only works because we broadcast the collapse-all event beforehand.
                     $timeout(function() {
                         currChild.$element[0].firstChild.childNodes[2].click();
-                        recursiveExpansionHelper(parents, currChild.childNodes(), lvl+1);
+                        recursiveExpansionHelper(parents, currChild.childNodes(), lvl+1, treeName);
                     }, 0, false);
                 }
                 break;
