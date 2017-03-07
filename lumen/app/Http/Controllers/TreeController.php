@@ -26,7 +26,19 @@ class TreeController extends Controller
     public function sortLabels($a, $b) {
         $pos = strcasecmp($a['label'], $b['label']);
         if($pos == 0) {
-            $pos = strcasecmp($a['broader_label'], $b['broader_label']);
+            if(!array_key_exists('broader_label', $a)) {
+                if(!array_key_exists('broader_label', $b)) {
+                    $pos = 0;
+                } else {
+                    $pos = 1;
+                }
+            } else {
+                if(!array_key_exists('broader_label', $b)) {
+                    $pos = -1;
+                } else {
+                    $pos = strcasecmp($a['broader_label'], $b['broader_label']);;
+                }
+            }
         }
         return $pos;
     }
