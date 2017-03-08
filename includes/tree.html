@@ -23,9 +23,9 @@
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
-                    <i ng-show="loadingResults[treeName]" class="glyphicon glyphicon-refresh"></i>
-                    <div ng-show="noResults[treeName]">
-                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    <i ng-show="loadingResults[treeName]" class="fa fa-fw fa-refresh"></i>
+                    <div ng-show="noResults[treeName] && selectedSearchVal[treeName].length >= 3">
+                        <i class="fa fa-fw fa-times"></i> No Results Found
                     </div>
                 </div>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!masterTree.tree"/>Enable Drag & Drop</label>
@@ -73,9 +73,9 @@
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
-                    <i ng-show="loadingResults[treeName]" class="glyphicon glyphicon-refresh"></i>
-                    <div ng-show="noResults[treeName]">
-                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    <i ng-show="loadingResults[treeName]" class="fa fa-fw fa-refresh"></i>
+                    <div ng-show="noResults[treeName] && selectedSearchVal[treeName].length >= 3">
+                        <i class="fa fa-fw fa-times"></i> No Results Found
                     </div>
                 </div>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableExportDragDrop" ng-disabled="!projectTree.tree"/>Enable Drag & Drop</label>
@@ -118,9 +118,9 @@
                         <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Type to search broader concept" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
-                    <i ng-show="loadingBroaderSearchResults" class="glyphicon glyphicon-refresh"></i>
-                    <div ng-show="noBroaderFound">
-                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    <i ng-show="loadingBroaderSearchResults" class="fa fa-fw fa-refresh"></i>
+                    <div ng-show="noBroaderFound && broaderSearch.length >= 3">
+                        <i class="fa fa-fw fa-times"></i> No Results Found
                     </div>
                 </div>
             </div>
@@ -145,9 +145,9 @@
                         <input type="text" class="form-control" ng-model="narrowerSearch" ng-model-options="{ debounce: 250 }" placeholder="Type to search or create narrower concept" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName, true)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addNarrower($item, selectedElement.treeName)" typeahead-loading="loadingNarrowerSearchResults" typeahead-no-results="noNarrowerFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
                     </div>
-                    <i ng-show="loadingNarrowerSearchResults" class="glyphicon glyphicon-refresh"></i>
-                    <div ng-show="noNarrowerFound">
-                        <i class="glyphicon glyphicon-remove"></i> No Results Found
+                    <i ng-show="loadingNarrowerSearchResults" class="fa fa-fw fa-refresh"></i>
+                    <div ng-show="noNarrowerFound && narrowerSearch.length >= 3">
+                        <i class="fa fa-fw fa-times"></i> No Results Found
                     </div>
                 </div>
             </div>
