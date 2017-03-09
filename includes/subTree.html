@@ -1,10 +1,12 @@
-<div ui-tree-handle>
-    <a ng-click="toggle(this)" ng-if="parent.children.length > 0" class="expandable-toggle">
-        <span class="fa fa-fw" ng-class="{ 'fa-plus-square-o': collapsed, 'fa-minus-square-o': !collapsed}" aria-hidden="true">
-        </span>
-    </a>
-    <span class="fa fa-fw" ng-if="!parent.children || parent.children.length == 0"></span>
-    <span>
+<div ui-tree-handle style="display: table;">
+    <div style="display: table-cell;">
+        <a ng-click="toggle(this)" ng-if="parent.children.length > 0" class="expandable-toggle">
+            <span class="fa fa-fw" ng-class="{ 'fa-plus-square-o': collapsed, 'fa-minus-square-o': !collapsed}" aria-hidden="true">
+            </span>
+        </a>
+        <span class="fa fa-fw" ng-if="!parent.children || parent.children.length == 0"></span>
+    </div>
+    <span style="display: table-cell; padding-left: 4px;">
         <a ng-click="setSelectedElement(parent, treeName)" class="tree-level-{{ this.depth() }}" ng-class="{ 'tree-level-leaf': !parent.children || parent.children.length == 0, 'selected': parent.id == selectedElement.properties.id && treeName == selectedElement.treeName && parent.broader_id == selectedElement.properties.broader_id };">
             {{ parent.label }}
         </a>
