@@ -881,6 +881,7 @@ class TreeController extends Controller
         foreach($rows as $row) {
             $oldId = $row->id;
             if($oldId == $elemId) $row->is_top_concept = $isTopConcept;
+            else $row->is_top_concept = false;
             $conceptAlreadyExists = false;
             $newId = DB::table($thConcept)
                 ->where('concept_url', '=', $row->concept_url)
@@ -998,6 +999,7 @@ class TreeController extends Controller
         foreach($concepts['conceptList'] as $k => $c) {
             if($c->id == $newElemId) {
                 $clonedElement = $c;
+                if($c->broader_id == -1) continue;
                 if(($key = array_search($c->id, $concepts['concepts'][$c->broader_id])) !== false) {
                     unset($concepts['concepts'][$c->broader_id][$key]);
                     if(count($concepts['concepts'][$c->broader_id]) === 0) {
