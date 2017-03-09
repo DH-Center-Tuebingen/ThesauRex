@@ -96,6 +96,15 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         displayInformation(element, treeName);
     };
 
+    main.unsetSelectedElement = function() {
+        main.selectedElement.treeName = '';
+        main.selectedElement.properties = {};
+        main.selectedElement.labels.pref.length = 0;
+        main.selectedElement.labels.alt.length = 0;
+        main.selectedElement.relations.broader.length = 0;
+        main.selectedElement.relations.narrower.length = 0;
+    };
+
     main.disableUi = function(msg) {
         main.blockedUi.isBlocked = true;
         main.blockedUi.message = msg;
@@ -541,6 +550,9 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     function deleteById(id, treeName) {
         delete(main.tree[treeName].concepts[id]);
         delete(main.tree[treeName].childList[id]);
+        if(main.selectedElement.properties.id == id) {
+            main.unsetSelectedElement();
+        }
         angular.forEach(main.tree[treeName].childList, function(entry, key) {
             var index = entry.indexOf(id);
             if(index > -1) {
