@@ -369,11 +369,15 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 if(!main.tree[to].concepts[clonedElement.id]) {
                     main.tree[to].concepts[clonedElement.id] = clonedElement;
                 }
-                if(!main.tree[to].childList[clonedElement.broader_id]) {
-                    main.tree[to].childList[clonedElement.broader_id] = [];
+                if(clonedElement.broader_id > -1) {
+                    if(!main.tree[to].childList[clonedElement.broader_id]) {
+                        main.tree[to].childList[clonedElement.broader_id] = [];
+                    }
+                    main.tree[to].childList[clonedElement.broader_id].push(clonedElement.id);
+                    setChildren(clonedElement.broader_id, to);
+                } else {
+                    main.tree[to].tree.push(clonedElement);
                 }
-                main.tree[to].childList[clonedElement.broader_id].push(clonedElement.id);
-                setChildren(clonedElement.broader_id, to);
                 var concepts = response.conceptList;
                 var childList = response.concepts;
                 for(var k in concepts) {
