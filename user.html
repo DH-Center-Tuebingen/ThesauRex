@@ -1,0 +1,62 @@
+<div ng-controller="userCtrl" resize-watcher>
+    <table class="table table-striped table-hover" ng-init="getUserList()">
+        <tr>
+            <th>
+                {{'user.name'}}
+            </th>
+            <th>
+                {{'user.email'}}
+            </th>
+            <th ng-if="currentUser.permissions.change_password">
+                {{'user.password'}}
+            </th>
+            <th ng-if="currentUser.permissions.add_remove_role" ng-init="getRoles()">
+                {{'user.roles'}}
+            </th>
+            <th ng-if="currentUser.permissions.delete_users">
+                {{'user.delete'}}
+            </th>
+            <th>
+                {{'user.created-at'}}
+            </th>
+            <th>
+                {{'user.updated-at'}}
+            </th>
+        </tr>
+        <tr ng-repeat="user in users">
+            <td>
+                {{ user.name }}
+            </td>
+            <td>
+                {{ user.email }}
+            </td>
+            <td ng-if="currentUser.permissions.change_password">
+                <button type="button" class="btn btn-info" ng-click="openEditUserDialog(user, $index)">
+                    <i class="fa fa-fw fa-pencil"></i> {{'user.change-password'}}
+                </button>
+            </td>
+            <td ng-if="currentUser.permissions.add_remove_role" ng-init="getUserRoles(user.id, $index)">
+                <ui-select multiple ng-model="user.roles" close-on-select="false" name="userroles" id="userroles" on-select="addUserRole($item, user.id)" on-remove="removeUserRole($item, user.id)">
+                    <ui-select-match>{{ $item.display_name }}</ui-select-match>
+                    <ui-select-choices repeat="role in roles | filter:$select.search">
+                        {{ role.display_name }}
+                    </ui-select-choices>
+                </ui-select>
+            </td>
+            <td ng-if="currentUser.permissions.delete_users">
+                <button type="button" class="btn btn-danger" ng-click="deleteUser(user)">
+                    <i class="fa fa-fw fa-trash-o"></i>
+                </button>
+            </td>
+            <td>
+                {{ user.created_at }}
+            </td>
+            <td>
+                {{ user.updated_at }}
+            </td>
+        </tr>
+    </table>
+    <button type="button" class="btn btn-success" ng-click="openAddUserDialog()" ng-if="currentUser.permissions.create_users">
+        <i class="fa fa-fw fa-plus"></i> {{'user.add'}}
+    </button>
+</div>

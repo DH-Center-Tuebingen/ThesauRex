@@ -13,7 +13,7 @@
         <title>ThesauRex - Thesaurus Editor</title>
     </head>
     <body>
-        <nav id="header-nav" class="navbar navbar-inverse" role="navigation">
+        <nav id="header-nav" class="navbar navbar-inverse" role="navigation" ng-controller="userCtrl">
             <div class="container-fluid">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle"
@@ -30,14 +30,33 @@
                 </div>
                 <div class="navbar-collapse" id="navbar-collapse" uib-collapse="isCollapsed">
                     <ul class="nav navbar-nav navbar-right">
-                        <li>
-                            <img src="img/escience-logo-transparent.svg" style="width: 200px; padding: 10px;"/>
+                        <li ng-if="currentUser.user.name">
+                            <a href="" ng-click="logoutUser()">
+                                <span class="fa fa-fw fa-sign-out"></span> {{ currentUser.user.name }}
+                            </a>
                         </li>
-                      </ul>
+                        <li ng-if="currentUser.permissions.view_users || currentUser.permissions.add_edit_role" class="dropdown" uib-dropdown>
+                            <a href="#" class="dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                {{'main.menu.user-management'}} <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" uib-dropdown-menu>
+                                <li ng-if="currentUser.permissions.view_users">
+                                    <a href="" ng-click="openUserManagement()">
+                                        <i class="fa fa-fw fa-users"></i> {{'main.menu.user-list'}}
+                                    </a>
+                                </li>
+                                <li ng-if="currentUser.permissions.add_edit_role">
+                                    <a href="" ng-click="openRoleManagement()">
+                                        <i class="fa fa-fw fa-cog"></i> {{'main.menu.role-list'}}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>
-        <div ng-view ui-view id="main-container" class="col-md-12"></div>
+        <div ui-view id="main-container" class="col-md-12"></div>
         <script src="bower_components/jquery/dist/jquery.min.js"></script>
         <script src="bower_components/lodash/dist/lodash.min.js"></script>
         <script src="bower_components/angular/angular.min.js"></script>
@@ -58,6 +77,8 @@
         <script src="bower_components/proj4/dist/proj4.js"></script>
         <script src="app.js"></script>
         <script src="app/mainService.js"></script>
+        <script src="app/userService.js"></script>
         <script src="controllers/treeCtrl.js"></script>
+        <script src="controllers/userCtrl.js"></script>
     </body>
 </html>
