@@ -8,7 +8,9 @@
         "php": ">=5.6.4",
         "laravel/lumen-framework": "5.3.*",
         "vlucas/phpdotenv": "~2.2",
+        "tymon/jwt-auth": "^1.0@dev",
         "league/flysystem": " ~1.0",
+        "zizaco/entrust": "1.8.0-alpha1",
         "easyrdf/easyrdf": "*",
         "semsol/arc2": "dev-master"
     },
