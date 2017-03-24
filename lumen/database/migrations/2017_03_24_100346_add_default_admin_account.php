@@ -14,14 +14,21 @@ class AddDefaultAdminAccount extends Migration
      */
     public function up()
     {
-        $admin = new User();
-        $admin->name = 'Admin';
-        $admin->email = 'admin@admin.com';
-        $admin->password = Hash::make('admin');
-        $admin->save();
+        $adminName = 'Admin';
+        $cnt = User::where('name', '=', $adminName)->count();
+        if($cnt === 0) {
+            $admin = new User();
+            $admin->name = $adminName;
+            $admin->email = 'admin@admin.com';
+            $admin->password = Hash::make('admin');
+            $admin->save();
+        } else {
+            $admin = User::where('name', '=', $adminName)->first();
+        }
 
-        $adminRole = Role::where('name', '=', 'admin')->first();
-        $admin->attachRole($adminRole);
+        $adminRoleName = 'admin';
+        $adminRole = Role::where('name', '=', $adminRoleName)->first();
+        if(!$admin->hasRole($adminRoleName)) $admin->attachRole($adminRole);
     }
 
     /**

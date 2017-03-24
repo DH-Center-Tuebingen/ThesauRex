@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use App\Permission;
+use App\Role;
 
 class AddRolesAndPermissions extends Migration
 {
@@ -136,31 +137,57 @@ class AddRolesAndPermissions extends Migration
 
         // Roles
         // Admin
-        $admin = new App\Role();
-        $admin->name = 'admin';
-        $admin->display_name = 'Administrator';
-        $admin->description = 'Project Administrator';
-        $admin->save();
+        $cnt = DB::table('roles')->where('name', '=', 'admin')->count();
+        if($cnt === 0) {
+            $admin = new Role();
+            $admin->name = 'admin';
+            $admin->display_name = 'Administrator';
+            $admin->description = 'Project Administrator';
+            $admin->save();
+        } else {
+            $admin = Role::where('name', '=', 'admin')->first();
+        }
         // Add all permissions to admin
         $admin->attachPermission($add_move_concepts_th);
         $admin->attachPermission($delete_concepts_th);
         $admin->attachPermission($edit_concepts_th);
         $admin->attachPermission($export_th);
         $admin->attachPermission($view_concepts_th);
-        $admin->attachPermission($view_users);
-        $admin->attachPermission($create_users);
-        $admin->attachPermission($delete_users);
-        $admin->attachPermission($add_remove_role);
-        $admin->attachPermission($change_password);
-        $admin->attachPermission($add_edit_role);
-        $admin->attachPermission($delete_role);
-        $admin->attachPermission($add_remove_permission);
+        if(!$admin->hasPermission('view_users')) {
+            $admin->attachPermission($view_users);
+        }
+        if(!$admin->hasPermission('create_users')) {
+            $admin->attachPermission($create_users);
+        }
+        if(!$admin->hasPermission('delete_users')) {
+            $admin->attachPermission($delete_users);
+        }
+        if(!$admin->hasPermission('add_remove_role')) {
+            $admin->attachPermission($add_remove_role);
+        }
+        if(!$admin->hasPermission('change_password')) {
+            $admin->attachPermission($change_password);
+        }
+        if(!$admin->hasPermission('add_edit_role')) {
+            $admin->attachPermission($add_edit_role);
+        }
+        if(!$admin->hasPermission('delete_role')) {
+            $admin->attachPermission($delete_role);
+        }
+        if(!$admin->hasPermission('add_remove_permission')) {
+            $admin->attachPermission($add_remove_permission);
+        }
         // Guest
-        $guest = new App\Role();
-        $guest->name = 'guest';
-        $guest->display_name = 'Guest';
-        $guest->description = 'Guest User';
-        $guest->save();
+        $cnt = DB::table('roles')->where('name', '=', 'guest')->count();
+        if($cnt === 0) {
+            $guest = new Role();
+            $guest->name = 'guest';
+            $guest->display_name = 'Guest';
+            $guest->description = 'Guest User';
+            $guest->save();
+        } else {
+            $guest = Role::where('name', '=', 'guest')->first();
+        }
         $guest->attachPermission($view_concepts_th);
     }
 
@@ -182,7 +209,7 @@ class AddRolesAndPermissions extends Migration
             'admin', 'guest'
         ];
         foreach($roles as $r) {
-            $entry = App\Role::where('name', '=', $r)->firstOrFail();
+            $entry = Role::where('name', '=', $r)->firstOrFail();
             $entry->delete();
         }
     }
