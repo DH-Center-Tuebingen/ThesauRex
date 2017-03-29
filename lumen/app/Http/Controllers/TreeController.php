@@ -44,6 +44,12 @@ class TreeController extends Controller
     }
 
     public function import(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
         $file = $request->file('file');
         $type = $request->get('type');
@@ -222,6 +228,12 @@ class TreeController extends Controller
     }
 
     public function export(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('export_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         if($request->has('format')) $format = $request->get('format');
         else $format = 'rdf';
         $treeName = $request->get('treeName');
@@ -331,6 +343,12 @@ class TreeController extends Controller
     }
 
     public function getAnyLabel($thesaurus_url, $suffix = '') {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -344,6 +362,12 @@ class TreeController extends Controller
     }
 
     public function getLabel($thesaurus_url, $suffix = '', $lang = 'de') {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -360,6 +384,12 @@ class TreeController extends Controller
     }
 
     public function getLabelById($id, $suffix = '', $lang = 'de') {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $label = DB::table($thLabel .' as lbl')
@@ -375,6 +405,12 @@ class TreeController extends Controller
     }
 
     public function getLabels(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         $treeName = $request->get('treeName');
         $suffix = $treeName == 'project' ? '_export' : '';
@@ -392,6 +428,12 @@ class TreeController extends Controller
     }
 
     public function getDisplayLabel(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
@@ -422,6 +464,12 @@ class TreeController extends Controller
     }
 
     public function getLanguages() {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         return response()->json(
             DB::table('th_language')
                 ->select('id', 'display_name', 'short_name')
@@ -430,6 +478,12 @@ class TreeController extends Controller
     }
 
     public function getTree(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
         if($request->has('lang')) $lang = $request->get('lang');
@@ -510,6 +564,12 @@ class TreeController extends Controller
     }
 
     public function getRelations(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         if(!$request->has('id')) {
             return response()->json([
                 'error' => 'id field is mandatory'
@@ -567,6 +627,12 @@ class TreeController extends Controller
     }
 
     public function deleteElementCascade(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('delete_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         $treeName = $request->get('treeName');
 
@@ -582,6 +648,12 @@ class TreeController extends Controller
     }
 
     public function deleteElementOneUp(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('delete_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         $broader_id = $request->get('broader_id');
         $treeName = $request->get('treeName');
@@ -629,6 +701,12 @@ class TreeController extends Controller
     }
 
     public function removeConcept(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('delete_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         $treeName = $request->get('treeName');
 
@@ -686,6 +764,12 @@ class TreeController extends Controller
     }
 
     public function addBroader(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         $broader = $request->get('broader_id');
         $treeName = $request->get('treeName');
@@ -707,6 +791,12 @@ class TreeController extends Controller
     }
 
     public function addConcept(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $projName = $request->get('projName');
         $scheme = $request->get('concept_scheme');
         $label = $request->get('prefLabel');
@@ -765,6 +855,12 @@ class TreeController extends Controller
     }
 
     public function removeLabel(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('edit_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $id = $request->get('id');
         $treeName = $request->get('treeName');
 
@@ -779,6 +875,12 @@ class TreeController extends Controller
     }
 
     public function addLabel(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('edit_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $label = $request->get('text');
         $lang = $request->get('lang');
         $type = $request->get('type');
@@ -830,6 +932,12 @@ class TreeController extends Controller
     }
 
     public function copy(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         // Copy elements from source tree to cloned tree and vice versa
         $elemId = $request->get('id');
         $newBroader = $request->get('new_broader');
@@ -1019,6 +1127,12 @@ class TreeController extends Controller
     }
 
     public function updateRelation(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         $narrow = $request->get('narrower_id');
         $oldBroader = $request->get('old_broader_id');
         $broader = $request->get('broader_id');
@@ -1114,6 +1228,12 @@ class TreeController extends Controller
     }
 
     public function search(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         if(!$request->has('val')) return response()->json();
         $val = $request->get('val');
         if($request->has('treeName')) $which = $request->get('treeName');
@@ -1155,6 +1275,12 @@ class TreeController extends Controller
     }
 
     public function getAllParents(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
         if(!$request->has('id')) return response()->json();
         $id = $request->get('id');
         $where = "WHERE narrower_id = $id";

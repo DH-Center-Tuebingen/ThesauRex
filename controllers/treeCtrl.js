@@ -1,10 +1,11 @@
-thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService', '$timeout', function($scope, httpPostFactory, mainService, $timeout) {
+thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService', 'userService', '$timeout', function($scope, httpPostFactory, mainService, userService, $timeout) {
     $scope.languages = mainService.languages;
     $scope.preferredLanguages = mainService.preferredLanguages;
     $scope.masterTree = mainService.tree.master;
     $scope.projectTree = mainService.tree.project;
     $scope.selectedElement = mainService.selectedElement;
     $scope.blockedUi = mainService.blockedUi;
+    $scope.currentUser = userService.currentUser;
 
     $scope.expandedElement = null;
 

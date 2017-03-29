@@ -3,7 +3,7 @@
         <div class="col-md-6" ng-controller="masterCtrl">
             <div class="control-elements">
                 <h2>Master Thesaurus</h2>
-                <div class="btn-group" uib-dropdown>
+                <div class="btn-group" uib-dropdown ng-if="currentUser.permissions.add_move_concepts_th">
                     <button type="file" id="default-import-master" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
                         Import RDF
                     </button>
@@ -17,8 +17,10 @@
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new')" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Replace thesaurus with import</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export RDF</button>
-                <div class="search-container">
+                <button type="button" class="btn btn-default" ng-click="export(treeName)" ng-if="currentUser.permissions.export_th">
+                    Export RDF
+                </button>
+                <div class="search-container" ng-if="currentUser.permissions.view_concepts_th">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
@@ -29,17 +31,17 @@
                     </div>
                 </div>
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!masterTree.tree"/>Enable Drag & Drop</label>
-                <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableEditing" ng-disabled="!masterTree.tree"/>Enable Editing</label>
             </div>
+            <!-- TODO enableEditing = isAllowedToEditMasterTree -->
             <div id="master-tree" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="masterTree.tree">
                 <ul ui-tree-nodes ng-model="masterTree.tree" style="margin-bottom: 8px;">
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         <i class="fa fa-fw"></i>
                         Create New Top-Level Concept
                     </li>
                     <li ng-repeat="parent in masterTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
                     </li>
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         <i class="fa fa-fw"></i>
                         Create New Top-Level Concept
                     </li>
@@ -53,7 +55,7 @@
         <div class="col-md-6" ng-controller="projectCtrl">
             <div class="control-elements">
                 <h2>Project Thesaurus</h2>
-                <div class="btn-group" uib-dropdown>
+                <div class="btn-group" uib-dropdown ng-if="currentUser.permissions.add_move_concepts_th">
                     <button type="file" id="default-import-project" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'new', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
                         Import RDF
                     </button>
@@ -67,8 +69,10 @@
                         <li role="menuitem"><a href="#" type="file" ngf-select="uploadFile($file, $invalidFiles, 'new', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">Replace thesaurus with upload</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-default" ng-click="export(treeName)">Export RDF</button>
-                <div class="search-container">
+                <button type="button" class="btn btn-default" ng-click="export(treeName)" ng-if="currentUser.permissions.export_th">
+                    Export RDF
+                </button>
+                <div class="search-container" ng-if="currentUser.permissions.view_concepts_th">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="selectedSearchVal[treeName]" ng-model-options="{ debounce: 250 }" placeholder="Search" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="expandElement($item, treeName)" typeahead-loading="loadingResults[treeName]" typeahead-no-results="noResults[treeName]">
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
@@ -82,13 +86,13 @@
             </div>
             <div id="project-tree" ui-tree="exportTreeOptions" data-nodrop-enabled="!enableExportDragDrop" data-drag-enabled="enableExportDragDrop" data-drag-delay="1000" data-expand-on-hover="true">
                 <ul ui-tree-nodes ng-model="projectTree.tree" style="margin-bottom: 8px;">
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         <i class="fa fa-fw"></i>
                         Create New Top-Level Concept
                     </li>
                     <li ng-repeat="parent in projectTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
                     </li>
-                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)">
+                    <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         <i class="fa fa-fw"></i>
                         Create New Top-Level Concept
                     </li>
@@ -101,7 +105,7 @@
             Choose an element from either tree to display its properties.
         </p>
     </div>
-    <div class="col-md-6" ng-class="{'my-hidden': !selectedElement.properties.id}">
+    <div class="col-md-6" ng-class="{'my-hidden': !selectedElement.properties.id}" ng-if="currentUser.permissions.view_concepts_th">
         <div id="information-header" class="relation-header">
             <h2>{{ selectedElement.properties.label }} <small>Concept Details</small></h2>
             <div class="col-md-12">
@@ -113,7 +117,7 @@
         <div class="col-md-6">
             <div id="broader-header" class="relation-header">
                 <h3>Broader Concepts</h3>
-                <div class="search-container">
+                <div class="search-container" ng-if="currentUser.permissions.add_move_concepts_th">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="broaderSearch" ng-model-options="{ debounce: 250 }" placeholder="Type to search broader concept" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addBroader($item, selectedElement.treeName)" typeahead-loading="loadingBroaderSearchResults" typeahead-no-results="noBroaderFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
@@ -124,13 +128,13 @@
                     </div>
                 </div>
             </div>
-            <ul id="broader-list" class="scrollable-list">
+            <ul id="broader-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
                 <div ng-if="!selectedElement.relations.broader || selectedElement.relations.broader.length == 0">
                     <i>No broader concepts defined.</i>
                 </div>
                 <li ng-repeat="br in selectedElement.relations.broader" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteBroaderConcept($index, br, selectedElement.treeName)">
+                    ng-click="deleteBroaderConcept($index, br, selectedElement.treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         &times;
                     </span>
                     <strong>{{ br.label }}</strong>
@@ -140,7 +144,7 @@
             </ul>
             <div id="narrower-header" class="relation-header">
                 <h3>Narrower Concepts</h3>
-                <div class="search-container">
+                <div class="search-container" ng-if="currentUser.permissions.add_move_concepts_th">
                     <div class="input-group">
                         <input type="text" class="form-control" ng-model="narrowerSearch" ng-model-options="{ debounce: 250 }" placeholder="Type to search or create narrower concept" uib-typeahead="result.label + ' (' + result.broader_label + ')' for result in getSearchTree($viewValue, selectedElement.treeName, true)" typeahead-min-length="3" typeahead-wait-ms="50" typeahead-on-select="addNarrower($item, selectedElement.treeName)" typeahead-loading="loadingNarrowerSearchResults" typeahead-no-results="noNarrowerFound" />
                         <span class="input-group-addon"><i class="fa fa-fw fa-search"></i></span>
@@ -151,13 +155,13 @@
                     </div>
                 </div>
             </div>
-            <ul id="narrower-list" class="scrollable-list">
+            <ul id="narrower-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
                 <div ng-if="!selectedElement.relations.narrower || selectedElement.relations.narrower.length == 0">
                     <i>No narrower concepts defined.</i>
                 </div>
                 <li ng-repeat="na in selectedElement.relations.narrower" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteNarrowerConcept($index, na, selectedElement.treeName)">
+                    ng-click="deleteNarrowerConcept($index, na, selectedElement.treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         &times;
                     </span>
                     <strong>{{ na.label }}</strong>
@@ -172,7 +176,7 @@
                 <div ng-if="selectedElement.loading.prefLabels">
                     <spinner/>
                 </div>
-                <div ng-show="!selectedElement.loading.prefLabels">
+                <div ng-show="!selectedElement.loading.prefLabels" ng-if="currentUser.permissions.edit_concepts_th">
                     <div class="input-group">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -195,13 +199,13 @@
                     </div>
                 </div>
             </div>
-            <ul id="preferred-list" class="scrollable-list">
+            <ul id="preferred-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
                 <div ng-if="!selectedElement.labels.pref || selectedElement.labels.pref.length == 0">
                     <i>No preferred labels defined.</i>
                 </div>
                 <li ng-repeat="pl in selectedElement.labels.pref" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deletePrefLabel($index, pl, selectedElement.treeName)">
+                    ng-click="deletePrefLabel($index, pl, selectedElement.treeName)" ng-if="currentUser.permissions.edit_concepts_th">
                         &times;
                     </span>
                     <span class="lang">{{ pl.langName }} <flag country="{{ getLanguageCode(pl.langShort) }}" size="16"></flag></span>
@@ -209,10 +213,10 @@
                         <i>
                             {{ pl.label }}
                         </i>
-                        <i class="fa fa-pencil edit-entry" ng-click="editPrefLabelEntry(pl)">
+                        <i class="fa fa-pencil edit-entry" ng-click="editPrefLabelEntry(pl)" ng-if="currentUser.permissions.edit_concepts_th">
                         </i>
                     </div>
-                    <div ng-if="pl.editMode">
+                    <div ng-if="pl.editMode && currentUser.permissions.edit_concepts_th">
                         <input type="text" class="inline-edit" ng-model="pl.editText" />
                         <button class="btn btn-success btn-xs" ng-click="storePrefLabelEdit(pl, selectedElement.treeName)"><i class="fa fa-check"></i></button>
                         <button class="btn btn-danger btn-xs" ng-click="resetPrefLabelEdit(pl)"><i class="fa fa-ban"></i></button>
@@ -224,7 +228,7 @@
                 <div ng-if="selectedElement.loading.altLabels">
                     <spinner/>
                 </div>
-                <div ng-show="!selectedElement.loading.altLabels">
+                <div ng-show="!selectedElement.loading.altLabels" ng-if="currentUser.permissions.edit_concepts_th">
                     <div class="input-group">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -246,13 +250,13 @@
                     </div>
                 </div>
             </div>
-            <ul id="alternative-list" class="scrollable-list">
+            <ul id="alternative-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
                 <div ng-if="!selectedElement.labels.alt || selectedElement.labels.alt.length == 0">
                     <i>No alternative labels defined.</i>
                 </div>
                 <li ng-repeat="al in selectedElement.labels.alt" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteAltLabel($index, al, selectedElement.treeName)">
+                    ng-click="deleteAltLabel($index, al, selectedElement.treeName)" ng-if="currentUser.permissions.edit_concepts_th">
                         &times;
                     </span>
                     <span class="lang">{{ al.langName }} <flag country="{{ getLanguageCode(al.langShort) }}" size="16"></flag></span>
@@ -260,10 +264,10 @@
                         <i>
                             {{ al.label }}
                         </i>
-                        <i class="fa fa-pencil edit-entry" ng-click="editAltLabelEntry(al)">
+                        <i class="fa fa-pencil edit-entry" ng-click="editAltLabelEntry(al)" ng-if="currentUser.permissions.edit_concepts_th">
                         </i>
                     </div>
-                    <div ng-if="al.editMode">
+                    <div ng-if="al.editMode && currentUser.permissions.edit_concepts_th">
                         <input type="text" class="inline-edit" ng-model="al.editText" />
                         <button class="btn btn-success btn-xs" ng-click="storeAltLabelEdit(al, selectedElement.treeName)"><i class="fa fa-check"></i></button>
                         <button class="btn btn-danger btn-xs" ng-click="resetAltLabelEdit(al)"><i class="fa fa-ban"></i></button>
@@ -271,6 +275,9 @@
                 </li>
             </ul>
         </div>
+    </div>
+    <div class="col-md-6" ng-if="!currentUser.permissions.view_concepts_th">
+        <div ng-include="'layouts/restricted-access.html'"></div>
     </div>
     <div id="loadingUi" ng-if="blockedUi.isBlocked">
         <h2>{{ blockedUi.message }}</h2>
