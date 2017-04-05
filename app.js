@@ -40,6 +40,19 @@ thesaurexApp.service('modalFactory', ['$uibModal', function($uibModal) {
         });
         modalInstance.result.then(function(selectedItem) {}, function() {});
     };
+    this.errorModal = function(msg) {
+        var modalInstance = $uibModal.open({
+            templateUrl: 'layouts/error.html',
+            controller: function($uibModalInstance) {
+                this.msg = msg;
+                this.cancel = function(result) {
+                    $uibModalInstance.dismiss('cancel');
+                };
+            },
+            controllerAs: 'mc'
+        });
+        modalInstance.result.then(function(selectedItem) {}, function() {});
+    };
 }]);
 
 thesaurexApp.directive('resizeWatcher', function($window) {
