@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThBroader extends Model
 {
-    protected $table = 'th_broaders';
+    protected $table = 'th_broaders_master';
     /**
      * The attributes that are assignable.
      *
