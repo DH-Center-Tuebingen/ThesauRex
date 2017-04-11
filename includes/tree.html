@@ -33,13 +33,13 @@
                 <label class="checkbox-inline"><input type="checkbox" value="" ng-model="enableDragDrop" ng-disabled="!masterTree.tree"/>Enable Drag & Drop</label>
             </div>
             <!-- TODO enableEditing = isAllowedToEditMasterTree -->
-            <div id="master-tree" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="!enableEditing" data-drag-enabled="enableDragDrop" data-drag-delay="1000" data-expand-on-hover="true" ng-show="masterTree.tree">
+            <div id="master-tree" ui-tree="treeOptions" data-clone-enabled="true" data-nodrop-enabled="true" data-drag-enabled="enableDragDrop" data-drag-delay="1000" ng-show="masterTree.tree">
                 <ul ui-tree-nodes ng-model="masterTree.tree" style="margin-bottom: 8px;">
                     <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         <i class="fa fa-fw"></i>
                         Create New Top-Level Concept
                     </li>
-                    <li ng-repeat="parent in masterTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node ng-include="'includes/subTree.html'">
+                    <li ng-repeat="parent in masterTree.tree" context-menu="getContextMenu(parent, treeName)" ui-tree-node data-expand-on-hover="500" ng-include="'includes/subTree.html'">
                     </li>
                     <li class="new-concept-dummy" ng-click="createNewConceptModal(treeName)" ng-if="currentUser.permissions.add_move_concepts_th">
                         <i class="fa fa-fw"></i>

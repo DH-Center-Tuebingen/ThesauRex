@@ -13,7 +13,7 @@
     </span>
     <!--<span ng-class="{ 'selected-leaf': currentContext.id == parent.id }">-->
 </div>
-<ul ui-tree-nodes="" ng-model="parent.children" ng-if="!collapsed" ng-class="{ hidden: collapsed }" data-expand-on-hover="true">
-    <li ng-repeat="parent in parent.children" ui-tree-node data-expand-on-hover="true" ng-include="'includes/subTree.html'" context-menu="getContextMenu(parent, treeName)">
+<ul ui-tree-nodes="" ng-model="parent.children" ng-if="!collapsed" ng-class="{ hidden: collapsed }">
+    <li ng-repeat="parent in parent.children" ui-tree-node data-expand-on-hover="500" ng-include="'includes/subTree.html'" context-menu="getContextMenu(parent, treeName)">
     </li>
 </ul>

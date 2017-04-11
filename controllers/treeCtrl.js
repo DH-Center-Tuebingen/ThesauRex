@@ -13,6 +13,9 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     $scope.enableEditing = false;
     $scope.enableExportDragDrop = false;
 
+    $scope.newPrefLabelText = {};
+    $scope.newAltLabelText = {};
+
     $scope.treeOptions = {
         dropped: function(event) {
             mainService.dropped(event, false);
