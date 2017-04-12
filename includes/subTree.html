@@ -1,7 +1,7 @@
 <div ui-tree-handle style="display: table;">
     <div style="display: table-cell;">
         <a ng-click="toggle(this)" ng-if="parent.children.length > 0" class="expandable-toggle">
-            <span class="fa fa-fw" ng-class="{ 'fa-plus-square-o': collapsed, 'fa-minus-square-o': !collapsed}" aria-hidden="true">
+            <span class="fa fa-fw" ng-class="{ 'fa-plus-square-o': parent.collapsed, 'fa-minus-square-o': !parent.collapsed}" aria-hidden="true">
             </span>
         </a>
         <span class="fa fa-fw" ng-if="!parent.children || parent.children.length == 0"></span>
@@ -13,7 +13,7 @@
     </span>
     <!--<span ng-class="{ 'selected-leaf': currentContext.id == parent.id }">-->
 </div>
-<ul ui-tree-nodes="" ng-model="parent.children" ng-if="!collapsed" ng-class="{ hidden: collapsed }">
-    <li ng-repeat="parent in parent.children" ui-tree-node data-expand-on-hover="500" ng-include="'includes/subTree.html'" context-menu="getContextMenu(parent, treeName)">
+<ul ui-tree-nodes="" ng-model="parent.children" ng-if="!parent.collapsed" ng-class="{ hidden: parent.collapsed }">
+    <li ng-repeat="parent in parent.children" ui-tree-node data-expand-on-hover="500" ng-include="'includes/subTree.html'" data-collapsed="parent.collapsed" context-menu="getContextMenu(parent, treeName)">
     </li>
 </ul>
