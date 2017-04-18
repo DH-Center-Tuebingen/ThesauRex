@@ -40,6 +40,22 @@ thesaurexApp.service('modalFactory', ['$uibModal', function($uibModal) {
         });
         modalInstance.result.then(function(selectedItem) {}, function() {});
     };
+    this.addUserModal = function(onCreate) {
+        var modalInstance = $uibModal.open({
+            templateUrl: 'layouts/new-user.html',
+            controller: function($uibModalInstance) {
+                this.cancel = function(result) {
+                    $uibModalInstance.dismiss('cancel');
+                };
+                this.onCreate = function(name, email, password) {
+                    onCreate(name, email, password);
+                    $uibModalInstance.dismiss('ok');
+                };
+            },
+            controllerAs: 'mc'
+        });
+        modalInstance.result.then(function() {}, function() {});
+    };
     this.errorModal = function(msg) {
         var modalInstance = $uibModal.open({
             templateUrl: 'layouts/error.html',

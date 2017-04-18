@@ -728,6 +728,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             for(var k in tC) {
                 if(tC.hasOwnProperty(k)) {
                     var c = tC[k];
+                    c.collapsed = true;
                     c.children = getChildren(c.id, main.tree[t].childList, main.tree[t].concepts);
                     main.tree[t].tree.push(c);
                 }
@@ -748,6 +749,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 i--; //decrement index after splice
                 continue;
             }
+            child.collapsed = true;
             if(!nonRecursive) child.children = getChildren(contextChildren[i], children, list);
             newChildren.push(child);
         }

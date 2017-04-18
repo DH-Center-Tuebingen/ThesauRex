@@ -13,13 +13,22 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     $scope.enableEditing = false;
     $scope.enableExportDragDrop = false;
 
+    $scope.newPrefLabelText = {};
+    $scope.newAltLabelText = {};
+
+    function toggle(collapsed, sourceNodeScope) {
+        sourceNodeScope.$modelValue.collapsed = collapsed;
+    }
+
     $scope.treeOptions = {
+        toggle: toggle,
         dropped: function(event) {
             mainService.dropped(event, false);
         }
     };
 
     $scope.exportTreeOptions = {
+        toggle: toggle,
         dropped: function(event) {
             mainService.dropped(event, true);
         }
@@ -225,23 +234,17 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     };
 
     var recursiveExpansionHelper = function(parents, children, lvl, treeName) {
+        if(!children) return;
         for(var i=0; i<children.length; i++) {
             var currParent = parents[lvl];
             var currChild = children[i];
             if(currChild.$modelValue.id == currParent.broader_id) {
                 if(lvl+1 == parents.length) {
-                    //$scope.displayInformation(currChild.$modelValue);
                     mainService.setSelectedElement(currChild.$modelValue, treeName);
                     $scope.expandedElement = currChild.$element[0];
                 } else {
-                    //currChild.expand();
-                    // calling expand() on currChild should be enough, but currChild.childNodes() then returns an array with undefined values.
-                    //Thus we use this "simple" DOM-based method to simulate a click on the element and toggle it.
-                    //This only works because we broadcast the collapse-all event beforehand.
-                    $timeout(function() {
-                        currChild.$element[0].firstChild.childNodes[2].click();
-                        recursiveExpansionHelper(parents, currChild.childNodes(), lvl+1, treeName);
-                    }, 0, false);
+                    currChild.$modelValue.collapsed = false;
+                    recursiveExpansionHelper(parents, currChild.childNodes(), lvl+1, treeName);
                 }
                 break;
             }

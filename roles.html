@@ -2,25 +2,25 @@
     <table class="table table-striped table-hover" ng-if="currentUser.permissions.add_edit_role || currentUser.permissions.delete_role" ng-init="getRoles()">
         <tr>
             <th>
-                {{ 'role.name' }}
+                Name
             </th>
             <th>
-                {{ 'role.display_name' }}
+                Display Name
             </th>
             <th>
-                {{ 'role.description' }}
+                Description
             </th>
             <th ng-if="currentUser.permissions.add_remove_permission">
-                {{ 'role.permissions' }}
+                Permissions
             </th>
             <th ng-if="currentUser.permissions.add_edit_role || currentUser.permissions.delete_role">
-                {{ 'role.options' }}
+                Options
             </th>
             <th>
-                {{'user.created-at'}}
+                Created
             </th>
             <th>
-                {{'user.updated-at'}}
+                Last Updated
             </th>
         </tr>
         <tr ng-repeat="role in roles">
@@ -57,6 +57,6 @@
         </tr>
     </table>
     <button type="button" class="btn btn-success" ng-click="openAddRoleDialog()" ng-if="currentUser.permissions.add_edit_role">
-        <i class="fa fa-fw fa-plus"></i> {{ 'role.add' }}
+        <i class="fa fa-fw fa-plus"></i> New Role
     </button>
 </div>

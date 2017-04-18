@@ -299,6 +299,10 @@ li .angular-ui-tree-placeholder {
     cursor: not-allowed;
 }
 
+.centered {
+    text-align: center;
+}
+
 #loadingUi {
     position: absolute;
     width: 50%;

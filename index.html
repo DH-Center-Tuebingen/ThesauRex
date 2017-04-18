@@ -37,17 +37,17 @@
                         </li>
                         <li ng-if="currentUser.permissions.view_users || currentUser.permissions.add_edit_role" class="dropdown" uib-dropdown>
                             <a href="#" class="dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                {{'main.menu.user-management'}} <span class="caret"></span>
+                                Settings <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu" uib-dropdown-menu>
                                 <li ng-if="currentUser.permissions.view_users">
                                     <a href="" ng-click="openUserManagement()">
-                                        <i class="fa fa-fw fa-users"></i> {{'main.menu.user-list'}}
+                                        <i class="fa fa-fw fa-users"></i> User Management
                                     </a>
                                 </li>
                                 <li ng-if="currentUser.permissions.add_edit_role">
                                     <a href="" ng-click="openRoleManagement()">
-                                        <i class="fa fa-fw fa-cog"></i> {{'main.menu.role-list'}}
+                                        <i class="fa fa-fw fa-cog"></i> Role Management
                                     </a>
                                 </li>
                             </ul>
