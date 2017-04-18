@@ -61,7 +61,7 @@ class TreeController extends Controller
         }
 
         $treeName = $request->get('treeName');
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '' : '_master';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -237,7 +237,7 @@ class TreeController extends Controller
         if($request->has('format')) $format = $request->get('format');
         else $format = 'rdf';
         $treeName = $request->get('treeName');
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '' : '_master';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -413,7 +413,7 @@ class TreeController extends Controller
         }
         $id = $request->get('id');
         $treeName = $request->get('treeName');
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '' : '_master';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -440,10 +440,10 @@ class TreeController extends Controller
         $treeName = $request->get('treeName');
 
         if($treeName === 'project') {
-            $suffix = '_export';
-            $labelView = 'getFirstLabelForLanguagesFromExport';
-        } else {
             $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromProject';
+        } else {
+            $suffix = '_master';
             $labelView = 'getFirstLabelForLanguagesFromMaster';
         }
 
@@ -490,10 +490,10 @@ class TreeController extends Controller
         else $lang = 'de';
 
         if($which === 'project') {
-            $suffix = '_export';
-            $labelView = 'getFirstLabelForLanguagesFromExport';
-        } else {
             $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromProject';
+        } else {
+            $suffix = '_master';
             $labelView = 'getFirstLabelForLanguagesFromMaster';
         }
         $thConcept = 'th_concept' . $suffix;
@@ -582,10 +582,10 @@ class TreeController extends Controller
         $treeName = $request->get('treeName');
 
         if($treeName === 'project') {
-            $suffix = '_export';
-            $labelView = 'getFirstLabelForLanguagesFromExport';
-        } else {
             $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromProject';
+        } else {
+            $suffix = '_master';
             $labelView = 'getFirstLabelForLanguagesFromMaster';
         }
         $thConcept = 'th_concept' . $suffix;
@@ -636,7 +636,7 @@ class TreeController extends Controller
         $id = $request->get('id');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '' : '_master';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -658,7 +658,7 @@ class TreeController extends Controller
         $broader_id = $request->get('broader_id');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '' : '_master';
         $thConcept = 'th_concept' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
@@ -710,7 +710,7 @@ class TreeController extends Controller
         $id = $request->get('id');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName == 'project' ? '_export' : '';
+        $suffix = $treeName == 'project' ? '' : '_master';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -864,7 +864,7 @@ class TreeController extends Controller
         $id = $request->get('id');
         $treeName = $request->get('treeName');
 
-        $suffix = $treeName === 'project' ? '_export' : '';
+        $suffix = $treeName === 'project' ? '' : '_master';
         $thLabel = 'th_concept_label' . $suffix;
 
         DB::table($thLabel)
@@ -950,18 +950,18 @@ class TreeController extends Controller
         $thLabel = 'th_concept_label';
         $thBroader = 'th_broaders';
         if($src == 'project') {
-            $thConceptSrc = $thConcept.'_export';
-            $thLabelSrc = $thLabel.'_export';
-            $thBroaderSrc = $thBroader.'_export';
-            $labelView = 'getFirstLabelForLanguagesFromMaster';
-        } else {
             $thConceptSrc = $thConcept;
             $thLabelSrc = $thLabel;
             $thBroaderSrc = $thBroader;
-            $thConcept .= '_export';
-            $thLabel .= '_export';
-            $thBroader .= '_export';
-            $labelView = 'getFirstLabelForLanguagesFromExport';
+            $thConcept .= '_master';
+            $thLabel .= '_master';
+            $thBroader .= '_master';
+            $labelView = 'getFirstLabelForLanguagesFromMaster';
+        } else {
+            $thConceptSrc = $thConcept . '_master';
+            $thLabelSrc = $thLabel . '_master';
+            $thBroaderSrc = $thBroader . '_master';
+            $labelView = 'getFirstLabelForLanguagesFromProject';
         }
 
         $rows = DB::select("
@@ -1140,10 +1140,10 @@ class TreeController extends Controller
         $treeName = $request->get('treeName');
 
         if($treeName === 'project') {
-            $suffix = '_export';
-            $labelView = 'getFirstLabelForLanguagesFromExport';
-        } else {
             $suffix = '';
+            $labelView = 'getFirstLabelForLanguagesFromProject';
+        } else {
+            $suffix = '_master';
             $labelView = 'getFirstLabelForLanguagesFromMaster';
         }
         $thConcept = 'th_concept' . $suffix;
@@ -1241,7 +1241,7 @@ class TreeController extends Controller
         if($request->has('lang')) $lang = $request->get('lang');
         else $lang = 'de';
 
-        $suffix = $which == 'project' ? '_export' : '';
+        $suffix = $which == 'project' ? '' : '_master';
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
@@ -1287,7 +1287,7 @@ class TreeController extends Controller
         if($request->has('treeName')) $which = $request->get('treeName');
         else $which = 'master';
 
-        $suffix = $which == 'project' ? '_export' : '';
+        $suffix = $which == 'project' ? '' : '_master';
         $thBroader = 'th_broaders' . $suffix;
 
         $parents = array();

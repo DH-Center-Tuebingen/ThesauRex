@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThConceptLabel extends Model
 {
-    protected $table = 'th_concept_label';
+    protected $table = 'th_concept_label_master';
     /**
      * The attributes that are assignable.
      *
