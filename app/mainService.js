@@ -1,4 +1,4 @@
-thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpPostPromise', 'modalFactory', '$uibModal', function(httpGetFactory, httpPostFactory, httpPostPromise, modalFactory, $uibModal) {
+thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpPostPromise', 'Upload', '$timeout', 'modalFactory', '$uibModal', function(httpGetFactory, httpPostFactory, httpPostPromise, Upload, $timeout, modalFactory, $uibModal) {
     var trees = ['master', 'project'];
     var main = {};
     main.languages = [];
@@ -125,7 +125,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
             file.upload.then(function(response) {
                 $timeout(function() {
                     file.result = response.data;
-                    main.fillTree(treeName);
+                    fillTree(treeName);
                     main.enableUi();
                 });
             }, function(reponse) {
