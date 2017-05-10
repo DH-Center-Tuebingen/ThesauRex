@@ -23,24 +23,24 @@ The following packages you should be able to install from your package manager:
 
 1. Install all the required packages. For debian-based/apt systems you can use the following command
 
-    ```bash
+   ```bash
     sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-intl php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
-    ```
+   ```
 
 2. Clone This Repository
 
-    ```bash
+   ```bash
     git clone https://github.com/eScienceCenter/ThesauRex
-    ```
+   ```
 
 3. Download Dependencies
 
-    ```bash
+   ```bash
     cd ThesauRex
     bower install
     cd lumen
     composer install
-    ```
+   ```
 
 **Please note**: During the `composer install` you might get an error regarding an unsecure installation. To fix this you have to edit your `composer.json` file (only edit this file if you know what you're doing) in the `lumen` folder to disable secure HTTP connections. Add `"secure-http": false` or set `"secure-http": true` to `false` if the line already exists. After editing the `composer.json` you have to re-run `composer` with
 ```bash
@@ -61,27 +61,27 @@ One solution is to setup a proxy on the same machine and re-route all requests f
 
 1. Enable the webserver's proxy packages and the rewrite engine
 
-    ```bash
+   ```bash
     sudo a2enmod proxy proxy_http rewrite
-    ```
+   ```
 
 2. Add a new entry to your hosts file, because your proxy needs a (imaginary) domain.
 
-    ```bash
+   ```bash
     sudo nano /etc/hosts
     # Add an entry to "redirect" a domain to your local machine (localhost)
     127.0.0.1 thesaurex-lumen.tld # or anything you want
-    ```
+   ```
 
 3. Add a new vHost file to your apache
 
-    ```bash
+   ```bash
     cd /etc/apache2/sites-available
     sudo nano thesaurex-lumen.conf
-    ```
+   ```
 
     Paste the following snippet into the file:
-    ```apache
+   ```apache
     <VirtualHost *:80>
       ServerName thesaurex-lumen.tld
       ServerAdmin webmaster@localhost
@@ -94,21 +94,21 @@ One solution is to setup a proxy on the same machine and re-route all requests f
         Require all granted
       </Directory>
     </VirtualHost>
-    ```
+   ```
 
 4. Add the proxy route to your default vHost file (e.g. `/etc/apache2/sites-available/000-default.conf`)
 
-    ```apache
+   ```apache
     ProxyPass "/ThesauRex/api" "http://thesaurex-lumen.tld"
     ProxyPassReverse "/ThesauRex/api" "http://thesaurex-lumen.tld"
-    ```
+   ```
 
 5. Enable the new vHost file and restart the webserver
 
-    ```bash
+   ```bash
     sudo a2ensite thesaurex-lumen.conf
     sudo service apache2 restart
-    ```
+   ```
 
 ### Configure Lumen
 Lumen should now work, but to test it you need to create a `.env` file which stores the Lumen configuration.
@@ -155,4 +155,76 @@ To test your installation, simply open `http://yourdomain.tld/ThesauRex/api`. Yo
 Example:
 ```
 Lumen (5.3.2) (Laravel Components 5.3.*)
+```
+
+## Installing ThesauRex as part of [Spacialist](https://github.com/eScienceCenter/Spacialist)
+
+As ThesaurRex is a crutial part of the [Spacialist](https://github.com/eScienceCenter/Spacialist) platform, it can be installed directly within the Spacialist environment as well. This part only contains changes that must be made when installing ThesauRex as part of Spacialist against a standalone installation.
+
+2. `cd` into your Spacialist Repository and clone the ThesauRex Repository into it
+
+   ```bash
+   git clone https://github.com/eScienceCenter/ThesauRex thesaurex
+   ```
+
+### Proxy Setup
+
+2. Add one entry for your spacialist and one for thesaurex to your hosts file
+
+   ```bash
+    sudo nano /etc/hosts
+    # Add an entry to "redirect" a domain to your local machine (localhost)
+    127.0.0.1 project.spacialist # or anything you want
+    127.0.0.1 project.thesaurex # or anything you want
+   ```
+
+3. Add an additional configuration to the vHost of you apache that you created while installing Spacialist
+
+   ```bash
+    cd /etc/apache2/sites-available
+    sudo nano thesaurex-lumen.conf
+   ```
+
+    Paste the following snippet into the file:
+   ```apache
+    <VirtualHost *:80>
+      ServerName project.spacialist
+      ServerAdmin webmaster@localhost
+      DocumentRoot /var/www/html/spacialist/lumen/public
+
+      DirectoryIndex index.php
+
+      <Directory "/var/www/html/spacialist/lumen/public">
+        AllowOverride All
+        Require all granted
+      </Directory>
+    </VirtualHost>
+
+   <VirtualHost *:80>
+      ServerName project.thesaurex
+      ServerAdmin webmaster@localhost
+      DocumentRoot /var/www/html/spacialist/thesaurex/lumen/public
+
+      DirectoryIndex index.php
+
+      <Directory "/var/www/html/spacialist/thesaurex/lumen/public">
+        AllowOverride All
+        Require all granted
+      </Directory>
+    </VirtualHost>
+   ```
+
+4. Add the proxy route to your default vHost file (e.g. `/etc/apache2/sites-available/000-default.conf`) with reference to the path to the api-folder of your ThesauRex Installation and the name you gave within your host file (see 2.)
+
+   ```apache
+    ProxyPass "/spacialist/thesaurex/api" "http://project.thesaurex"
+    ProxyPassReverse "/spacialist/thesaurex/api" "http://project.thesaurex"
+   ```
+
+### Configure Lumen
+
+As you have configured your `.env` file with your DB connection during the installation of Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)) its sufficient to just set a soft link to the `.env` file of Spacialist
+
+```bash
+ln -s /var/www/html/spacialist/lumen/.env /var/www/html/spacialist/thesaurex/lumen/.env
 ```
