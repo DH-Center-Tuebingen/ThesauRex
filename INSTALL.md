@@ -159,7 +159,7 @@ Lumen (5.3.2) (Laravel Components 5.3.*)
 
 ## Installing ThesauRex as part of [Spacialist](https://github.com/eScienceCenter/Spacialist)
 
-As ThesaurRex is a crutial part of the [Spacialist](https://github.com/eScienceCenter/Spacialist) platform, it can be installed directly within the Spacialist environment as well. This part only contains changes that must be made when installing ThesauRex as part of Spacialist against a standalone installation.
+As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCenter/Spacialist) platform, it can be installed directly within the Spacialist environment as well. This part only contains changes that must be made when installing ThesauRex as part of Spacialist against a standalone installation.
 
 2. `cd` into your Spacialist Repository and clone the ThesauRex Repository into it
 
@@ -178,36 +178,36 @@ As ThesaurRex is a crutial part of the [Spacialist](https://github.com/eScienceC
     127.0.0.1 project.thesaurex # or anything you want
    ```
 
-3. Add an additional configuration to the vHost of you apache that you created while installing Spacialist
+3. Append an additional configuration to the `spacialist-lumen.conf` file of  your apache that you created while installing Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)). The `DocumentRoot` and `<Directory ... >` must point to the location of your `lumen/public` folder and might be adjusted if needed.
 
    ```bash
-    cd /etc/apache2/sites-available
-    sudo nano thesaurex-lumen.conf
+    sudo nano /etc/apache2/spacialist-lumen.conf
    ```
 
-    Paste the following snippet into the file:
-   ```apache
+	```apache
+    # Start existing Spacialist configuration
     <VirtualHost *:80>
       ServerName project.spacialist
       ServerAdmin webmaster@localhost
-      DocumentRoot /var/www/html/spacialist/lumen/public
+      DocumentRoot /var/www/html/spacialist/lumen/public # adjust path if needed
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/spacialist/lumen/public">
+      <Directory "/var/www/html/spacialist/lumen/public"> adjust path if needed
         AllowOverride All
         Require all granted
       </Directory>
     </VirtualHost>
+    # End existing Spacialist configuration
 
-   <VirtualHost *:80>
+    <VirtualHost *:80>
       ServerName project.thesaurex
       ServerAdmin webmaster@localhost
-      DocumentRoot /var/www/html/spacialist/thesaurex/lumen/public
+      DocumentRoot /var/www/html/spacialist/thesaurex/lumen/public adjust path if needed
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/spacialist/thesaurex/lumen/public">
+      <Directory "/var/www/html/spacialist/thesaurex/lumen/public"> adjust path if needed
         AllowOverride All
         Require all granted
       </Directory>
