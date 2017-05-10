@@ -184,7 +184,7 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     sudo nano /etc/apache2/spacialist-lumen.conf
    ```
 
-	```apache
+   ```apache
     # Start existing Spacialist configuration
     <VirtualHost *:80>
       ServerName project.spacialist
@@ -193,7 +193,7 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/spacialist/lumen/public"> adjust path if needed
+      <Directory "/var/www/html/spacialist/lumen/public"> # adjust path if needed
         AllowOverride All
         Require all granted
       </Directory>
@@ -203,11 +203,11 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     <VirtualHost *:80>
       ServerName project.thesaurex
       ServerAdmin webmaster@localhost
-      DocumentRoot /var/www/html/spacialist/thesaurex/lumen/public adjust path if needed
+      DocumentRoot /var/www/html/spacialist/thesaurex/lumen/public # adjust path if needed
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/spacialist/thesaurex/lumen/public"> adjust path if needed
+      <Directory "/var/www/html/spacialist/thesaurex/lumen/public"> # adjust path if needed
         AllowOverride All
         Require all granted
       </Directory>
