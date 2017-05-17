@@ -1290,7 +1290,6 @@ class TreeController extends Controller
         $suffix = $which == 'project' ? '' : '_master';
         $thBroader = 'th_broaders' . $suffix;
 
-        $parents = array();
         $broaders = array();
         if($request->has('broader_id')) {
             $broaders[] = (object) [
@@ -1305,7 +1304,7 @@ class TreeController extends Controller
 
         foreach($broaders as $broader) {
             $currentWhere = $where . " AND broader_id = " . $broader->broader_id;
-            $parents[] = DB::select("
+            $parents = DB::select("
                 WITH RECURSIVE
                     q (broader_id, narrower_id, lvl) AS
                     (

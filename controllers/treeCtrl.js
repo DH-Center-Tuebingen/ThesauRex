@@ -196,63 +196,42 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
         $scope.getWindowSize();
     });
 
-    var expandElement = function(id, broader_id, treeName) {
-        var formData = new FormData();
-        formData.append('id', id);
-        if(typeof broader_id != 'undefined') formData.append('broader_id', broader_id);
-        formData.append('treeName', treeName);
-        httpPostFactory('api/get/parents/all', formData, function(parents) {
-            if(parents.length > 1) return;
-            parents = parents[0];
-            var self = parents[parents.length-1].narrower_id;
-            parents.push({
-                broader_id: self
-            });
-            $scope.$broadcast('angular-ui-tree:collapse-all');
-            var t = angular.element(document.getElementById(treeName + '-tree')).scope();
-            t.$element[0].scrollTop = 0;
-            var nodesScope = t.$nodesScope;
-            var children = nodesScope.childNodes();
-
-            var expandWatcher = $scope.$watch('expandedElement', function() {
-                if($scope.expandedElement === null) return;
-                var topLength = $scope.expandedElement.getBoundingClientRect().top;
+    var expandElement = function(id, treeName) {
+        $scope.$broadcast('angular-ui-tree:expand-all');
+        var t = angular.element(document.getElementById(treeName + '-tree')).scope();
+        t.$element[0].scrollTop = 0;
+        var nodesScope = t.$nodesScope;
+        var parents = nodesScope.$modelValue;
+        recursiveExpansion(parents, id, treeName);
+        $timeout(function(){
+            var treeElems = document.getElementsByClassName("child-" + id);
+            if (treeElems.length > 0){
+                var topLength = angular.element(treeElems[0]).scope().$element[0].getBoundingClientRect().top;
+                var t = angular.element(document.getElementById(treeName + '-tree')).scope();
                 var treeDom = t.$element[0];
                 var treeHeight = treeDom.getBoundingClientRect().height;
                 if(topLength > treeHeight) {
                     treeDom.scrollTop = topLength - treeHeight;
                 }
-                expandWatcher();
-                $scope.expandedElement = null;
-            });
-            recursiveExpansion(parents, children, treeName);
-        });
+            }
+        },100);
     };
 
-    var recursiveExpansion = function(parents, children, treeName) {
-        recursiveExpansionHelper(parents, children, 0, treeName);
-    };
-
-    var recursiveExpansionHelper = function(parents, children, lvl, treeName) {
-        if(!children) return;
-        for(var i=0; i<children.length; i++) {
-            var currParent = parents[lvl];
-            var currChild = children[i];
-            if(currChild.$modelValue.id == currParent.broader_id) {
-                if(lvl+1 == parents.length) {
-                    mainService.setSelectedElement(currChild.$modelValue, treeName);
-                    $scope.expandedElement = currChild.$element[0];
-                } else {
-                    currChild.$modelValue.collapsed = false;
-                    recursiveExpansionHelper(parents, currChild.childNodes(), lvl+1, treeName);
-                }
-                break;
+    var recursiveExpansion = function(parents, elemId, treeName){
+        for(var i=0; i < parents.length; i++){
+            if (parents[i].id == elemId){
+                mainService.setSelectedElement(parents[i], treeName);
+                return true;
+            } else if(recursiveExpansion(parents[i].children, elemId, treeName)){
+                parents[i].collapsed = false;
+                return true;
             }
         }
+        return false;
     };
 
     $scope.expandElement = function($item, treeName) {
-        expandElement($item.id, $item.broader_id, treeName);
+        expandElement($item.id, treeName);
     };
 
     $scope.getSearchTree = function(searchString, treeName, appendSearchString) {
