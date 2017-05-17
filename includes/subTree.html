@@ -7,7 +7,7 @@
         <span class="fa fa-fw" ng-if="!parent.children || parent.children.length == 0"></span>
     </div>
     <span style="display: table-cell; padding-left: 4px;">
-        <a ng-click="setSelectedElement(parent, treeName)" class="tree-level-{{ this.depth() }}" ng-class="{ 'tree-level-leaf': !parent.children || parent.children.length == 0, 'selected': parent.id == selectedElement.properties.id && treeName == selectedElement.treeName && parent.broader_id == selectedElement.properties.broader_id };">
+        <a ng-click="setSelectedElement(parent, treeName)" class="tree-level-{{ this.depth() }} child-{{parent.id}}" ng-class="{ 'tree-level-leaf': !parent.children || parent.children.length == 0, 'selected': parent.id == selectedElement.properties.id && treeName == selectedElement.treeName && parent.broader_id == selectedElement.properties.broader_id };">
             {{ parent.label }}
         </a>
     </span>
