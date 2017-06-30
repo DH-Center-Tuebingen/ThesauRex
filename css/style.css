@@ -40,6 +40,15 @@
     overflow: auto;
 }
 
+#tree-toggle {
+    position: absolute;
+    z-index: 100;
+}
+
+.col-md-0 {
+    display: none;
+}
+
 .marker-point {
     border-radius: 50%;
     background-color: rgba(255, 0, 0, 0.5);

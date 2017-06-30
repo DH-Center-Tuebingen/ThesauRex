@@ -6,6 +6,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     $scope.selectedElement = mainService.selectedElement;
     $scope.blockedUi = mainService.blockedUi;
     $scope.currentUser = userService.currentUser;
+    $scope.treeVisible = true;
 
     $scope.expandedElement = null;
 
@@ -18,6 +19,38 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
 
     function toggle(collapsed, sourceNodeScope) {
         sourceNodeScope.$modelValue.collapsed = collapsed;
+    }
+
+    $scope.toggleTree = function() {
+        $scope.treeVisible = !$scope.treeVisible;
+        var mC = angular.element(document.getElementById('master-container'));
+        var tC = angular.element(document.getElementById('tree-container'));
+        var pC = angular.element(document.getElementById('project-container'));
+        var iA = angular.element(document.getElementById('information-alert'));
+        var propC = angular.element(document.getElementById('properties-container'));
+        if($scope.treeVisible) {
+            mC.removeClass('col-md-0');
+            mC.addClass('col-md-6');
+            tC.removeClass('col-md-3');
+            tC.addClass('col-md-6');
+            pC.removeClass('col-md-12');
+            pC.addClass('col-md-6');
+            iA.removeClass('col-md-9');
+            iA.addClass('col-md-6');
+            propC.removeClass('col-md-9');
+            propC.addClass('col-md-6');
+        } else {
+            mC.addClass('col-md-0');
+            mC.removeClass('col-md-6');
+            tC.addClass('col-md-3');
+            tC.removeClass('col-md-6');
+            pC.addClass('col-md-12');
+            pC.removeClass('col-md-6');
+            iA.addClass('col-md-9');
+            iA.removeClass('col-md-6');
+            propC.addClass('col-md-9');
+            propC.removeClass('col-md-6');
+        }
     }
 
     $scope.treeOptions = {
