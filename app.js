@@ -56,6 +56,31 @@ thesaurexApp.service('modalFactory', ['$uibModal', function($uibModal) {
         });
         modalInstance.result.then(function() {}, function() {});
     };
+    this.editUserModal = function(onEdit, user, index) {
+        var modalInstance = $uibModal.open({
+            templateUrl: 'layouts/edit-user.html',
+            controller: function($uibModalInstance) {
+                this.userinfo = angular.copy(user);
+                this.cancel = function(result) {
+                    $uibModalInstance.dismiss('cancel');
+                };
+                this.onEdit = function(userinfo) {
+                    var changes = {};
+                    for(var key in user) {
+                        if(user.hasOwnProperty(key)) {
+                            if(user[key] != userinfo[key]) {
+                                changes[key] = userinfo[key];
+                            }
+                        }
+                    }
+                    onEdit(changes, user.id, index);
+                    $uibModalInstance.dismiss('ok');
+                };
+            },
+            controllerAs: 'mc'
+        });
+        modalInstance.result.then(function() {}, function() {});
+    };
     this.errorModal = function(msg) {
         var modalInstance = $uibModal.open({
             templateUrl: 'layouts/error.html',

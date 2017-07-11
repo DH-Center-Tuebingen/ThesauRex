@@ -1,0 +1,44 @@
+<div class="modal-header">
+    <h4>Edit User</h4>
+</div>
+<div class="modal-body">
+    <div class="col-md-12">
+        <form class="form-horizontal" role="form">
+            <div class="form-group">
+                <label class="control-label col-md-3" for="name">
+                    Username:
+                </label>
+                <!--<div class="col-md-9">
+                    <input class="form-control" type="text" id="name" ng-model="mc.userinfo.name" />
+                </div>-->
+                <p class="form-control-static">
+                    {{ mc.userinfo.name }}
+                </p>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-3" for="email">
+                    Email Address
+                </label>
+                <!--<div class="col-md-9">
+                    <input class="form-control" type="email" id="email" ng-model="mc.userinfo.email" />
+                </div>-->
+                <p class="form-control-static">
+                    {{ mc.userinfo.email }}
+                </p>
+            </div>
+            <div class="form-group">
+                <label class="control-label col-md-3" for="password">
+                    New Password:
+                </label>
+                <div class="col-md-9">
+                    <input class="form-control" type="password" id="password" ng-model="mc.userinfo.password" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-success" ng-click="mc.onEdit(mc.userinfo)">Save</button>
+    <button type="button" class="btn btn-danger"
+      ng-click="mc.cancel()">Cancel</button>
+</div>
