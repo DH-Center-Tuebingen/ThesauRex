@@ -14,6 +14,9 @@
 $app->get('/', function () use ($app) {
     return $app->version();
 });
+$app->get('clear', function() use($app) {
+    Illuminate\Support\Facades\Artisan::call('cache:clear');
+});
 
 $app->post('user/login', 'UserController@login');
 
