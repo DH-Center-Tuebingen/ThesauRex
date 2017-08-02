@@ -1,19 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
-use App\Permission;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use App\Role;
+use App\Permission;
 
-class AddRolesAndPermissions extends Migration
+class RolesPermissionsSeeder extends Seeder
 {
     /**
-     * Run the migrations.
+     * Run the database seeds.
      *
      * @return void
      */
-    public function up()
+    public function run()
     {
         // Permissions
         // Add & Move thesaurus concepts
@@ -137,16 +136,7 @@ class AddRolesAndPermissions extends Migration
 
         // Roles
         // Admin
-        $cnt = DB::table('roles')->where('name', '=', 'admin')->count();
-        if($cnt === 0) {
-            $admin = new Role();
-            $admin->name = 'admin';
-            $admin->display_name = 'Administrator';
-            $admin->description = 'Project Administrator';
-            $admin->save();
-        } else {
-            $admin = Role::where('name', '=', 'admin')->first();
-        }
+        $admin = Role::where('name', '=', 'admin')->first();
         // Add all permissions to admin
         $admin->attachPermission($add_move_concepts_th);
         $admin->attachPermission($delete_concepts_th);
@@ -176,41 +166,6 @@ class AddRolesAndPermissions extends Migration
         }
         if(!$admin->hasPermission('add_remove_permission')) {
             $admin->attachPermission($add_remove_permission);
-        }
-        // Guest
-        $cnt = DB::table('roles')->where('name', '=', 'guest')->count();
-        if($cnt === 0) {
-            $guest = new Role();
-            $guest->name = 'guest';
-            $guest->display_name = 'Guest';
-            $guest->description = 'Guest User';
-            $guest->save();
-        } else {
-            $guest = Role::where('name', '=', 'guest')->first();
-        }
-        $guest->attachPermission($view_concepts_th);
-    }
-
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
-    {
-        $permissions = [
-            'add_move_concepts_th', 'delete_concepts_th', 'edit_concepts_th', 'export_th', 'view_concepts_th'
-        ];
-        foreach($permissions as $p) {
-            $entry = Permission::where('name', '=', $p)->firstOrFail();
-            $entry->delete();
-        }
-        $roles = [
-            'admin', 'guest'
-        ];
-        foreach($roles as $r) {
-            $entry = Role::where('name', '=', $r)->firstOrFail();
-            $entry->delete();
         }
     }
 }
