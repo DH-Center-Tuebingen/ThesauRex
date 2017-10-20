@@ -1,8 +1,14 @@
 <div ng-controller="treeCtrl" resize-watcher>
-    <div class="col-md-6">
-        <div class="col-md-6" ng-controller="masterCtrl">
+    <div id="tree-toggle">
+        <button type="button" class="btn btn-default btn-xs" ng-click="toggleTree()">
+            <i ng-if="!treeVisible" class="fa fa-fw fa-bars"></i>
+            <i ng-if="treeVisible" class="fa fa-fw fa-arrow-left"></i>
+        </button>
+    </div>
+    <div class="col-md-6" id="tree-container">
+        <div class="col-md-6" ng-controller="masterCtrl" id="master-container">
             <div class="control-elements">
-                <h2>Master Thesaurus</h2>
+                <h2>Sandbox Thesaurus</h2>
                 <div class="btn-group" uib-dropdown ng-if="currentUser.permissions.add_move_concepts_th">
                     <button type="file" id="default-import-master" class="btn btn-default" ngf-select="uploadFile($file, $invalidFiles, 'new', treeName)" accept="application/rdf+xml,text/plain,application/x-turtle" ngf-max-size="10MB">
                         Import RDF
@@ -52,7 +58,7 @@
                 </spinner>
             </div>
         </div>
-        <div class="col-md-6" ng-controller="projectCtrl">
+        <div class="col-md-6" ng-controller="projectCtrl" id="project-container">
             <div class="control-elements">
                 <h2>Project Thesaurus</h2>
                 <div class="btn-group" uib-dropdown ng-if="currentUser.permissions.add_move_concepts_th">
@@ -105,7 +111,7 @@
             Choose an element from either tree to display its properties.
         </p>
     </div>
-    <div class="col-md-6" ng-class="{'my-hidden': !selectedElement.properties.id}" ng-if="currentUser.permissions.view_concepts_th">
+    <div class="col-md-6" id="properties-container" ng-class="{'my-hidden': !selectedElement.properties.id}" ng-if="currentUser.permissions.view_concepts_th">
         <div id="information-header" class="relation-header">
             <h2>{{ selectedElement.properties.label }} <small>Concept Details</small></h2>
             <div class="col-md-12">
