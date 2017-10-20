@@ -151,6 +151,11 @@ If you have just migrated into an empty database, you need to run the following 
 php artisan db:seed
 ```
 
+When you want to run ThesauRex as standalone software without [Spacialist](https://github.com/eScienceCenter/Spacialist) you have to run the `StandaloneSeeder`.
+```bash
+php artisan db:seed --class=StandaloneSeeder
+```
+
 To test your installation, simply open `http://yourdomain.tld/ThesauRex/api`. You should see a website with Lumen's current version.
 Example:
 ```

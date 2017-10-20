@@ -35,6 +35,10 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         message: ''
     };
 
+    main.clearCache = function() {
+        httpGetFactory('api/clear', function() {});
+    };
+
     main.createNewConceptModal = function(treeName, parent, name, expandFunction) {
         if(!isValidTreeName(treeName)) return;
         var modalInstance = $uibModal.open({

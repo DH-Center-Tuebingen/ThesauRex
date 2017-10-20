@@ -1,10 +1,11 @@
-thesaurexApp.controller('userCtrl', ['$scope', 'userService', '$state', 'modalFactory', function($scope, userService, $state, modalFactory) {
+thesaurexApp.controller('userCtrl', ['$scope', 'userService', 'mainService', '$state', 'modalFactory', function($scope, userService, mainService, $state, modalFactory) {
     $scope.currentUser = userService.currentUser;
     $scope.users = userService.users;
     $scope.roles = userService.roles;
     $scope.permissions = userService.permissions;
     $scope.loginError = userService.loginError;
     $scope.deleteUser = userService.deleteUser;
+    $scope.clearCache = mainService.clearCache;
 
     $scope.loginUser = function(email, password) {
         var credentials = {
