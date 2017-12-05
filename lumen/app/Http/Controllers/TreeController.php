@@ -392,15 +392,26 @@ class TreeController extends Controller
         }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
-        $label = DB::table($thLabel .' as lbl')
-            ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
-            ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
-            ->where([
-                ['con.id', '=', $id],
-                ['lang.short_name', '=', $lang]
-            ])
-            ->orderBy('lbl.concept_label_type', 'asc')
-            ->first();
+        $label = \DB::select(\DB::raw("
+            WITH summary AS
+            (
+                SELECT label,
+                ROW_NUMBER() OVER
+                (
+                    PARTITION BY c.id
+                    ORDER BY c.id, short_name != '$lang', concept_label_type
+                ) AS rk
+                FROM $thLabel as l
+                JOIN th_language as lng ON l.language_id = lng.id
+                JOIN $thConcept as c ON l.concept_id = c.id
+                WHERE c.id = $id
+            )
+            SELECT label
+            FROM summary s
+            WHERE s.rk = 1"));
+
+        if(isset($label)) $label = $label[0];
+
         return $label;
     }
 
@@ -1228,22 +1239,30 @@ class TreeController extends Controller
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        $matchedConcepts = DB::table($thLabel . ' as l')
-            ->select('c.concept_url', 'c.id', 'b.broader_id')
-            ->join($thConcept . ' as c', 'c.id', '=', 'l.concept_id')
-            ->join('th_language as lng', 'l.language_id', '=', 'lng.id')
-            ->leftJoin($thBroader . ' as b', 'b.narrower_id', '=', 'c.id')
-            ->where([
-                ['label', 'ilike', '%' . $val . '%'],
-                ['lng.short_name', '=', $lang]
-            ])
-            ->groupBy('c.id', 'b.broader_id')
-            ->orderBy('c.id')
-            ->get();
+        $matchedConcepts = \DB::select(\DB::raw("
+                WITH summary AS
+                (
+                    SELECT c.id, concept_url, b.broader_id, l.label,
+                    ROW_NUMBER() OVER
+                    (
+                        PARTITION BY c.id
+                        ORDER BY c.id, short_name != '$lang', c
+                    ) AS rk
+                    FROM $thLabel as l
+                    JOIN $thConcept as c ON c.id = l.concept_id
+                    JOIN th_language as lng ON l.language_id = lng.id
+                    LEFT JOIN $thBroader as b ON b.narrower_id = c.id
+                    WHERE l.label ILIKE '%$val%'
+                )
+                SELECT id, concept_url, broader_id, label
+                FROM summary s
+                WHERE s.rk = 1"));
+
+
         $labels = [];
         foreach($matchedConcepts as $concept) {
             $label = [
-                'label' => $this->getLabel($concept->concept_url, $suffix, $lang)->label,
+                'label' => $concept->label,
                 'id' => $concept->id
             ];
             if($concept->broader_id !== null) {
