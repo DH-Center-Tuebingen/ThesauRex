@@ -51,6 +51,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 this.preferredLanguage = main.preferredLanguages.main;
                 this.addConcept = main.addConcept;
                 this.expandFunction = expandFunction;
+                this.getLanguageCode = main.getLanguageCode;
             },
             controllerAs: 'mc'
         });
