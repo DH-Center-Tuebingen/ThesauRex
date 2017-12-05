@@ -392,15 +392,26 @@ class TreeController extends Controller
         }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
-        $label = DB::table($thLabel .' as lbl')
-            ->join('th_language as lang', 'lang.id', '=', 'lbl.language_id')
-            ->join($thConcept . ' as con', 'lbl.concept_id', '=', 'con.id')
-            ->where([
-                ['con.id', '=', $id],
-                ['lang.short_name', '=', $lang]
-            ])
-            ->orderBy('lbl.concept_label_type', 'asc')
-            ->first();
+        $label = \DB::select(\DB::raw("
+            WITH summary AS
+            (
+                SELECT label,
+                ROW_NUMBER() OVER
+                (
+                    PARTITION BY c.id
+                    ORDER BY c.id, short_name != '$lang', concept_label_type
+                ) AS rk
+                FROM $thLabel as l
+                JOIN th_language as lng ON l.language_id = lng.id
+                JOIN $thConcept as c ON l.concept_id = c.id
+                WHERE c.id = $id
+            )
+            SELECT label
+            FROM summary s
+            WHERE s.rk = 1"));
+
+        if(isset($label)) $label = $label[0];
+
         return $label;
     }
 
@@ -449,15 +460,27 @@ class TreeController extends Controller
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
-        $concept = DB::table($thConcept . ' as c')
-            ->select('c.id', 'c.concept_url', 'concept_scheme', 'is_top_concept', 'f.label')
-            ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
-            ->join($thLabel . ' as l', 'c.id', '=', 'l.concept_id')
-            ->where([
-                ['l.id', '=', $id],
-                ['f.lang', '=', $lang]
-            ])
-            ->first();
+
+        $concept = \DB::select(\DB::raw("
+            WITH summary AS
+            (
+                SELECT c.id, concept_url, concept_scheme, is_top_concept, label,
+                ROW_NUMBER() OVER
+                (
+                    PARTITION BY c.id
+                    ORDER BY c.id, short_name != '$lang', concept_label_type
+                ) AS rk
+                FROM $thConcept as c
+                JOIN $thLabel as l ON l.concept_id = c.id
+                JOIN th_language ON language_id = th_language.id
+                WHERE l.id = $id
+            )
+            SELECT id, concept_url, concept_scheme, is_top_concept, label
+            FROM summary s
+            WHERE s.rk = 1"));
+
+        if(isset($concept)) $concept = $concept[0];
+
         return response()->json([
             'concept' => $concept
         ]);
@@ -583,25 +606,32 @@ class TreeController extends Controller
 
         if($treeName === 'project') {
             $suffix = '';
-            $labelView = 'getFirstLabelForLanguagesFromProject';
         } else {
             $suffix = '_master';
-            $labelView = 'getFirstLabelForLanguagesFromMaster';
         }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
         // narrower
-        $narrower = DB::table($thConcept . ' as c')
-            ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
-            ->join($thBroader .' as broad', 'c.id', '=', 'broad.narrower_id')
-            ->where([
-                [ 'broad.broader_id', '=', $id ],
-                [ 'lang', '=', $lang ]
-            ])
-            ->orderBy('label', 'asc')
-            ->get();
+        $narrower = \DB::select(\DB::raw("
+            WITH summary AS
+            (
+                SELECT c.id, concept_url, concept_scheme, is_top_concept, c.lasteditor, c.created_at, c.updated_at, label, language_id, th_language.short_name, b.broader_id, b.narrower_id,
+                ROW_NUMBER() OVER
+                (
+                    PARTITION BY c.id
+                    ORDER BY c.id, short_name != '$lang', concept_label_type
+                ) AS rk
+                FROM $thConcept as c
+                JOIN $thLabel as l ON l.concept_id = c.id
+                JOIN th_language ON language_id = th_language.id
+                JOIN $thBroader as b ON c.id = b.narrower_id
+                WHERE b.broader_id = $id
+            )
+            SELECT id, concept_url, concept_scheme, is_top_concept, lasteditor, created_at, updated_at, label, language_id, short_name as lang, broader_id, narrower_id
+            FROM summary s
+            WHERE s.rk = 1"));
         // broader
         $broaderIds = DB::table($thConcept . ' as c')
             ->select('broad.broader_id')
@@ -611,11 +641,23 @@ class TreeController extends Controller
         $broader = array();
         foreach($broaderIds as $bid) {
             if($bid->broader_id == -1) continue;
-            $br = DB::table($thConcept . ' as c')
-                ->join($labelView . ' as f', 'c.concept_url', '=', 'f.concept_url')
-                ->where('c.id', '=', $bid->broader_id)
-                ->where('lang', '=', $lang)
-                ->get();
+            $br = \DB::select(\DB::raw("
+                WITH summary AS
+                (
+                    SELECT c.id, concept_url, concept_scheme, is_top_concept, c.lasteditor, c.created_at, c.updated_at, label, language_id, th_language.short_name,
+                    ROW_NUMBER() OVER
+                    (
+                        PARTITION BY c.id
+                        ORDER BY c.id, short_name != '$lang', c
+                    ) AS rk
+                    FROM $thConcept as c
+                    JOIN $thLabel as l ON l.concept_id = c.id
+                    JOIN th_language ON language_id = th_language.id
+                )
+                SELECT id, concept_url, concept_scheme, is_top_concept, lasteditor, created_at, updated_at, label, language_id, short_name as lang
+                FROM summary s
+                WHERE s.rk = 1 AND s.id = $bid->broader_id"));
+
             foreach($br as &$b) {
                 $broader[] = $b;
             }
@@ -1141,10 +1183,8 @@ class TreeController extends Controller
 
         if($treeName === 'project') {
             $suffix = '';
-            $labelView = 'getFirstLabelForLanguagesFromProject';
         } else {
             $suffix = '_master';
-            $labelView = 'getFirstLabelForLanguagesFromMaster';
         }
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
@@ -1174,53 +1214,6 @@ class TreeController extends Controller
                 'is_top_concept' => $isTopConcept
             ]);
 
-        /*$rows = DB::select("
-            WITH RECURSIVE
-                q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
-                (
-                    SELECT  conc.*, f.label, -1, 0
-                    FROM    $thConcept conc
-                    JOIN    \"$labelView\" as f
-                    ON      conc.concept_url = f.concept_url
-                    WHERE   id = $broader OR id = $oldBroader
-                    AND     f.lang = '$lang'
-                    UNION ALL
-                    SELECT  conc2.*, f.label, broad.broader_id, reclevel + 1
-                    FROM    $thConcept conc2
-                    JOIN    $thBroader broad
-                    ON      conc2.id = broad.narrower_id
-                    JOIN    q
-                    ON      broad.broader_id = q.id
-                    JOIN    \"$labelView\" as f
-                    ON      conc2.concept_url = f.concept_url
-                    WHERE   conc2.is_top_concept = false
-                    AND     f.lang = '$lang'
-                )
-            SELECT  q.*
-            FROM    q
-            ORDER BY concept_url ASC
-        ");
-        $concepts = array();
-        $conceptNames = array();
-        foreach($rows as $row) {
-            if(empty($row)) continue;
-            $conceptNames[] = array('label' => $row->label, 'url' => $row->concept_url, 'id' => $row->id);
-            $bid = $row->broader_id;
-            if($bid > 0 && ($bid == $oldBroader || $bid == $broader)) {
-                $alreadySet = false;
-                foreach($concepts[$row->broader_id] as $con) {
-                    if($con->id == $row->id) {
-                        $alreadySet = true;
-                        break;
-                    }
-                }
-                if(!$alreadySet) $concepts[$row->broader_id][] = array_merge(get_object_vars($row), $lbl);
-            }
-        }
-        return response()->json([
-            'concepts' => $concepts,
-            'conceptNames' => $conceptNames
-        ]);*/
         return response()->json([
             'concepts' => [],
             'conceptNames' => []
@@ -1246,22 +1239,30 @@ class TreeController extends Controller
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        $matchedConcepts = DB::table($thLabel . ' as l')
-            ->select('c.concept_url', 'c.id', 'b.broader_id')
-            ->join($thConcept . ' as c', 'c.id', '=', 'l.concept_id')
-            ->join('th_language as lng', 'l.language_id', '=', 'lng.id')
-            ->leftJoin($thBroader . ' as b', 'b.narrower_id', '=', 'c.id')
-            ->where([
-                ['label', 'ilike', '%' . $val . '%'],
-                ['lng.short_name', '=', $lang]
-            ])
-            ->groupBy('c.id', 'b.broader_id')
-            ->orderBy('c.id')
-            ->get();
+        $matchedConcepts = \DB::select(\DB::raw("
+                WITH summary AS
+                (
+                    SELECT c.id, concept_url, b.broader_id, l.label,
+                    ROW_NUMBER() OVER
+                    (
+                        PARTITION BY c.id
+                        ORDER BY c.id, short_name != '$lang', c
+                    ) AS rk
+                    FROM $thLabel as l
+                    JOIN $thConcept as c ON c.id = l.concept_id
+                    JOIN th_language as lng ON l.language_id = lng.id
+                    LEFT JOIN $thBroader as b ON b.narrower_id = c.id
+                    WHERE l.label ILIKE '%$val%'
+                )
+                SELECT id, concept_url, broader_id, label
+                FROM summary s
+                WHERE s.rk = 1"));
+
+
         $labels = [];
         foreach($matchedConcepts as $concept) {
             $label = [
-                'label' => $this->getLabel($concept->concept_url, $suffix, $lang)->label,
+                'label' => $concept->label,
                 'id' => $concept->id
             ];
             if($concept->broader_id !== null) {
