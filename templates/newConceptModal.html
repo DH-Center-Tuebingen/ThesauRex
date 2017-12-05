@@ -15,12 +15,12 @@
                     <div class="input-group">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <flag country="{{ mc.preferredLanguage.langShort }}" size="16"></flag><span class="caret"></span>
+                                <flag country="{{ mc.getLanguageCode(mc.preferredLanguage.langShort) }}" size="16"></flag><span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" uib-dropdown-menu>
                                 <li ng-repeat="lang in mc.languages">
                                     <a href="" ng-click="mc.selectPreferredLanguage($index)">
-                                        <flag class="lang" country="{{ lang.langShort }}" size="16"></flag>
+                                        <flag class="lang" country="{{ mc.getLanguageCode(lang.langShort) }}" size="16"></flag>
                                         <span style="color: gray;">{{ lang.langName }} ({{ lang.langShort }})</span>
                                     </a>
                                 </li>
