@@ -316,25 +316,30 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         }, 'If you delete this element, all of its descendants will be deleted, too!');
     };
 
-    main.deleteElementAndMoveUp = function(elem, broader_id, treeName) {
+    main.deleteElementAndMoveUp = function(elem, treeName) {
         var id = elem.id;
         var formData = new FormData();
         formData.append('id', id);
-        formData.append('broader_id', broader_id);
         formData.append('treeName', treeName);
         httpPostFactory('api/delete/oneup', formData, function(result) {
-            var children = main.tree[treeName].childList[id].slice();
-            delete(main.tree[treeName].concepts[id]);
-            delete(main.tree[treeName].childList[id]);
-            angular.forEach(main.tree[treeName].childList, function(entry, key) {
-                var index = entry.indexOf(id);
-                if(index > -1) {
-                    addChildren(key, treeName, children);
-                    main.tree[treeName].concepts[key].children = getChildrenById(key, treeName, true);
-                }
-            });
+            var t = main.tree[treeName];
+            var children = t.childList[id].slice();
+            delete(t.concepts[id]);
+            delete(t.childList[id]);
             if(elem.is_top_concept) {
+                for(var i=0; i<children.length; i++) {
+                    var c = t.concepts[children[i]];
+                    t.tree.push(c);
+                }
                 deleteTopConcept(elem, treeName);
+            } else {
+                angular.forEach(main.tree[treeName].childList, function(entry, key) {
+                    var index = entry.indexOf(id);
+                    if(index > -1) {
+                        addChildren(key, treeName, children);
+                        t.concepts[key].children = getChildrenById(key, treeName, true);
+                    }
+                });
             }
         });
     };
