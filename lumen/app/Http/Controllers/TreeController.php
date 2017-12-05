@@ -697,7 +697,6 @@ class TreeController extends Controller
             ], 403);
         }
         $id = $request->get('id');
-        $broader_id = $request->get('broader_id');
         $treeName = $request->get('treeName');
 
         $suffix = $treeName == 'project' ? '' : '_master';
@@ -711,7 +710,12 @@ class TreeController extends Controller
         $narrowers = DB::table($thBroader)
             ->where('broader_id', '=', $id)
             ->get();
-        if(!$request->has('broader_id')) {
+
+        $broader_ids = DB::table($thBroader)
+            ->where('narrower_id', '=', $id)
+            ->get();
+        // deleted element has no broaders, set children as top concept
+        if(!isset($broader_ids) || $broader_ids->isEmpty()) {
             foreach($narrowers as $n) {
                 DB::table($thConcept)
                     ->where('id', '=', $n->narrower_id)
@@ -719,27 +723,20 @@ class TreeController extends Controller
                         'is_top_concept' => true
                     ]);
             }
-            //if this concept does not exist as narrower, we can delete it (since it only exists once; as top concept)
-            if($cnt == 0) {
-                DB::table($thConcept)
-                    ->where('id', '=', $id)
-                    ->delete();
-            }
         } else {
-            foreach($narrowers as $n) {
-                DB::table($thBroader)
+            foreach($broader_ids as $b) {
+                foreach($narrowers as $n) {
+                    DB::table($thBroader)
                     ->insert([
-                        'broader_id' => $broader_id,
+                        'broader_id' => $b->broader_id,
                         'narrower_id' => $n->narrower_id
                     ]);
-            }
-            //if this concept exists exactly once, we can delete it
-            if($cnt == 1) {
-                DB::table($thConcept)
-                    ->where('id', '=', $id)
-                    ->delete();
+                }
             }
         }
+        DB::table($thConcept)
+            ->where('id', '=', $id)
+            ->delete();
     }
 
     public function removeConcept(Request $request) {
