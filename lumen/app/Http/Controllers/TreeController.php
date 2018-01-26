@@ -861,14 +861,16 @@ class TreeController extends Controller
 
         $normalizedProjName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $projName);
         $normalizedLabelName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $label);
+        $normalizedSchemeName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $scheme);
         $normalizedProjName = $this->removeIllegalChars($normalizedProjName);
         $normalizedLabelName = $this->removeIllegalChars($normalizedLabelName);
+        $normalizedSchemeName = $this->removeIllegalChars($normalizedSchemeName);
         $ts = date("YmdHis");
 
         $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
 
         $thConcept->concept_url = $url;
-        $thConcept->concept_scheme = $scheme;
+        $thConcept->concept_scheme = $normalizedSchemeName;
         $thConcept->is_top_concept = $tc;
         $thConcept->lasteditor = 'postgres';
         $thConcept->save();

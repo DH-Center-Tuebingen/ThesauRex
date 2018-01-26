@@ -1,4 +1,4 @@
-thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpPostPromise', 'Upload', '$timeout', 'modalFactory', '$uibModal', function(httpGetFactory, httpPostFactory, httpPostPromise, Upload, $timeout, modalFactory, $uibModal) {
+thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpPostPromise', 'userService', 'Upload', '$timeout', 'modalFactory', '$uibModal', function(httpGetFactory, httpPostFactory, httpPostPromise, userService, Upload, $timeout, modalFactory, $uibModal) {
     var trees = ['master', 'project'];
     var main = {};
     main.languages = [];
@@ -61,8 +61,8 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     main.addConcept = function(name, concept, lang, treeName, expandFunction) {
         if(!isValidTreeName(treeName)) return;
         if(typeof main.currentModal !== 'undefined') main.currentModal.close('ok');
-        var projName = (treeName == 'master') ? 'intern' : '<user-project>';
-        var scheme = "https://spacialist.escience.uni-tuebingen.de/schemata#newScheme";
+        var projName = (treeName == 'master') ? 'intern' : userService.currentUser.preferences['prefs.project-name'].value;
+        var scheme = "https://spacialist.escience.uni-tuebingen.de/schemata#" + projName;
         var isTC = false;
         var reclevel = 0;
         var parentId = -1;

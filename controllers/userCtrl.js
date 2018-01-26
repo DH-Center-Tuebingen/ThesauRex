@@ -37,6 +37,14 @@ thesaurexApp.controller('userCtrl', ['$scope', 'userService', 'mainService', '$s
         $state.go('literature', {});
     };
 
+    $scope.openUserPreferences = function(uid) {
+        $state.go('preferences.user', {id: uid});
+    };
+
+    $scope.openPreferences = function() {
+        $state.go('preferences', {});
+    };
+
     $scope.getUserList = function() {
         userService.getUserList();
     };

@@ -291,6 +291,20 @@ thesaurexApp.factory('httpGetFactory', function($http) {
     };
 });
 
+thesaurexApp.factory('httpPatchPromise', function($http) {
+    var getData = function(url, data) {
+        data.append('_method', 'PATCH');
+        return $http.post(url, data, {
+            headers: {
+                'Content-Type': undefined
+            }
+        }).then(function(result) {
+            return result.data;
+        });
+    };
+    return { getData: getData };
+});
+
 thesaurexApp.config(function($stateProvider, $urlRouterProvider, $authProvider, $httpProvider, $provide) {
     var lastError;
     var rejectReasons = [
@@ -382,6 +396,14 @@ thesaurexApp.config(function($stateProvider, $urlRouterProvider, $authProvider, 
         .state('roles', {
             url: '/roles',
             templateUrl: 'roles.html'
+        })
+        .state('preferences', {
+            url: '/preferences',
+            templateUrl: 'preferences.html'
+        })
+        .state('preferences.user', {
+            url: '/{id:[0-9]+}',
+            templateUrl: 'preferences.html'
         });
 });
 
@@ -396,6 +418,7 @@ thesaurexApp.run(function($rootScope, $state, userService) {
             if(parsedUser) {
                 userService.currentUser.user = parsedUser.user;
                 userService.currentUser.permissions = parsedUser.permissions;
+                userService.currentUser.preferences = parsedUser.preferences;
                 if(toState.name === 'auth') {
                     event.preventDefault();
                     $state.go('thesaurex');

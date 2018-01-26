@@ -1,0 +1,78 @@
+<div ng-controller="prefCtrl" resize-watcher>
+    <table class="table table-striped table-hover" ng-init="getPreferences()">
+        <thead>
+            <tr>
+                <th>Preference</th>
+                <th>Value</th>
+                <th ng-if="!isUserPref">Allow Override?</th>
+                <th>Save</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-if="preferences['prefs.show-tooltips']">
+                <td>
+                    <strong>Show Tooltips</strong>
+                </td>
+                <td>
+                    <input type="checkbox" ng-model="preferences['prefs.show-tooltips'].value" />
+                </td>
+                <td ng-if="!isUserPref">
+                    <input type="checkbox" ng-model="preferences['prefs.show-tooltips'].allow_override" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success" ng-click="storePreference(preferences['prefs.show-tooltips'])">
+                        <span class="fa fa-fw fa-check"></span>
+                    </button>
+                </td>
+            </tr>
+            <tr ng-if="preferences['prefs.show-sandbox-tree']">
+                <td>
+                    <strong>Show Sandbox Tree</strong>
+                </td>
+                <td>
+                    <input type="checkbox" ng-model="preferences['prefs.show-sandbox-tree'].value" />
+                </td>
+                <td ng-if="!isUserPref">
+                    <input type="checkbox" ng-model="preferences['prefs.show-sandbox-tree'].allow_override" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success" ng-click="storePreference(preferences['prefs.show-sandbox-tree'])">
+                        <span class="fa fa-fw fa-check"></span>
+                    </button>
+                </td>
+            </tr>
+            <tr ng-if="preferences['prefs.link-to-spacialist']">
+                <td>
+                    <strong>Link to Spacialist</strong>
+                </td>
+                <td>
+                    <input type="text" ng-model="preferences['prefs.link-to-spacialist'].value" />
+                </td>
+                <td ng-if="!isUserPref">
+                    <input type="checkbox" ng-model="preferences['prefs.link-to-spacialist'].allow_override" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success" ng-click="storePreference(preferences['prefs.link-to-spacialist'])">
+                        <span class="fa fa-fw fa-check"></span>
+                    </button>
+                </td>
+            </tr>
+            <tr ng-if="preferences['prefs.project-name']">
+                <td>
+                    <strong>Project Name</strong>
+                </td>
+                <td>
+                    <input type="text" ng-model="preferences['prefs.project-name'].value" />
+                </td>
+                <td ng-if="!isUserPref">
+                    <input type="checkbox" ng-model="preferences['prefs.project-name'].allow_override" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success" ng-click="storePreference(preferences['prefs.project-name'])">
+                        <span class="fa fa-fw fa-check"></span>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

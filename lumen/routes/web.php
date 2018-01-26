@@ -52,4 +52,7 @@ $app->group(['middleware' => ['before' => 'jwt.auth', 'after' => 'jwt.refresh']]
     $app->post('user/edit', 'UserController@edit');
     $app->post('user/add/role', 'UserController@addRoleToUser');
     $app->post('user/remove/role', 'UserController@removeRoleFromUser');
+    $app->get('preference', 'UserController@getPreferences');
+    $app->get('preference/{id:[0-9]+}', 'UserController@getUserPreferences');
+    $app->patch('preference/{id:[0-9]+}', 'UserController@patchPreference');
 });
