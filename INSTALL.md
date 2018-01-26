@@ -186,7 +186,7 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
 3. Append an additional configuration to the `spacialist-lumen.conf` file of  your apache that you created while installing Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)). The `DocumentRoot` and `<Directory ... >` must point to the location of your `lumen/public` folder and might be adjusted if needed.
 
    ```bash
-    sudo nano /etc/apache2/spacialist-lumen.conf
+    sudo nano /etc/apache2/sites-available/spacialist-lumen.conf
    ```
 
    ```apache
