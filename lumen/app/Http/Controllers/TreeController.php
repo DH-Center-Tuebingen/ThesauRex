@@ -89,6 +89,7 @@ class TreeController extends Controller
             if($type == 'extend' && $conceptExists) continue;
 
             $isTopConcept = count($r->allResources('skos:topConceptOf')) > 0;
+            if(!$isTopConcept) $isTopConcept = count($r->allResources('skos:broader')) === 0 && count($r->allResources('skos:broaderTransitive')) === 0;
             $scheme = '';
             $lasteditor = 'postgres';
 
@@ -184,7 +185,7 @@ class TreeController extends Controller
                 }
             }
 
-            $broaders = $r->allResources('skos:broader');
+            $broaders = array_merge($r->allResources('skos:broader'), $r->allResources('skos:broaderTransitive'));
             foreach($broaders as $broader) {
                 $relations[] = [
                     'broader' => $broader->getUri(),
@@ -192,7 +193,7 @@ class TreeController extends Controller
                 ];
             }
 
-            $narrowers = $r->allResources('skos:narrower');
+            $narrowers = array_merge($r->allResources('skos:narrower'), $r->allResources('skos:narrowerTransitive'));
             foreach($narrowers as $narrower) {
                 $relations[] = [
                     'broader' => $url,
@@ -215,7 +216,7 @@ class TreeController extends Controller
                     ['broader_id', '=', $bid],
                     ['narrower_id', '=', $nid]
                 ])
-                ->count() === 1;
+                ->count() > 0;
             if(!$relationExists) {
                 DB::table($thBroader)
                     ->insert([
