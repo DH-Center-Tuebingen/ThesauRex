@@ -225,10 +225,6 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
         $scope.narrowerSearch = '';
     };
 
-    angular.element(document).ready(function () {
-        $scope.getWindowSize();
-    });
-
     var expandElement = function(id, treeName) {
         $scope.$broadcast('angular-ui-tree:expand-all');
         var t = angular.element(document.getElementById(treeName + '-tree')).scope();
