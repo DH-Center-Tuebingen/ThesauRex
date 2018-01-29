@@ -365,3 +365,48 @@ li .angular-ui-tree-placeholder {
 .orange {
     color: orange;
 }
+
+/* MATERIAL DESIGN PATCHES >> */
+/* input controls */
+span.btn {
+    text-transform: none !important;
+}
+/* static text in form */
+.form-control-static {
+    font-size: 16px !important;
+    padding-bottom: 0 !important;
+}
+.modal-dialog .control-label {
+    margin-top: 2px !important;
+}
+/* form control label */
+.control-label {
+    font-size: 16px !important;
+    color: rgb(119, 119, 119) !important;
+    padding-bottom: 7px !important;
+    margin-top: -3px !important;
+}
+/* multi-select selected items */
+.ui-select-match-item span + span {
+    font-size: 14px !important;
+}
+/* dropdown box */
+.ui-select-toggle {
+    margin-top: 0 !important;
+}
+/* btn-xs is barely legible at 10px */
+.btn.btn-xs, .btn.btn-sm {
+    font-size: 13px !important;
+}
+
+.popover {
+    background: #fff;
+    width: 500px !important;
+    max-width: none !important;
+}
+/* << MATERIAL DESIGN PATCHES */
+
+/* tree toggle overlaps with heading characters --> move up a bit */
+#tree-toggle {
+    margin-top: -20px;
+}
