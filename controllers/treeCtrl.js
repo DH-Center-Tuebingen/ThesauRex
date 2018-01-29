@@ -15,8 +15,7 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     $scope.enableEditing = false;
     $scope.enableExportDragDrop = false;
 
-    $scope.newPrefLabelText = {};
-    $scope.newAltLabelText = {};
+    $scope.newLabelText = {};
 
     function toggle(collapsed, sourceNodeScope) {
         sourceNodeScope.$modelValue.collapsed = collapsed;
@@ -148,59 +147,27 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
         $scope.preferredLanguage = $scope.possibleLanguages[index];
     };
 
-    $scope.selectAltLabelLanguage = function(index) {
-        mainService.setAltLabelLanguage(index);
+    $scope.selectLabelLanguage = function(index) {
+        mainService.setLabelLanguage(index);
     };
 
-    $scope.selectPrefLabelLanguage = function(index) {
-        mainService.setPrefLabelLanguage(index);
-    };
-
-    $scope.editPrefLabelEntry = function(label) {
+    $scope.editLabelEntry = function(label) {
         mainService.setEditLabelEntry(label);
     };
 
-    $scope.editAltLabelEntry = function(label) {
-        mainService.setEditLabelEntry(label);
-    };
-
-    $scope.resetPrefLabelEdit = function(label) {
+    $scope.resetLabelEdit = function(label) {
         mainService.resetLabelEdit(label);
     };
 
-    $scope.resetAltLabelEdit = function(label) {
-        mainService.resetLabelEdit(label);
+    $scope.storeLabelEdit = function(label, treeName) {
+        var cid = $scope.selectedElement.properties.id;
+        mainService.updateLabel(label, cid, treeName);
     };
 
-    $scope.storePrefLabelEdit = function(label, treeName) {
+    $scope.addLabel = function(labelText, language, treeName) {
         var cid = $scope.selectedElement.properties.id;
-        mainService.updatePrefLabel(label, cid, treeName);
-    };
-
-    $scope.storeAltLabelEdit = function(label, treeName) {
-        var cid = $scope.selectedElement.properties.id;
-        mainService.updateAltLabel(label, cid, treeName);
-    };
-
-    $scope.addPrefLabel = function(labelText, language, treeName) {
-        for(var i=0; i<$scope.selectedElement.labels.pref.length; i++) {
-            var l = $scope.selectedElement.labels.pref[i];
-            if(l.langId == $scope.preferredLanguages.pref.id) {
-                var alertTitle = 'Problem with Preferred Label';
-                var alertMsg = "For the language <i>" + $scope.preferredLanguages.pref.langName + "</i> there is already a preferred label defined.";
-                mainService.displayAlert(alertTitle, alertMsg);
-                return;
-            }
-        }
-        var cid = $scope.selectedElement.properties.id;
-        mainService.addPrefLabel(labelText, language, cid, treeName);
-        $scope.newPrefLabelText.text = '';
-    };
-
-    $scope.addAltLabel = function(labelText, language, treeName) {
-        var cid = $scope.selectedElement.properties.id;
-        mainService.addAltLabel(labelText, language, cid, treeName);
-        $scope.newAltLabelText.text = '';
+        mainService.addLabel(labelText, language, cid, treeName);
+        $scope.newLabelText.text = '';
     };
 
     $scope.deleteBroaderConcept = function($index, broader, treeName) {
@@ -211,12 +178,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
         mainService.deleteNarrowerConcept($index, narrower, treeName);
     };
 
-    $scope.deletePrefLabel = function($index, label, treeName) {
-        mainService.deleteLabel(1, $index, label, treeName);
-    };
-
-    $scope.deleteAltLabel = function($index, label, treeName) {
-        mainService.deleteLabel(2, $index, label, treeName);
+    $scope.deleteLabel = function($index, label, treeName) {
+        mainService.deleteLabel($index, label, treeName);
     };
 
     $scope.addBroader = function($item, treeName) {

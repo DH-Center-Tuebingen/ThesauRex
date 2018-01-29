@@ -36,6 +36,7 @@ $app->group(['middleware' => ['before' => 'jwt.auth', 'after' => 'jwt.refresh']]
     $app->post('get/tree', 'TreeController@getTree');
     $app->post('get/label', 'TreeController@getLabels');
     $app->post('get/label/display', 'TreeController@getDisplayLabel');
+    $app->post('get/notes', 'TreeController@getNotes');
     $app->post('remove/label', 'TreeController@removeLabel');
     $app->post('add/broader', 'TreeController@addBroader');
     $app->post('add/concept', 'TreeController@addConcept');

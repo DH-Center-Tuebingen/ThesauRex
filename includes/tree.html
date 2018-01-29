@@ -178,11 +178,11 @@
         </div>
         <div class="col-md-6">
             <div id="preferred-header" class="relation-header">
-                <h3>Preferred Labels</h3>
-                <div ng-if="selectedElement.loading.prefLabels">
+                <h3>Labels</h3>
+                <div ng-if="selectedElement.loading.labels">
                     <spinner/>
                 </div>
-                <div ng-show="!selectedElement.loading.prefLabels" ng-if="currentUser.permissions.edit_concepts_th">
+                <div ng-show="!selectedElement.loading.labels" ng-if="currentUser.permissions.edit_concepts_th">
                     <div class="input-group">
                         <div class="input-group-btn" uib-dropdown>
                             <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -190,93 +190,79 @@
                             </button>
                             <ul class="dropdown-menu" uib-dropdown-menu>
                                 <li ng-repeat="lang in languages">
-                                    <a href="" ng-click="selectPrefLabelLanguage($index)">
+                                    <a href="" ng-click="selectLabelLanguage($index)">
                                         <flag class="lang" country="{{ getLanguageCode(lang.langShort) }}" size="16"></flag>
                                         <span style="color: gray;">{{ lang.langName }} ({{ lang.langShort }})</span>
                                     </a>
                                 </li>
                             </ul>
                         </div>
-                        <input type="text" class="form-control" ng-model="newPrefLabelText.text" />
+                        <input type="text" class="form-control" ng-model="newLabelText.text" />
                         <span class="input-group-btn">
                             <button class="btn btn-success"
-                            ng-click="addPrefLabel(newPrefLabelText.text, preferredLanguages.pref, selectedElement.treeName)" ng-disabled="!newPrefLabelText.text || newPrefLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
+                            ng-click="addLabel(newLabelText.text, preferredLanguages.pref, selectedElement.treeName)" ng-disabled="!newLabelText.text || newLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
                         </span>
                     </div>
                 </div>
             </div>
             <ul id="preferred-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
-                <div ng-if="!selectedElement.labels.pref || selectedElement.labels.pref.length == 0">
+                <div ng-if="!selectedElement.labels || selectedElement.labels.length == 0">
                     <i>No preferred labels defined.</i>
                 </div>
-                <li ng-repeat="pl in selectedElement.labels.pref" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
+                <li ng-repeat="l in selectedElement.labels" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deletePrefLabel($index, pl, selectedElement.treeName)" ng-if="currentUser.permissions.edit_concepts_th">
+                    ng-click="deleteLabel($index, l, selectedElement.treeName)" ng-if="currentUser.permissions.edit_concepts_th">
                         &times;
                     </span>
-                    <span class="lang">{{ pl.langName }} <flag country="{{ getLanguageCode(pl.langShort) }}" size="16"></flag></span>
-                    <div ng-show="!pl.editMode">
-                        <i>
-                            {{ pl.label }}
+                    <span class="lang">{{ l.langName }} <flag country="{{ getLanguageCode(l.langShort) }}" size="16"></flag></span>
+                    <div ng-show="!l.editMode">
+                        <i ng-class="{'bold': l.concept_label_type == 1}">
+                            {{ l.label }}
                         </i>
-                        <i class="fa fa-pencil edit-entry" ng-click="editPrefLabelEntry(pl)" ng-if="currentUser.permissions.edit_concepts_th">
+                        <i class="fa fa-pencil edit-entry" ng-click="editLabelEntry(l)" ng-if="currentUser.permissions.edit_concepts_th">
                         </i>
                     </div>
-                    <div ng-if="pl.editMode && currentUser.permissions.edit_concepts_th">
-                        <input type="text" class="inline-edit" ng-model="pl.editText" />
-                        <button class="btn btn-success btn-xs" ng-click="storePrefLabelEdit(pl, selectedElement.treeName)"><i class="fa fa-check"></i></button>
-                        <button class="btn btn-danger btn-xs" ng-click="resetPrefLabelEdit(pl)"><i class="fa fa-ban"></i></button>
+                    <div ng-if="l.editMode && currentUser.permissions.edit_concepts_th">
+                        <input type="text" class="inline-edit" ng-model="l.editText" />
+                        <button class="btn btn-success btn-xs" ng-click="storeLabelEdit(l, selectedElement.treeName)"><i class="fa fa-check"></i></button>
+                        <button class="btn btn-danger btn-xs" ng-click="resetLabelEdit(l)"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
             </ul>
             <div id="alternative-header" class="relation-header">
-                <h3>Alternative Labels</h3>
-                <div ng-if="selectedElement.loading.altLabels">
+                <h3>Notes</h3>
+                <div ng-if="selectedElement.loading.notes">
                     <spinner/>
                 </div>
-                <div ng-show="!selectedElement.loading.altLabels" ng-if="currentUser.permissions.edit_concepts_th">
+                <div ng-show="!selectedElement.loading.notes" ng-if="currentUser.permissions.edit_concepts_th">
                     <div class="input-group">
-                        <div class="input-group-btn" uib-dropdown>
-                            <button type="button" class="btn btn-default dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <flag country="{{ getLanguageCode(preferredLanguages.alt.langShort) }}" size="16"></flag><span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu" uib-dropdown-menu>
-                                <li ng-repeat="lang in languages">
-                                    <a href="" ng-click="selectAltLabelLanguage($index)">
-                                        <flag class="lang" country="{{ getLanguageCode(lang.langShort) }}" size="16"></flag>
-                                        <span style="color: gray;">{{ lang.langName }} ({{ lang.langShort }})</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <input type="text" class="form-control" ng-model="newAltLabelText.text" />
+                        <input type="text" class="form-control" ng-model="newNote.text" />
                         <span class="input-group-btn">
-                            <button class="btn btn-success" ng-click="addAltLabel(newAltLabelText.text, preferredLanguages.alt, selectedElement.treeName)" ng-disabled="!newAltLabelText.text || newAltLabelText.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
+                            <button class="btn btn-success" ng-click="addNote(newNote.text, selectedElement.treeName)" ng-disabled="!newNote.text || newNote.text.length == 0" type="button"><i class="fa fa-plus"></i></button>
                         </span>
                     </div>
                 </div>
             </div>
-            <ul id="alternative-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
-                <div ng-if="!selectedElement.labels.alt || selectedElement.labels.alt.length == 0">
-                    <i>No alternative labels defined.</i>
+            <ul id="notes-list" class="scrollable-list" ng-if="currentUser.permissions.view_concepts_th">
+                <div ng-if="!selectedElement.notes || selectedElement.notes.length == 0">
+                    <i>No notes defined.</i>
                 </div>
-                <li ng-repeat="al in selectedElement.labels.alt" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
+                <li ng-repeat="note in selectedElement.notes" ng-mouseenter="hovered=true;" ng-mouseleave="hovered=false;">
                     <span ng-show="hovered" class="delete-icon-l"
-                    ng-click="deleteAltLabel($index, al, selectedElement.treeName)" ng-if="currentUser.permissions.edit_concepts_th">
+                    ng-click="deleteNote($index, note, selectedElement.treeName)" ng-if="currentUser.permissions.edit_concepts_th">
                         &times;
                     </span>
-                    <span class="lang">{{ al.langName }} <flag country="{{ getLanguageCode(al.langShort) }}" size="16"></flag></span>
-                    <div ng-show="!al.editMode">
+                    <div ng-show="!note.editMode">
                         <i>
-                            {{ al.label }}
+                            {{ note.label }}
                         </i>
-                        <i class="fa fa-pencil edit-entry" ng-click="editAltLabelEntry(al)" ng-if="currentUser.permissions.edit_concepts_th">
+                        <i class="fa fa-pencil edit-entry" ng-click="editeNoteEntry(note)" ng-if="currentUser.permissions.edit_concepts_th">
                         </i>
                     </div>
-                    <div ng-if="al.editMode && currentUser.permissions.edit_concepts_th">
-                        <input type="text" class="inline-edit" ng-model="al.editText" />
-                        <button class="btn btn-success btn-xs" ng-click="storeAltLabelEdit(al, selectedElement.treeName)"><i class="fa fa-check"></i></button>
-                        <button class="btn btn-danger btn-xs" ng-click="resetAltLabelEdit(al)"><i class="fa fa-ban"></i></button>
+                    <div ng-if="note.editMode && currentUser.permissions.edit_concepts_th">
+                        <input type="text" class="inline-edit" ng-model="note.editText" />
+                        <button class="btn btn-success btn-xs" ng-click="storeNoteEdit(note, selectedElement.treeName)"><i class="fa fa-check"></i></button>
+                        <button class="btn btn-danger btn-xs" ng-click="resetNoteEdit(note)"><i class="fa fa-ban"></i></button>
                     </div>
                 </li>
             </ul>
