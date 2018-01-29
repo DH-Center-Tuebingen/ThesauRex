@@ -27,7 +27,7 @@
                     </button>
                     <a class="navbar-brand" href="#/">
                         <img src="favicon.png" alt="spacialist logo" style="height: 20px; width: 20px; display: inline; vertical-align: top;"/>
-                        ThesauRex
+                        ThesauRex - {{ currentUser.preferences['prefs.project-name'].value }}
                     </a>
                 </div>
                 <div class="navbar-collapse" id="navbar-collapse" uib-collapse="isCollapsed">
@@ -37,7 +37,7 @@
                                 <span class="fa fa-fw fa-sign-out"></span> {{ currentUser.user.name }}
                             </a>
                         </li>
-                        <li ng-if="currentUser.permissions.view_users || currentUser.permissions.add_edit_role" class="dropdown" uib-dropdown>
+                        <li class="dropdown" uib-dropdown>
                             <a href="#" class="dropdown-toggle" uib-dropdown-toggle data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                                 Settings <span class="caret"></span>
                             </a>
@@ -50,6 +50,21 @@
                                 <li ng-if="currentUser.permissions.add_edit_role">
                                     <a href="" ng-click="openRoleManagement()">
                                         <i class="fa fa-fw fa-cog"></i> Role Management
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="" ng-click="openUserPreferences(currentUser.user.id)">
+                                        <span class="fa fa-fw fa-star"></span> User Preferences
+                                    </a>
+                                </li>
+                                <li ng-if="currentUser.permissions.edit_preferences">
+                                    <a href="" ng-click="openPreferences()">
+                                        <span class="fa fa-fw fa-star-o"></span> System Preferences
+                                    </a>
+                                </li>
+                                <li ng-if="currentUser.preferences['prefs.link-to-spacialist'].value.length > 0">
+                                    <a ng-href="{{ currentUser.preferences['prefs.link-to-spacialist'].value }}" target="_blank">
+                                        <img src="img/spacialist.png" style="width: 1.28571429em;" /> Spacialist
                                     </a>
                                 </li>
                                 <li>
@@ -89,5 +104,6 @@
         <script src="app/userService.js"></script>
         <script src="controllers/treeCtrl.js"></script>
         <script src="controllers/userCtrl.js"></script>
+        <script src="controllers/prefCtrl.js"></script>
     </body>
 </html>

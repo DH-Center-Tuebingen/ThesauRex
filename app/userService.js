@@ -1,4 +1,4 @@
-thesaurexApp.service('userService', ['httpPostFactory', 'httpGetFactory', 'modalFactory', '$auth', '$state', '$http', function(httpPostFactory, httpGetFactory, modalFactory, $auth, $state, $http) {
+thesaurexApp.service('userService', ['httpPostFactory', 'httpGetFactory', 'httpGetPromise', 'httpPatchPromise', 'modalFactory', '$auth', '$state', '$http', function(httpPostFactory, httpGetFactory, httpGetPromise, httpPatchPromise, modalFactory, $auth, $state, $http) {
     var user = {};
     user.currentUser = {
         permissions: {},
@@ -172,10 +172,11 @@ thesaurexApp.service('userService', ['httpPostFactory', 'httpGetFactory', 'modal
                 $state.go('auth', {});
                 return;
             }
+            convertBooleanPrefs(response.data.preferences);
             localStorage.setItem('user', JSON.stringify(response.data));
             user.currentUser.user = response.data.user;
             user.currentUser.permissions = response.data.permissions;
-            console.log(JSON.stringify(response.data));
+            user.currentUser.preferences = response.data.preferences;
             delete user.loginError.message;
             $state.go('thesaurex', {});
         });
@@ -185,10 +186,53 @@ thesaurexApp.service('userService', ['httpPostFactory', 'httpGetFactory', 'modal
         $auth.logout().then(function() {
             user.currentUser.user = {};
             user.currentUser.permissions = {};
+            user.currentUser.preferences = {};
             localStorage.removeItem('user');
             $state.go('auth', {});
         });
     };
+
+    user.getPreferences = function() {
+        return httpGetPromise.getData('api/preference').then(function(response) {
+            convertBooleanPrefs(response);
+            return response;
+        });
+    };
+
+    user.getUserPreferences = function(uid) {
+        return httpGetPromise.getData('api/preference/' + uid).then(function(response) {
+            convertBooleanPrefs(response);
+            return response;
+        });
+    };
+
+    user.storePreference = function(pref) {
+        return storePreference(pref);
+    };
+
+    user.storeUserPreference = function(pref, uid) {
+        return storePreference(pref, uid);
+    };
+
+    function convertBooleanPrefs(prefs) {
+        var stVal = prefs['prefs.show-tooltips'].value.toString();
+        prefs['prefs.show-tooltips'].value = stVal == '1' || stVal == 'true';
+        var sstVal = prefs['prefs.show-sandbox-tree'].value.toString();
+        prefs['prefs.show-sandbox-tree'].value = sstVal == '1' || sstVal == 'true';
+    }
+
+    function storePreference(pref, uid) {
+        var formData = new FormData();
+        formData.append('label', pref.label);
+        var value = pref.value;
+        if(typeof value === 'object') value = angular.toJson(value);
+        formData.append('value', value);
+        if(uid) formData.append('user_id', uid);
+        else formData.append('allow_override', pref.allow_override);
+        return httpPatchPromise.getData('api/preference/' + pref.id, formData).then(function(response) {
+            return response;
+        });
+    }
 
     return user;
 }]);

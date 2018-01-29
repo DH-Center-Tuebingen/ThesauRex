@@ -6,7 +6,8 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
     $scope.selectedElement = mainService.selectedElement;
     $scope.blockedUi = mainService.blockedUi;
     $scope.currentUser = userService.currentUser;
-    $scope.treeVisible = true;
+    // init sandbox tree visibility state with negated pref
+    $scope.treeVisible = angular.copy(!userService.currentUser.preferences['prefs.show-sandbox-tree'].value);
 
     $scope.expandedElement = null;
 
@@ -52,6 +53,9 @@ thesaurexApp.controller('treeCtrl', ['$scope', 'httpPostFactory', 'mainService',
             propC.removeClass('col-md-6');
         }
     }
+
+    // toggle sandbox tree to switch to desired pref value
+    $scope.toggleTree();
 
     $scope.treeOptions = {
         toggle: toggle,
