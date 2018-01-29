@@ -405,3 +405,8 @@ span.btn {
     max-width: none !important;
 }
 /* << MATERIAL DESIGN PATCHES */
+
+/* tree toggle overlaps with heading characters --> move up a bit */
+#tree-toggle {
+    margin-top: -20px;
+}
