@@ -44,14 +44,19 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         var modalInstance = $uibModal.open({
             templateUrl: 'templates/newConceptModal.html',
             controller: function($uibModalInstance) {
-                this.parent = parent;
-                this.newConceptName = name;
-                this.treeName = treeName;
-                this.languages = main.languages;
-                this.preferredLanguage = main.preferredLanguages.main;
-                this.addConcept = main.addConcept;
-                this.expandFunction = expandFunction;
-                this.getLanguageCode = main.getLanguageCode;
+                var vm = this;
+
+                vm.parent = parent;
+                vm.newConceptName = name;
+                vm.treeName = treeName;
+                vm.languages = main.languages;
+                vm.preferredLanguage = main.preferredLanguages.main;
+                vm.selectPreferredLanguage = function(index) {
+                    vm.preferredLanguage = main.languages[index];
+                };
+                vm.addConcept = main.addConcept;
+                vm.expandFunction = expandFunction;
+                vm.getLanguageCode = main.getLanguageCode;
             },
             controllerAs: 'mc'
         });
