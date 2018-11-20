@@ -233,7 +233,7 @@ p, div {
     color: red;
 }
 
-.selected {
+.selected, .bold {
     font-weight: bold;
 }
 

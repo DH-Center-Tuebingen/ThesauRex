@@ -4,7 +4,6 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     main.languages = [];
     main.preferredLanguages = {
         pref: {},
-        alt: {},
         main: {}
     };
     main.tree = {
@@ -19,10 +18,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     };
     main.selectedElement = {
         properties: {},
-        labels: {
-            pref: [],
-            alt: []
-        },
+        labels: [],
         relations: {
             broader: [],
             narrower: []
@@ -99,8 +95,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         if(!isValidTreeName(treeName)) return;
         main.selectedElement.treeName = treeName;
         main.selectedElement.properties = element;
-        main.selectedElement.labels.pref.length = 0;
-        main.selectedElement.labels.alt.length = 0;
+        main.selectedElement.labels.length = 0;
         main.selectedElement.relations.broader.length = 0;
         main.selectedElement.relations.narrower.length = 0;
         displayInformation(element, treeName);
@@ -109,8 +104,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     main.unsetSelectedElement = function() {
         main.selectedElement.treeName = '';
         main.selectedElement.properties = {};
-        main.selectedElement.labels.pref.length = 0;
-        main.selectedElement.labels.alt.length = 0;
+        main.selectedElement.labels.length = 0;
         main.selectedElement.relations.broader.length = 0;
         main.selectedElement.relations.narrower.length = 0;
     };
@@ -158,12 +152,8 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return httpPostPromise.getData('api/export', formData);
     };
 
-    main.setPrefLabelLanguage = function(index) {
+    main.setLabelLanguage = function(index) {
         main.preferredLanguages.pref = main.languages[index];
-    };
-
-    main.setAltLabelLanguage = function(index) {
-        main.preferredLanguages.alt = main.languages[index];
     };
 
     main.setLanguage = function(index) {
@@ -212,39 +202,20 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         }
     };
 
-    main.addPrefLabel = function(labelText, language, cid, treeName, id) {
-        var promise = addLabel(1, labelText, language, cid, treeName, id);
+    main.addLabel = function(labelText, language, cid, treeName, id) {
+        var promise = addLabel(labelText, language, cid, treeName, id);
         promise.then(function(response) {
             postAdd(response, language, treeName);
         });
     };
 
-    main.addAltLabel = function(labelText, language, cid, treeName, id) {
-        var promise = addLabel(2, labelText, language, cid, treeName, id);
-        promise.then(function(response) {
-            postAdd(response, language, treeName);
-        });
-    };
-
-    main.updatePrefLabel = function(label, cid, treeName) {
+    main.updateLabel = function(label, cid, treeName) {
         var language = {
             id: label.langId,
             langShort: label.langShort,
             langName: label.langName
         };
-        var promise = addLabel(1, label.editText, language, cid, treeName, label.id);
-        promise.then(function(response) {
-            postUpdate(label, treeName);
-        });
-    };
-
-    main.updateAltLabel = function(label, cid, treeName) {
-        var language = {
-            id: label.langId,
-            langShort: label.langShort,
-            langName: label.langName
-        };
-        var promise = addLabel(2, label.editText, language, cid, treeName, label.id);
+        var promise = addLabel(label.editText, language, cid, treeName, label.id);
         promise.then(function(response) {
             postUpdate(label, treeName);
         });
@@ -273,19 +244,28 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         });
     };
 
-    main.deleteLabel = function(labelType, index, label, treeName) {
+    main.deleteLabel = function(index, label, treeName) {
         var formData = new FormData();
         formData.append('treeName', treeName);
         formData.append('id', label.id);
         var promise = httpPostPromise.getData('api/remove/label', formData);
         promise.then(function(response) {
-            var labelList;
-            if(labelType == 1) {
-                labelList = main.selectedElement.labels.pref;
-            } else if(labelType == 2) {
-                labelList = main.selectedElement.labels.alt;
+            var removedElems = main.selectedElement.labels.splice(index, 1);
+            if(removedElems.length === 1) {
+                var removedElem = removedElems[0];
+                // check if removed elem was pref label
+                if(removedElem.concept_label_type === 1) {
+                    // if there is another label of the same language
+                    // make it a pref label
+                    for(var i=0; i<main.selectedElement.labels.length; i++) {
+                        var l = main.selectedElement.labels[i];
+                        if(l.langId == removedElem.langId) {
+                            l.concept_label_type = 1;
+                            break;
+                        }
+                    }
+                }
             }
-            labelList.splice(index, 1);
         });
     };
 
@@ -481,12 +461,11 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         return shortName;
     };
 
-    function addLabel(labelType, labelText, language, cid, treeName, id) {
+    function addLabel(labelText, language, cid, treeName, id) {
         var isEdit = typeof id != 'undefined';
         var formData = new FormData();
         formData.append('text', labelText);
         formData.append('lang', language.id);
-        formData.append('type', labelType);
         formData.append('concept_id', cid);
         formData.append('treeName', treeName);
         if(isEdit) formData.append('id', id);
@@ -596,16 +575,17 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     }
 
     function displayInformation(element, treeName) {
-        console.log(element);
         var id = element.id;
-        main.selectedElement.loading.prefLabels = true;
-        main.selectedElement.loading.altLabels = true;
+        main.selectedElement.loading.labels = true;
         main.selectedElement.loading.broaderConcepts = true;
         main.selectedElement.loading.narrowerConcepts = true;
+        main.selectedElement.loading.notes = true;
         getLabels(id, treeName).then(function(data) {
-            main.selectedElement.loading.prefLabels = false;
-            main.selectedElement.loading.altLabels = false;
+            main.selectedElement.loading.labels = false;
             setLabels(data);
+        });
+        getNotes(id, treeName).then(function(data) {
+            main.selectedElement.loading.notes = false;
         });
 
         updateRelations(id, treeName);
@@ -630,22 +610,50 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
     }
 
     function setLabels(data) {
-        // var setPrefLabels = typeof prefLabels !== 'undefined' && prefLabels !== null;
-        // var setAltLabels = typeof altLabels !== 'undefined' && altLabels !== null;
-        angular.forEach(data, function(lbl, key) {
+        for(var i=0; i<data.length; i++) {
+            var lbl = data[i];
             var curr = {
                 id: lbl.id,
                 label: lbl.label,
                 langShort: lbl.short_name,
                 langName: lbl.display_name,
-                langId: lbl.language_id
+                langId: lbl.language_id,
+                concept_label_type: lbl.concept_label_type
             };
-            if(lbl.concept_label_type == 1) {
-                main.selectedElement.labels.pref.push(curr);
-            } else if(lbl.concept_label_type == 2) {
-                main.selectedElement.labels.alt.push(curr);
+            main.selectedElement.labels.push(curr);
+        }
+        main.selectedElement.labels.sort(function(a, b) {
+            var comp = 0;
+            if(a.concept_label_type < b.concept_label_type) {
+                comp -= 10;
+            } else if(a.concept_label_type > b.concept_label_type) {
+                comp += 10;
             }
-        });
+            if(a.langId < b.langId) {
+                comp -= 5;
+            } else if(a.langId > b.langId) {
+                comp += 5;
+            }
+            if(a.label < b.label) {
+                comp -= 1;
+            } else if(a.label > b.label) {
+                comp += 1;
+            }
+            return comp;
+        })
+    }
+
+    function getNotes(id, treeName) {
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('treeName', treeName);
+        return httpPostPromise.getData('api/get/notes', formData);
+    }
+
+    function setNotes(data) {
+        for(var i=0; i<data.length; i++) {
+            main.selectedElement.notes.push(data[i]);
+        }
     }
 
     function getRelations(id, treeName) {
@@ -691,7 +699,7 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
         formData.append('concept_scheme', scheme);
         if(broader > 0) formData.append('broader_id', broader);
         formData.append('is_top_concept', tc);
-        formData.append('prefLabel', label);
+        formData.append('label', label);
         formData.append('lang', languageId);
         formData.append('treeName', treeName);
         return httpPostPromise.getData('api/add/concept', formData);
@@ -719,7 +727,6 @@ thesaurexApp.service('mainService', ['httpGetFactory', 'httpPostFactory', 'httpP
                 if(l.hasOwnProperty(k)) {
                     main.preferredLanguages.main[k] = l[k];
                     main.preferredLanguages.pref[k] = l[k];
-                    main.preferredLanguages.alt[k] = l[k];
                 }
             }
         });

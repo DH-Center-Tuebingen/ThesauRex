@@ -427,9 +427,7 @@ class TreeController extends Controller
         $treeName = $request->get('treeName');
         $suffix = $treeName == 'project' ? '' : '_master';
 
-        $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
 
         $labels = DB::table($thLabel .' as lbl')
             ->select('lbl.id', 'label', 'concept_id', 'language_id', 'concept_label_type', 'lang.display_name', 'lang.short_name')
@@ -485,6 +483,25 @@ class TreeController extends Controller
         return response()->json([
             'concept' => $concept
         ]);
+    }
+
+    public function getNotes(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+        $id = $request->get('id');
+        $treeName = $request->get('treeName');
+        $suffix = $treeName == 'project' ? '' : '_master';
+
+        $thNotes = 'th_concept_notes' . $suffix;
+
+        $notes = DB::table($thNotes)
+            ->where('concept_id', '=', $id)
+            ->get();
+        return response()->json($notes);
     }
 
     public function getLanguages() {
@@ -839,7 +856,7 @@ class TreeController extends Controller
         }
         $projName = $request->get('projName');
         $scheme = $request->get('concept_scheme');
-        $label = $request->get('prefLabel');
+        $label = $request->get('label');
         $lang = $request->get('lang');
         $treeName = $request->get('treeName');
 
@@ -909,7 +926,31 @@ class TreeController extends Controller
         $suffix = $treeName === 'project' ? '' : '_master';
         $thLabel = 'th_concept_label' . $suffix;
 
-        DB::table($thLabel)
+        $elem = DB::table($thLabel)
+            ->where([
+                ['id', '=', $id]
+            ])
+            ->first();
+        // check if removed elem was pref label
+        if($elem->concept_label_type == 1) {
+            // if there is another label of the same language
+            // make it a pref label
+            $newPrefElem = DB::table($thLabel)
+                ->where([
+                    ['language_id', $elem->language_id],
+                    ['concept_id', $elem->concept_id],
+                    ['concept_label_type', 2] // we have to add this, because the old prefLabel still exists
+                ])
+                ->first();
+            if(isset($newPrefElem)) {
+                DB::table($thLabel)
+                    ->where('id', $newPrefElem->id)
+                    ->update([
+                        'concept_label_type' => 1
+                    ]);
+            }
+        }
+        $elem = DB::table($thLabel)
             ->where([
                 ['id', '=', $id]
             ])
@@ -925,7 +966,6 @@ class TreeController extends Controller
         }
         $label = $request->get('text');
         $lang = $request->get('lang');
-        $type = $request->get('type');
         $cid = $request->get('concept_id');
         $treeName = $request->get('treeName');
 
@@ -943,24 +983,19 @@ class TreeController extends Controller
             } else {
                 $thLabel = new ThConceptLabel();
             }
-            if($type == 1) {
-                $cond = [
-                    ['language_id', '=', $lang],
-                    ['concept_id', '=', $cid],
-                    ['concept_label_type', '=', $type]
-                ];
-                if($treeName == 'project') {
-                    $query = ThConceptLabelProject::where($cond);
-                } else {
-                    $query = ThConceptLabel::where($cond);
-                }
-                $lblCount = $query->count();
-                if($lblCount > 0) { //existing prefLabel for desired language, abort
-                    return response()->json([
-                        'error' => 'Duplicate entry for language ' . $lang
-                    ]);
-                }
+            $cond = [
+                ['language_id', '=', $lang],
+                ['concept_id', '=', $cid],
+                ['concept_label_type', '=', 1]
+            ];
+            if($treeName == 'project') {
+                $query = ThConceptLabelProject::where($cond);
+            } else {
+                $query = ThConceptLabel::where($cond);
             }
+            // set label type based on existing labels
+            $type = $query->count() > 0 ? 2 : 1;
+
             $thLabel->label = $label;
             $thLabel->concept_id = $cid;
             $thLabel->language_id = $lang;
