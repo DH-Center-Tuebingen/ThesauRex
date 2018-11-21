@@ -1,0 +1,91 @@
+.top-0 {
+    top: 0;
+}
+
+.bottom-0 {
+    bottom: 0;
+}
+
+.left-0 {
+    left: 0;
+}
+
+.right-0 {
+    right: 0;
+}
+
+.color-yellow {
+    color: $yellow !important;
+}
+
+.text-wrap {
+    white-space: pre-wrap;
+}
+
+.text-line {
+    white-space: pre-line;
+}
+
+.flex-grow-1 {
+    flex-grow: 1;
+}
+
+.reorder-handle, .grab-handle {
+    cursor: grab;
+}
+
+.reorder-handle:active {
+    cursor: grabbing;
+}
+
+.copy-handle {
+    cursor: copy;
+}
+
+.not-allowed-handle {
+    cursor: not-allowed;
+}
+
+.of-visible, .visible-overflow .v--modal {
+    overflow: visible !important;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.list-group-xs > .list-group-item {
+    padding: 0.5rem 1rem !important;
+}
+
+.word-break-all {
+    word-break: break-all;
+}
+
+.of-hidden {
+    overflow: hidden;
+}
+
+.scroll-x-hidden {
+    overflow-x: hidden;
+}
+
+.scroll-x-auto {
+    overflow-x: auto;
+}
+
+.scroll-y-auto {
+    overflow-y: auto;
+}
+
+.scroll-x {
+    overflow-x: scroll;
+}
+
+.scroll-y {
+    overflow-y: scroll;
+}
+
+.bg-none {
+    background: none !important;
+}

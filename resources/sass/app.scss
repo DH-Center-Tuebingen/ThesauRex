@@ -1,0 +1,18 @@
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
+
+// tree component
+@import "~tree-component/dist/tree.min.css";
+@import "tree";
+
+// v-modal
+@import "modal";
+
+// Spacialist utility classes
+@import "utilities";
+
+// Spacialist specific
+@import "style";
