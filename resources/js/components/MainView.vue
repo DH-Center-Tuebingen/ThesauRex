@@ -1,38 +1,51 @@
 <template>
     <div class="row h-100 of-hidden" v-if="dataLoaded">
         <div class="col-md-3 d-flex flex-column">
-            <h4>Sandbox Tree</h4>
+            <h4>
+                {{ $t('tree.sandbox.title') }}
+            </h4>
             <concept-tree
                 :event-bus="eventBus"
                 :tree-data="sandbox.concepts"
-                :tree-name="'sandbox'">
+                :tree-name="'sandbox'"
+                @request-concept="openNewConceptModal">
             </concept-tree>
         </div>
         <div class="col-md-3 d-flex flex-column">
-            <h4>Project Tree</h4>
+            <h4>
+                {{ $t('tree.project.title') }}
+            </h4>
             <concept-tree
                 :event-bus="eventBus"
                 :tree-data="concepts"
-                :tree-name="''">
+                :tree-name="''"
+                @request-concept="openNewConceptModal">
             </concept-tree>
         </div>
         <div class="col-md-6">
             <router-view
+                :languages="languages"
                 @label-update="handleLabelUpdate"
+                @request-concept="openNewConceptModal"
             ></router-view>
         </div>
     </div>
 </template>
 
 <script>
+    import NewConceptModal from './modals/NewConceptModal.vue';
+
     export default {
         beforeRouteEnter(to, from, next) {
-            let projectConcepts;
+            let projectConcepts, sandboxConcepts;
             $httpQueue.add(() => $http.get('tree?t=').then(response => {
                 projectConcepts = response.data;
                 return $http.get('tree?t=sandbox');
                 }).then(response => {
-                    next(vm => vm.init(projectConcepts, response.data));
+                    sandboxConcepts = response.data
+                    return $http.get(`tree/languages`);
+                }).then(response => {
+                    next(vm => vm.init(projectConcepts, sandboxConcepts, response.data));
                 })
             );
         },
@@ -40,7 +53,11 @@
             this.eventBus.$on('concept-clicked', this.handleConceptClick);
         },
         methods: {
-            init(projectData, sandboxData) {
+            init(projectData, sandboxData, languages) {
+                this.languages = [];
+                languages.forEach(l => {
+                    this.languages.push(l);
+                });
                 this.concepts = [];
                 projectData.forEach(d => {
                     this.concepts.push(d);
@@ -49,6 +66,34 @@
                     this.sandbox.concepts.push(d);
                 });
                 this.dataLoaded = true;
+            },
+            openNewConceptModal(e) {
+                const opts = {
+                    languages: this.languages,
+                    onSubmit: c => this.createNewConceptModal(c)
+                };
+                const props = Object.assign({}, e, opts);
+                this.$modal.show(NewConceptModal, props);
+            },
+            createNewConceptModal(concept) {
+                let data = {
+                    label: concept.label,
+                    language_id: concept.language.id
+                };
+                if(concept.parent) {
+                    data.parent_id = concept.parent.id;
+                }
+                $httpQueue.add(() => $http.put(`/tree/concept?t=${this.treeName}`, data).then(response => {
+                    let cs;
+                    if(!concept.parent) {
+                        if(this.treeName === 'sandbox') {
+                            cs = this.sandbox.concepts;
+                        } else {
+                            cs = this.concepts;
+                        }
+                        cs.push(response.data);
+                    }
+                }));
             },
             handleLabelUpdate(e) {
                 console.log("Label updated!");
@@ -70,6 +115,7 @@
                 dataLoaded: false,
                 concepts: [],
                 eventBus: new Vue(),
+                languages: [],
                 // selectedConcept: {
                 //     from: '',
                 //     element: {}

@@ -12,56 +12,17 @@ const en = {
         clear: 'Clear',
         confirm: 'OK',
         create: 'Create',
-        'select-all': 'Select All',
-        'select-none': 'Deselect All',
-        'delete-name': {
-            title: 'Delete {name}',
-            desc: 'Do you really want to delete {name}?'
-        },
-        'edit-name': {
-            title: 'Edit {name}'
-        },
-        'remove-name': {
-            title: 'Remove {name}',
-            desc: 'Do you really want to remove {name}?'
-        },
-        'unlink-name': {
-            title: 'Remove Link - {name}',
-            desc: 'Do you really want to unlink {file} from {ent}?'
-        },
-        'all-entities': 'All Entities',
-        unlinked: 'Unlinked',
-        unlink: 'Unlink',
-        link: 'Link',
-        'unlink-from': 'Unlink from {name}',
-        'link-to': 'Link to {name}',
-        'has-links': 'Has no links | Has one link | Has {cnt} links',
-        discard: {
-            title: 'Unsaved Changes',
-            msg: 'Unsaved changes in {name}. Do you really want to continue and discard changes?',
-            confirm: 'Yes, discard changes',
-            confirmpos: 'No, save and continue'
-        },
         search: 'Search...',
         login: 'Login',
-        'login-title': 'Login',
-        'login-subtitle': 'Welcome to Spacialist',
+        'login-title': 'Log In',
+        'login-subtitle': 'Welcome to ThesauRex',
         download: 'Download',
         'download-name': 'Download {name}',
         upload: 'Upload',
-        tools: {
-            title: 'Tools',
-            bibliography: 'Bibliography',
-            analysis: 'Data Analysis',
-            thesaurex: 'ThesauRex',
-            dbwebgen: 'dbWebGen',
-            external: 'External Tools'
-        },
         settings: {
             title: 'Settings',
             users: 'User Management',
             roles: 'Role Management',
-            datamodel: 'Data-Model-Editor',
             system: 'System Preferences',
             about: 'About'
         },
@@ -74,49 +35,11 @@ const en = {
             select: 'Press enter to select',
             deselect: 'Press enter to remove'
         },
-        attribute: 'Attribute',
-        attributes: {
-            string: 'Textfield',
-            stringf: 'Textbox',
-            'string-sc': 'Single Choice Dropdown',
-            'string-mc': 'Multiple Choice Dropdown',
-            double: 'Numeric Input (Floating Point)',
-            integer: 'Numeric Input (Integer)',
-            boolean: 'Checkbox',
-            percentage: 'Percentage',
-            entity: 'Entity',
-            epoch: 'Time Period and Epoch',
-            date: 'Date',
-            dimension: 'Dimensions (BxHxT)',
-            list: 'List',
-            geography: 'WKT (Well-Known-Binary)',
-            table: 'Table',
-            sql: 'SQL-Query',
-            serial: 'Serial (Auto-counting ID)',
-            'serial-info': `All instances share this identifier as attribute. Add <code class="normal">%d</code> as counter.
-            <br />
-            <span class="font-weight-bold">Example:</span>
-            <br />
-            <code class="normal">Find_%d_Stone</code> would create Find_1_Stone, Find_2_Stone, &hellip;
-            <br />
-            To add a fixed width (e.g. 3 for 002 instead of 2), you can use <code class="normal">%03d</code>.`
-        },
-        active: 'Active',
-        visible: 'Visible',
-        invisible: 'Invisible',
-        opacity: 'Opacity',
-        transparency: 'Transparency',
-        text: 'Text',
-        font: 'Font',
-        mode: 'Mode',
-        size: 'Size',
-        color: 'Color',
-        format: 'Format',
         version: 'Version',
         label: 'Label',
         url: 'URL',
         name: 'Name',
-        'display-name': 'Displayname',
+        'display-name': 'Display Name',
         email: 'E-Mail Address',
         password: 'Password',
         'remember-me': 'Remember me',
@@ -128,19 +51,86 @@ const en = {
         'updated-at': 'Updated',
         options: 'Options',
         type: 'Type',
-        'root-element': 'Parent-Element',
-        'non-recursive': 'All descendants (recursive)',
         content: 'Content',
-        column: 'Column | Columns',
-        'geometry-type': 'Geometry-Type',
-        'depends-on': 'Depends on',
         preference: 'Preference',
         value: 'Value',
         'allow-override': 'Allow Override?',
-        tag: 'Tag | Tags',
-        set: 'Set',
-        'has-tags': 'Has no tags | Has one tag | Has {cnt} tags'
+        set: 'Set'
     },
+    tree: {
+        import: {
+            label: 'Import RDF',
+            new: 'Only import new concepts',
+            'new-update': 'Update existing concepts & add new ones',
+            replace: 'Delete existing concepts  & add new ones'
+        },
+        export: {
+            label: 'Export RDF'
+        },
+        project: {
+            title: 'Project Tree'
+        },
+        sandbox: {
+            title: 'Sandbox Tree'
+        },
+        'new-top-concept': 'Create new Top-Level Concept'
+    },
+    detail: {
+        title: 'Concept Properties',
+        broader: {
+            title: 'Broader Concepts',
+            empty: 'No broader concepts available'
+        },
+        narrower: {
+            title: 'Narrower Concepts',
+            empty: 'No narrower concepts available'
+        },
+        label: {
+            title: 'Labels',
+            empty: 'No labels available',
+            'info-label-missing': 'Concept not translated in all languages.',
+            toasts: {
+                deleted: {
+                    title: 'Label deleted',
+                    message: 'Label <span class="font-weight-medium">{label}</span> successfully deleted.'
+                }
+            }
+        },
+        note: {
+            title: 'Notes',
+            empty: 'No notes available',
+            toasts: {
+                deleted: {
+                    title: 'Note deleted',
+                    message: 'Note <span class="font-weight-medium">{note}</span> successfully deleted.'
+                }
+            }
+        }
+    },
+    modals: {
+        'new-concept': {
+            title: 'Create new Top-Level Concept',
+            'title-parent': 'Create new concept under {name}'
+        },
+        'delete-concept': {
+            title: 'Delete {name}',
+            info: `You can either delete <span class="font-weight-medium">{name}</span> and all narrowers (<i class="fas fa-fw fa-trash"></i>) or only delete <span class="font-weight-medium">{name}</span> and move all narrowers one level up (
+                <span class="fa-stack d-inline" style="margin-right: -0.35rem;">
+                    <i class="fas fa-trash"></i>
+                    <i class="fas fa-arrow-up" data-fa-transform="shrink-2 left-4 up-5"></i>
+                </span>
+            ).`,
+            delete: 'Delete <span class="font-weight-medium">{name}</span>',
+            'delete-recursive': 'Delete recursive'
+        }
+    },
+    menus: {
+        'tree-node': {
+            'add-concept': 'Add concept',
+            'export-concept': 'Export Sub-Tree',
+            'delete-concept': 'Delete concept'
+        }
+    }
 }
 
 export default en;

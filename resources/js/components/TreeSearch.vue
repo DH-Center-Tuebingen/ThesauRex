@@ -1,8 +1,5 @@
 <template>
     <div class="input-group">
-        <!-- <div class="input-group-prepend">
-            <i class="fas fa-fw fa-times" v-show="isDirty" @click="reset"></i>
-        </div> -->
         <input type="text"
         autocomplete="off"
         class="form-control"
@@ -27,13 +24,17 @@
         </div>
 
         <div class="dropdown-menu" style="display: flex; flex-direction: column;" v-show="hasItems">
-            <a href="#" class="dropdown-item" v-for="(item, $item) in items" :class="activeClass($item)" @mousedown="hit" @mousemove="setActive($item)">
-                <span>{{item.name}}</span>
+            <a href="#" class="dropdown-item" v-for="(item, $item) in items" :class="activeClass($item)" @click.prevent="hit" @mousemove="setActive($item)">
+                <span>
+                    {{ $getLabel(item) }}
+                </span>
                 <ol class="breadcrumb mb-0 p-0 pb-1 bg-none small">
-                    <li class="breadcrumb-item" v-for="a in item.ancestors">
-                        <span>{{ a }}</span>
+                    <li class="breadcrumb-item" v-for="p in item.parents">
+                        <span>
+                            {{ $getLabel(p) }}
+                        </span>
                     </li>
-              </ol>
+                </ol>
             </a>
         </div>
     </div>
@@ -49,6 +50,10 @@
             placeholder: {
                 type: String,
                 default: 'global.search'
+            },
+            treeName: {
+                required: true,
+                type: String
             },
             onMultiselect: {
                 type: Function,
@@ -73,16 +78,11 @@
         mounted() {
             this.query = this.value;
         },
-        computed: {
-            debounce () {
-                return debounce(this.update, 250)
-            }
-        },
         methods: {
             onHit(item) {
                 const vm = this;
                 this.$router.push({
-                    name: 'entitydetail',
+                    name: 'conceptdetail',
                     params: {
                         id: item.id
                     },
@@ -105,10 +105,20 @@
                 }
             },
             blur() {
-                if(this.current !== -1) {
-                    this.reset();
-                }
+                // if(this.current !== -1) {
+                //     this.reset();
+                // }
             }
+        },
+        computed: {
+            debounce () {
+                return debounce(this.update, 250)
+            },
+            data() {
+                return {
+                    t: this.treeName
+                };
+            },
         }
     }
 </script>

@@ -57,9 +57,19 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::get('/byParent/{id}', 'TreeController@getDescendants')->where('id', '[0-9]+');
     Route::get('/{id}', 'TreeController@getConcept')->where('id', '[0-9]+');
     Route::get('/languages', 'TreeController@getLanguages');
+    Route::get('/{id}/export', 'TreeController@export')->where('id', '[0-9]+');
+    Route::get('/export', 'TreeController@export');
 
+    Route::put('/concept', 'TreeController@addConcept');
     Route::put('/label', 'TreeController@addLabel');
     Route::put('/note', 'TreeController@addNote');
+    Route::put('/concept/{id}/broader/{bid}', 'TreeController@addBroader')->where('id', '[0-9]+')->where('bid', '[0-9]+');
+
+    Route::delete('/concept/{id}', 'TreeController@deleteElementCascade')->where('id', '[0-9]+');
+    Route::delete('/concept/{id}/move', 'TreeController@deleteElementOneUp')->where('id', '[0-9]+');
+    Route::delete('/label/{id}', 'TreeController@deleteLabel')->where('id', '[0-9]+');
+    Route::delete('/note/{id}', 'TreeController@deleteNote')->where('id', '[0-9]+');
+    Route::delete('/concept/{id}/broader/{bid}', 'TreeController@removeBroader')->where('id', '[0-9]+')->where('bid', '[0-9]+');
 });
 
 // SEARCH

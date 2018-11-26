@@ -1,49 +1,87 @@
 <template>
     <div class="h-100 d-flex flex-column" v-if="dataLoaded">
-        <h4 class="mb-0">{{ $getLabel(concept) }} <small>Concept Details</small></h4>
+        <h4 class="mb-0">
+            {{ $getLabel(concept) }}
+            <small>
+                {{ $t('detail.title') }}
+            </small>
+        </h4>
         <code class="normal text-black-50">{{ concept.concept_url }}</code>
         <hr class="w-100" />
         <div class="row h-100">
             <div class="col-md-6 d-flex flex-column">
                 <div class="col px-0 d-flex flex-column mb-2">
-                    <h5>Broader Concepts</h5>
-                    <ul class="list-group list-group-xs">
-                        <li class="list-group-item" v-for="broader in concept.broaders">
-                            {{ broader.concept_url }}
+                    <h5>
+                        {{ $t('detail.broader.title') }}
+                    </h5>
+                    <form role="form" class="mb-2" @submit.prevent="">
+                        <div class="form-group">
+                            <concept-search
+                                :concept="concept"
+                                :tree-name="treeName"
+                                @select="broaderSelected"
+                                ></concept-search>
+                        </div>
+                    </form>
+                    <ul class="list-group list-group-xs scroll-y-auto" v-if="concept.broaders.length">
+                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="(broader, i) in concept.broaders" @mouseenter="setHoverState('broaders', i, true)" @mouseleave="setHoverState('broaders', i, false)">
+                            <span>
+                                {{ broader.concept_url }}
+                            </span>
+                            <span v-show="hoverStates.broaders[i]" @click="removeBroader(i)">
+                                <i class="fas fa-fw fa-times clickable"></i>
+                            </span>
                         </li>
                     </ul>
+                    <p v-else>
+                        <i class="fas fa-fw fa-times"></i>
+                        {{ $t('detail.broader.empty') }}
+                    </p>
                 </div>
                 <div class="col px-0 d-flex flex-column mb-2">
-                    <h5>Narrower Concepts</h5>
-                    <ul class="list-group list-group-xs">
-                        <li class="list-group-item" v-for="narrower in concept.narrowers">
-                            {{ narrower.concept_url }}
+                    <h5>
+                        {{ $t('detail.narrower.title') }}
+                    </h5>
+                    <form role="form" class="mb-2" @submit.prevent="">
+                        <div class="form-group">
+                            <concept-search
+                                :add-new="true"
+                                :concept="concept"
+                                :tree-name="treeName"
+                                @select="narrowerSelected"
+                                ></concept-search>
+                        </div>
+                    </form>
+                    <ul class="list-group list-group-xs scroll-y-auto" v-if="concept.narrowers.length">
+                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="(narrower, i) in concept.narrowers" @mouseenter="setHoverState('narrowers', i, true)" @mouseleave="setHoverState('narrowers', i, false)">
+                            <span>
+                                {{ narrower.concept_url }}
+                            </span>
+                            <span v-show="hoverStates.narrowers[i]" @click="removeNarrower(i)">
+                                <i class="fas fa-fw fa-times clickable"></i>
+                            </span>
                         </li>
                     </ul>
+                    <p v-else>
+                        <i class="fas fa-fw fa-times"></i>
+                        {{ $t('detail.narrower.empty') }}
+                    </p>
                 </div>
             </div>
             <div class="col-md-6 d-flex flex-column">
                 <div class="col px-0 d-flex flex-column mb-2">
-                    <h5>Labels</h5>
-                    <ul class="list-group list-group-xs col of-hidden pr-0 mb-2 scroll-y-auto">
-                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="label in concept.labels">
-                            <span class="col">
-                                {{ label.label }}
-                            </span>
-                            <div>
-                                <i v-show="label.concept_label_type == 1" class="fas fa-fw fa-star color-yellow"></i>
-                                <span>
-                                    {{ ce.flag(label.language.short_name) }}
-                                </span>
-                            </div>
-                        </li>
-                    </ul>
-                    <form role="form" @submit.prevent="addLabel(newLabel)">
+                    <h5>
+                        {{ $t('detail.label.title') }}
+                        <span v-show="prefLabelCount < languages.length" data-toggle="popover" :data-content="$t('detail.label.info-label-missing')" data-trigger="hover" data-placement="bottom">
+                            <i class="fas fa-fw fa-info-circle"></i>
+                        </span>
+                    </h5>
+                    <form role="form" class="mb-2" @submit.prevent="addLabel(newLabel)">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span>
-                                        {{ ce.flag(newLabel.language.short_name) }}
+                                        {{ $ce.flag(newLabel.language.short_name) }}
                                     </span>
                                     <span>
                                         {{ newLabel.language.display_name }}
@@ -52,7 +90,7 @@
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="" @click.prevent="setPropertyLanguage(newLabel, language)" v-for="language in languages">
                                         <span>
-                                            {{ ce.flag(language.short_name) }}
+                                            {{ $ce.flag(language.short_name) }}
                                         </span>
                                         <span>
                                             {{ language.display_name }}
@@ -68,25 +106,37 @@
                             </div>
                         </div>
                     </form>
-                </div>
-                <div class="col px-0 d-flex flex-column mb-2">
-                    <h5>Notes</h5>
-                    <ul class="list-group list-group-xs col of-hidden pr-0 mb-2 scroll-y-auto">
-                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="note in concept.notes">
+                    <ul class="list-group list-group-xs col of-hidden pr-0 scroll-y-auto" v-if="concept.labels.length">
+                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="(label, i) in concept.labels" @mouseenter="setHoverState('labels', i, true)" @mouseleave="setHoverState('labels', i, false)">
                             <span class="col">
-                                {{ note.content }}
+                                {{ label.label }}
                             </span>
-                            <span>
-                                {{ ce.flag(note.language.short_name) }}
-                            </span>
+                            <div>
+                                <i v-show="label.concept_label_type == 1" class="fas fa-fw fa-star color-yellow"></i>
+                                <span>
+                                    {{ $ce.flag(label.language.short_name) }}
+                                </span>
+                                <span v-show="hoverStates.labels[i]" @click="deleteLabel(i)">
+                                    <i class="fas fa-fw fa-trash text-danger clickable"></i>
+                                </span>
+                            </div>
                         </li>
                     </ul>
-                    <form role="form" @submit.prevent="addNote(newNote)">
+                    <p v-else>
+                        <i class="fas fa-fw fa-times"></i>
+                        {{ $t('detail.label.empty') }}
+                    </p>
+                </div>
+                <div class="col px-0 d-flex flex-column mb-2">
+                    <h5>
+                        {{ $t('detail.note.title') }}
+                    </h5>
+                    <form role="form" class="mb-2" @submit.prevent="addNote(newNote)">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <span>
-                                        {{ ce.flag(newNote.language.short_name) }}
+                                        {{ $ce.flag(newNote.language.short_name) }}
                                     </span>
                                     <span>
                                         {{ newNote.language.display_name }}
@@ -95,7 +145,7 @@
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="" @click.prevent="setPropertyLanguage(newNote, language)" v-for="language in languages">
                                         <span>
-                                            {{ ce.flag(language.short_name) }}
+                                            {{ $ce.flag(language.short_name) }}
                                         </span>
                                         <span>
                                             {{ language.display_name }}
@@ -111,6 +161,25 @@
                             </div>
                         </div>
                     </form>
+                    <ul class="list-group list-group-xs col of-hidden pr-0 scroll-y-auto" v-if="concept.notes.length">
+                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="(note, i) in concept.notes" @mouseenter="setHoverState('notes', i, true)" @mouseleave="setHoverState('notes', i, false)">
+                            <span class="col">
+                                {{ note.content }}
+                            </span>
+                            <div>
+                                <span>
+                                    {{ $ce.flag(note.language.short_name) }}
+                                </span>
+                                <span v-show="hoverStates.notes[i]" @click="deleteNote(i)">
+                                    <i class="fas fa-fw fa-trash text-danger clickable"></i>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                    <p v-else>
+                        <i class="fas fa-fw fa-times"></i>
+                        {{ $t('detail.note.empty') }}
+                    </p>
                 </div>
             </div>
         </div>
@@ -118,37 +187,35 @@
 </template>
 
 <script>
-    const {flag, code, name} = require('country-emoji');
-
     export default {
         props: {
+            languages: {
+                required: true,
+                type: Array
+            }
         },
         beforeRouteEnter(to, from, next) {
-            let cncpt;
             $httpQueue.add(() => $http.get(`tree/${to.params.id}?t=${to.query.t}`).then(response => {
-                cncpt = response.data;
-                $httpQueue.add(() => $http.get(`tree/languages`).then(response => {
-                    next(vm => vm.init(cncpt, response.data, to.query.t));
-                }));
+                next(vm => vm.init(response.data, to.query.t));
             }));
         },
         beforeRouteUpdate(to, from, next) {
             $httpQueue.add(() => $http.get(`tree/${to.params.id}?t=${to.query.t}`).then(response => {
-                this.init(response.data, undefined, to.query.t);
+                this.init(response.data, to.query.t);
                 next();
             }));
         },
+        mounted() {
+            // Enable popovers
+            $(function () {
+                $('[data-toggle="popover"]').popover()
+            });
+        },
         methods: {
-            init(data, languages, treeName) {
+            init(data, treeName) {
                 this.concept = data;
                 this.treeName = treeName == 'sandbox' ? 'sandbox' : '';
-                if(!!languages) {
-                    this.languages = [];
-                    languages.forEach(l => {
-                        this.languages.push(l);
-                    });
-                    this.selectedLanguage = this.languages[0];
-                }
+                this.selectedLanguage = this.languages[0];
                 this.resetProperty(this.newLabel);
                 this.resetProperty(this.newNote);
                 this.dataLoaded = true;
@@ -166,6 +233,28 @@
                     this.$emit('label-update');
                 }));
             },
+            deleteLabel(index) {
+                let label = this.concept.labels[index];
+                if(!label) return;
+                $httpQueue.add(() => $http.delete(`tree/label/${label.id}?t=${this.treeName}`).then(response => {
+                    this.concept.labels.splice(index, 1);
+                    if(response.data && response.data.updated) {
+                        const updId = response.data.id;
+                        const updType = response.data.type;
+                        let updLabel = this.concept.labels.find(l => {
+                            return l.id == updId;
+                        });
+                        updLabel.concept_label_type = updType;
+                    }
+                    this.$showToast(
+                        this.$t('detail.label.toasts.deleted.title'),
+                        this.$t('detail.label.toasts.deleted.message', {
+                            label: label.label
+                        }),
+                        'success'
+                    );
+                }));
+            },
             addNote(note) {
                 const data = {
                     content: note.value,
@@ -177,6 +266,71 @@
                     this.concept.notes.push(response.data);
                     this.resetProperty(note);
                 }));
+            },
+            deleteNote(index) {
+                let note = this.concept.notes[index];
+                if(!note) return;
+                $httpQueue.add(() => $http.delete(`tree/note/${note.id}?t=${this.treeName}`).then(response => {
+                    this.concept.notes.splice(index, 1);
+                    this.$showToast(
+                        this.$t('detail.note.toasts.deleted.title'),
+                        this.$t('detail.note.toasts.deleted.message', {
+                            note: note.content
+                        }),
+                        'success'
+                    );
+                }));
+            },
+            broaderSelected(e) {
+                if(!e.concept) return;
+                const bid = e.concept.id;
+                const id = this.concept.id;
+                $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}`).then(response => {
+
+                }));
+            },
+            removeBroader(index) {
+                const broader = this.concept.broaders[index];
+                const bid = broader.id;
+                const id = this.concept.id;
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}`).then(response => {
+                    this.concept.broaders.splice(index, 1);
+                }));
+            },
+            narrowerSelected(e) {
+                if(!e.concept) return;
+                if(e.concept.is_new) {
+                    this.$emit('request-concept', {
+                        parent: this.concept,
+                        label: e.concept.label
+                    });
+                } else {
+                    const bid = e.concept.id;
+                    const id = this.concept.id;
+                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}`).then(response => {
+
+                    }));
+                }
+            },
+            removeNarrower(index) {
+                const broader = this.concept.narrowers[index];
+                const bid = broader.id;
+                const id = this.concept.id;
+                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}`).then(response => {
+                    this.concept.narrowers.splice(index, 1);
+                }));
+            },
+            setHoverState(prop, index, state) {
+                switch(prop) {
+                    case 'labels':
+                    case 'notes':
+                    case 'broaders':
+                    case 'narrowers':
+                        break;
+                    default:
+                        return;
+                }
+                Vue.set(this.hoverStates[prop], index, state);
             },
             resetProperty(obj) {
                 obj.language = this.selectedLanguage;
@@ -192,7 +346,12 @@
                 concept: {},
                 treeName: '',
                 selectedLanguage: {},
-                languages: [],
+                hoverStates: {
+                    labels: {},
+                    notes: {},
+                    broaders: {},
+                    narrowers: {}
+                },
                 newNote: {
                     language: null,
                     value: null
@@ -200,17 +359,17 @@
                 newLabel: {
                     language: null,
                     value: null
-                },
-                ce: {
-                    flag: code => {
-                        if(code == 'en') {
-                            code = 'gb';
-                        }
-                        return flag(code);
-                    },
-                    code: code,
-                    name: name
                 }
+            }
+        },
+        computed: {
+            prefLabelCount() {
+                if(!this.concept.labels && !this.concept.labels.length) {
+                    return 0;
+                }
+                return this.concept.labels.filter(l => {
+                    return l.concept_label_type == 1;
+                }).length;
             }
         }
     }

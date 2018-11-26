@@ -19,6 +19,8 @@ class ThConcept extends Model
         'lasteditor',
     ];
 
+    protected $appends = ['parents', 'path'];
+
     public static function getMap() {
         $lang = 'de'; // TODO
         $concepts = \DB::select(\DB::raw("
@@ -90,5 +92,63 @@ class ThConcept extends Model
 
     public function broaders() {
         return $this->belongsToMany('App\ThConcept', 'th_broaders', 'narrower_id', 'broader_id');
+    }
+
+    public function parentIds() {
+        $where = "WHERE narrower_id = $this->id";
+        $broaders = ThBroader::select('broader_id')
+            ->where('narrower_id', $this->id)
+            ->get();
+
+        $parents = [];
+
+        foreach($broaders as $broader) {
+            $currentWhere = $where . " AND broader_id = " . $broader->broader_id;
+            $parents = DB::select("
+                WITH RECURSIVE
+                    q (broader_id, narrower_id, lvl) AS
+                    (
+                        SELECT b1.broader_id, b1.narrower_id, 0
+                        FROM th_broaders b1
+                        $currentWhere
+                        UNION ALL
+                        SELECT b2.broader_id, b2.narrower_id, lvl + 1
+                        FROM th_broaders b2
+                        JOIN q ON q.broader_id = b2.narrower_id
+                    )
+                SELECT q.*
+                FROM q
+                ORDER BY lvl DESC
+            ");
+        }
+
+        $parents = array_map(function($p) {
+            return $p->broader_id;
+        }, $parents);
+        return $parents;
+    }
+
+    public function getParentsAttribute() {
+        $user = auth()->user();
+        $langCode = $user->getLanguage();
+
+        $parents = [];
+        foreach($this->parentIds() as $pid) {
+            $parent = ThConcept::with(['labels.language' => function($query) use($langCode) {
+                $query->orderByRaw("short_name = '$langCode' desc");
+            }])
+            ->where('id', $pid)
+            ->first();
+            $parents[] = $parent;
+        }
+
+        return $parents;
+    }
+
+    public function getPathAttribute() {
+        $parents = $this->parentIds();
+        $parents[] = $this->id;
+
+        return array_reverse($parents);
     }
 }

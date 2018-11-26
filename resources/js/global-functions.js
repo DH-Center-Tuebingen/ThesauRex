@@ -1,3 +1,5 @@
+const {flag, code, name} = require('country-emoji');
+
 // Validators
 Vue.prototype.$validateObject = function(value) {
     // concepts is valid if it is either an object
@@ -56,16 +58,28 @@ Vue.prototype.$can = function(permissionString, oneOf) {
     }
 }
 
-Vue.prototype.$showToast = function(title, text, type, duration) {
-    type = type || 'info'; // success, info, warn, error
-    duration = duration || 2000;
+// type can be one of: success, info, warn, error
+// duration is in ms
+Vue.prototype.$showToast = function(title, text, type = 'info', duration = 2000) {
     this.$notify({
-        group: 'spacialist',
+        group: 'thesaurex',
         title: title,
         text: text,
         type: type,
         duration: duration
     });
+};
+
+
+Vue.prototype.$ce = {
+    flag: code => {
+        if(code == 'en') {
+            code = 'gb';
+        }
+        return flag(code);
+    },
+    code: code,
+    name: name
 };
 
 Vue.prototype.$throwError = function(error) {
@@ -96,6 +110,7 @@ Vue.prototype.$createDownloadLink = function(content, filename, base64 = false, 
     } else {
         url = window.URL.createObjectURL(new Blob([content]));
     }
+    link.setAttribute("target", "_blank");
     link.setAttribute("href", url);
     link.setAttribute("type", contentType);
     link.setAttribute("download", filename);

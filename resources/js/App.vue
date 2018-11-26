@@ -71,7 +71,8 @@
             <about-dialog></about-dialog>
             <error-modal></error-modal>
         </div>
-        <notifications group="spacialist" position="bottom left" class="m-2" />
+        <modals-container class="visible-overflow" />
+        <notifications group="thesaurex" position="bottom left" class="m-2" />
     </div>
 </template>
 

@@ -8,6 +8,7 @@ use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Helpers;
 use App\Preference;
 use App\ThBroader;
 use App\ThBroaderSandbox;
@@ -23,29 +24,665 @@ class TreeController extends Controller
 {
     private $importTypes = ['extend', 'update', 'new'];
 
-    //
-    private function removeIllegalChars($input) {
-        return str_replace(['.', ',', ' ', '?', '!'], '_', $input);
+    public function getLanguages() {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+        return response()->json(ThLanguage::all());
     }
 
-    public function sortLabels($a, $b) {
-        $pos = strcasecmp($a['label'], $b['label']);
-        if($pos == 0) {
-            if(!array_key_exists('broader_label', $a)) {
-                if(!array_key_exists('broader_label', $b)) {
-                    $pos = 0;
+    public function getTree(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $which = $request->query('t', '');
+        $lang = $user->getLanguage();
+
+        $conceptTable = Helpers::getTreeBuilder($which, $lang);
+
+        $topConcepts = $conceptTable
+            ->withCount('narrowers as children_count')
+            ->where('is_top_concept', true)
+            ->get();
+        // $topConcepts = [];
+        return response()->json($topConcepts);
+    }
+
+    public function getDescendants(Request $request, $id) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $which = $request->query('t', '');
+        $lang = $user->getLanguage();
+
+        try {
+            if($which === 'sandbox') {
+                ThConceptSandbox::findOrFail($id);
+            } else {
+                ThConcept::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        $conceptTable = Helpers::getTreeBuilder($which, $lang);
+        $broaderTable = Helpers::getTreeBroaderBuilder($which, $lang);
+
+        $ids = $broaderTable
+            ->where('broader_id', $id)
+            ->pluck('narrower_id');
+        $concepts = $conceptTable
+            ->withCount('narrowers as children_count')
+            ->whereIn('id', $ids)
+            ->get();
+        return response()->json($concepts);
+    }
+
+    public function getConcept(Request $request, $id) {
+        $user = \Auth::user();
+        if(!$user->can('view_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $which = $request->query('t', '');
+        $lang = $user->getLanguage();
+
+        try {
+            if($which === 'sandbox') {
+                ThConceptSandbox::findOrFail($id);
+            } else {
+                ThConcept::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        $conceptTable = Helpers::getTreeBuilder($which, $lang);
+        $concept = $conceptTable
+            ->where('id', $id)
+            ->first();
+        return response()->json($concept);
+    }
+
+    public function export(Request $request, $id = null) {
+        $user = \Auth::user();
+        if(!$user->can('export_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $treeName = $request->query('t', '');
+        $format = $request->query('format', 'rdf');
+
+        $suffix = '';
+        if($treeName === 'sandbox') {
+            $suffix = '_master';
+        }
+
+        $thConcept = 'th_concept' . $suffix;
+        $thLabel = 'th_concept_label' . $suffix;
+        $thBroader = 'th_broaders' . $suffix;
+
+        if(isset($id)) {
+            try {
+                if($treeName === 'sandbox') {
+                    ThConceptSandbox::findOrFail($id);
                 } else {
-                    $pos = 1;
+                    ThConcept::findOrFail($id);
+                }
+            } catch(ModelNotFoundException $e) {
+                return response()->json([
+                    'error' => 'This concept does not exist'
+                ], 400);
+            }
+            $concepts = DB::select("
+                WITH RECURSIVE
+                q(id, concept_url) AS
+                    (
+                        SELECT  conc.*
+                        FROM    $thConcept conc
+                        WHERE   conc.id = $id
+                        UNION ALL
+                        SELECT  conc2.*
+                        FROM    $thConcept conc2
+                        JOIN    $thBroader broad
+                        ON      conc2.id = broad.narrower_id
+                        JOIN    q
+                        ON      broad.broader_id = q.id
+                    )
+                SELECT  q.*
+                FROM    q
+                ORDER BY id ASC
+            ");
+        } else {
+            $conceptTable = Helpers::getTreeBuilder($treeName);
+            $concepts = $conceptTable->get();
+        }
+
+        $graph = new \EasyRdf_Graph();
+
+        foreach($concepts as $concept) {
+            $concept_id = $concept->id;
+            $url = $concept->concept_url;
+            $is_top_concept = $concept->is_top_concept;
+            $curr = $graph->resource($url);
+            $labels = DB::table($thLabel . ' as lbl')
+                ->select('label', 'short_name', 'concept_label_type')
+                ->join('th_language as lang', 'lbl.language_id', '=', 'lang.id')
+                ->where('concept_id', '=', $concept_id)
+                ->get();
+            foreach($labels as $label) {
+                $lbl = $label->label;
+                $lang = $label->short_name;
+                $type = $label->concept_label_type;
+                if($type === 1) {
+                    $curr->addLiteral('skos:prefLabel', $lbl, $lang);
+                } else if($type === 2) {
+                    $curr->addLiteral('skos:altLabel', $lbl, $lang);
+                }
+            }
+            if(!$is_top_concept) {
+                $broaders = DB::table($thBroader)
+                    ->select('broader_id')
+                    ->where('narrower_id', '=', $concept_id)
+                    ->get();
+                foreach($broaders as $broader) {
+                    $broader_url = DB::table($thConcept)
+                        ->where('id', '=', $broader->broader_id)
+                        ->value('concept_url');
+                    $curr->addResource('skos:broader', $broader_url);
                 }
             } else {
-                if(!array_key_exists('broader_label', $b)) {
-                    $pos = -1;
-                } else {
-                    $pos = strcasecmp($a['broader_label'], $b['broader_label']);;
+                $curr->addResource('skos:topConceptOf', "http://we.should.think.of/a/better/name/for/our/scheme");
+            }
+            $narrowers = DB::table($thBroader)
+                ->select('narrower_id')
+                ->where('broader_id', '=', $concept_id)
+                ->get();
+            foreach($narrowers as $narrower) {
+                $narrower_url = DB::table($thConcept)
+                    ->where('id', '=', $narrower->narrower_id)
+                    ->value('concept_url');
+                $curr->addResource('skos:narrower', $narrower_url);
+            }
+            $curr->addType('skos:Concept');
+        }
+        if($format === 'rdf') {
+            $arc = new \EasyRdf_Serialiser_RdfXml();
+            $data = $arc->serialise($graph, 'rdfxml');
+        } else if($format === 'js') {
+            $data = $graph->serialise('json');
+        }
+        if (!is_scalar($data)) {
+            $data = var_export($data, true);
+        }
+
+        //dirty hack, because it is not possible to get the desired output with either correct namespace or correct element structure
+        $nsFound = preg_match('@xmlns:([^=]*)="http://www.w3.org/2004/02/skos/core#"@', $data, $matches);
+        if($nsFound === 1) {
+            $skosNs = $matches[1];
+            $data = str_replace($skosNs . ':', 'skos:', $data);
+            $data = str_replace('xmlns:' . $skosNs . '="http://www.w3.org/2004/02/skos/core#"', 'xmlns:skos="http://www.w3.org/2004/02/skos/core#"', $data);
+        }
+
+        $file = uniqid() . '.rdf';
+        Storage::put(
+            $file,
+            $data
+        );
+        return response()->download(storage_path('app') . '/' . $file)->deleteFileAfterSend(true);
+    }
+
+    public function addConcept(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $which = $request->query('t', '');
+        $suffix = '';
+        if($which === 'sandbox') {
+            $suffix = '_master';
+        }
+
+        $this->validate($request, [
+            'label' => 'required|string',
+            'language_id' => 'required|integer|exists:th_language,id',
+            'parent_id' => "integer|exists:th_concept$suffix,id"
+        ]);
+
+        $projectName = Preference::getUserPreference($user->id, 'prefs.project-name')->value;
+
+        $label = $request->get('label');
+        $labelLangId = $request->get('language_id');
+        $parentId = $request->get('parent_id');
+        $isTop = !$request->has('parent_id');
+
+        if($which === 'sandbox') {
+            $thConcept = new ThConceptSandbox();
+            $thBroader = new ThBroaderSandbox();
+            $thConceptLabel = new ThConceptLabelSandbox();
+        } else {
+            $thConcept = new ThConcept();
+            $thBroader = new ThBroader();
+            $thConceptLabel = new ThConceptLabel();
+        }
+
+        $slugLabel = str_slug($label);
+        $slugProjectName = str_slug($projectName);
+        $scheme = 'no scheme';
+        $ts = date("YmdHis");
+
+        $url = "https://spacialist.escience.uni-tuebingen.de/$slugProjectName/$slugLabel#$ts";
+
+        $thConcept->concept_url = $url;
+        $thConcept->concept_scheme = $scheme;
+        $thConcept->is_top_concept = $isTop;
+        $thConcept->lasteditor = $user->name;
+        $thConcept->save();
+
+        if(!$isTop) {
+            $thBroader->broader_id = $parentId;
+            $thBroader->narrower_id = $thConcept->id;
+            $thBroader->save();
+        }
+
+        $thConceptLabel->label = $label;
+        $thConceptLabel->concept_id = $thConcept->id;
+        $thConceptLabel->language_id = $labelLangId;
+        $thConceptLabel->lasteditor = $user->name;
+        $thConceptLabel->save();
+
+        $thConcept->labels();
+
+        return response()->json($thConcept, 201);
+    }
+
+    public function deleteLabel(Request $request, $id) {
+        $user = \Auth::user();
+
+        if(!$user->can('edit_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $treeName = $request->get('t');
+        $lang = $user->getLanguage();
+
+        $labelTable = Helpers::getTreeLabelBuilder($treeName);
+
+        $elem = $labelTable
+            ->where('id', $id)
+            ->first();
+
+        $prefLabelUpdated = false;
+        // check if removed elem was pref label
+        if($elem->concept_label_type === 1) {
+            $labelTable = Helpers::getTreeLabelBuilder($treeName);
+            // if there is another label of the same language
+            // make it a pref label
+            $newPrefLabel = $labelTable
+                ->where([
+                    ['language_id', $elem->language_id],
+                    ['concept_id', $elem->concept_id],
+                    ['concept_label_type', 2] // we have to add this, because the old prefLabel still exists
+                ])
+                ->orderBy('created_at')
+                ->first();
+            if(isset($newPrefLabel)) {
+                $prefLabelUpdated = true;
+                $newPrefLabel->concept_label_type = 1;
+                $newPrefLabel->save();
+            }
+        }
+        $elem->delete();
+
+        // If label updated, return new pref label id
+        // otherwise return empty success
+        if($prefLabelUpdated) {
+            return response()->json([
+                'updated' => true,
+                'id' => $newPrefLabel->id,
+                'type' => $newPrefLabel->concept_label_type
+            ]);
+        } else {
+            return response()->json(null, 204);
+        }
+    }
+
+    public function deleteNote(Request $request, $id) {
+        $user = \Auth::user();
+
+        if(!$user->can('edit_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $treeName = $request->get('t');
+        $lang = $user->getLanguage();
+
+        $noteTable = Helpers::getTreeNoteBuilder($treeName);
+
+        $noteTable
+            ->where('id', $id)
+            ->delete();
+
+        return response()->json(null, 204);
+    }
+
+    public function addLabel(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('edit_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'content' => 'required|string',
+            'lid' => 'required|integer|exists:th_language,id',
+            'cid' => 'required|integer',
+            'tree_name' => 'nullable|string',
+        ]);
+
+        $label = $request->get('content');
+        $langId = $request->get('lid');
+        $cid = $request->get('cid');
+        $treeName = $request->get('tree_name');
+
+        try {
+            if($treeName === 'sandbox') {
+                ThConceptSandbox::findOrFail($cid);
+            } else {
+                ThConcept::findOrFail($cid);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        $cond = [
+            ['language_id', '=', $langId],
+            ['concept_id', '=', $cid],
+            ['concept_label_type', '=', 1]
+        ];
+
+        if($treeName == 'sandbox') {
+            $thLabel = new ThConceptLabelSandbox();
+            $query = ThConceptLabelSandbox::where($cond);
+        } else {
+            $thLabel = new ThConceptLabel();
+            $query = ThConceptLabel::where($cond);
+        }
+        // set label type based on existing labels
+        $type = $query->count() > 0 ? 2 : 1;
+
+        $thLabel->label = $label;
+        $thLabel->concept_id = $cid;
+        $thLabel->language_id = $langId;
+        $thLabel->concept_label_type = $type;
+        $thLabel->lasteditor = $user->name;
+        $thLabel->save();
+
+        $thLabel->language;
+
+        return response()->json($thLabel, 201);
+    }
+
+    public function addNote(Request $request) {
+        $user = \Auth::user();
+        if(!$user->can('edit_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'content' => 'required|string',
+            'lid' => 'required|integer|exists:th_language,id',
+            'cid' => 'required|integer',
+            'tree_name' => 'nullable|string',
+        ]);
+
+        $label = $request->get('content');
+        $langId = $request->get('lid');
+        $cid = $request->get('cid');
+        $treeName = $request->get('tree_name');
+
+        try {
+            if($treeName === 'sandbox') {
+                ThConceptSandbox::findOrFail($cid);
+            } else {
+                ThConcept::findOrFail($cid);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        if($treeName == 'sandbox') {
+            $note = new ThConceptNoteSandbox();
+        } else {
+            $note = new ThConceptNote();
+        }
+
+        $note->content = $label;
+        $note->concept_id = $cid;
+        $note->language_id = $langId;
+        $note->save();
+
+        $note->language;
+
+        return response()->json($note, 201);
+    }
+
+    public function addBroader(Request $request, $id, $bid) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        try {
+            ThConcept::findOrFail($id);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+        try {
+            ThConcept::findOrFail($bid);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        $treeName = $request->query('t', '');
+
+        $entry;
+        if($treeName == 'sandbox') {
+            $entry = new ThBroaderSandbox();
+        } else {
+            $entry = new ThBroader();
+        }
+
+        $entry->broader_id = $bid;
+        $entry->narrower_id = $id;
+        $entry->save();
+
+        // TODO
+        return response()->json($entry, 201);
+    }
+
+    public function removeBroader(Request $request, $id, $bid) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        try {
+            ThConcept::findOrFail($id);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+        try {
+            ThConcept::findOrFail($bid);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        $treeName = $request->query('t', '');
+
+        $query;
+        if($treeName == 'sandbox') {
+            $query = ThBroaderSandbox::query();
+        } else {
+            $query = ThBroader::query();
+        }
+
+        $query->where('broader_id', $bid)
+            ->where('narrower_id', $id)
+            ->delete();
+
+        return response()->json(null, 204);
+    }
+
+    public function deleteElementCascade(Request $request, $id) {
+        $user = \Auth::user();
+        if(!$user->can('delete_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $treeName = $request->query('t', '');
+        try {
+            if($treeName === 'sandbox') {
+                ThConceptSandbox::findOrFail($id);
+            } else {
+                ThConcept::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+
+        $conceptTable = Helpers::getTreeBuilder($treeName);
+        $broaderTable = Helpers::getTreeBroaderBuilder($treeName);
+
+        $narrowers = $broaderTable->where('broader_id', $id)->pluck('narrower_id')->toArray();
+
+        $conceptTable
+            ->where('id', $id)
+            ->delete();
+
+        self::deleteOrphanedConcepts($narrowers, $treeName);
+
+        return response()->json(null, 204);
+    }
+
+    public function deleteElementOneUp(Request $request, $id) {
+        $user = \Auth::user();
+        if(!$user->can('delete_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+        $treeName = $request->query('t', '');
+
+        $suffix = '';
+        if($treeName === 'sandbox') {
+            $suffix = '_master';
+        }
+        $thConcept = "th_concept$suffix";
+        $thBroader = "th_broaders$suffix";
+
+        $narrowers = DB::table($thBroader)
+            ->where('broader_id', $id)
+            ->get();
+
+        $broader_ids = DB::table($thBroader)
+            ->where('narrower_id', $id)
+            ->get();
+
+        // deleted element has no broaders, set children as top concept
+        if(!isset($broader_ids) || $broader_ids->isEmpty()) {
+            $nIds = $narrowers->pluck('narrower_id')->toArray();
+            DB::table($thConcept)
+                ->whereIn('id', $nIds)
+                ->update([
+                    'is_top_concept' => true
+                ]);
+        } else {
+            foreach($broader_ids as $b) {
+                foreach($narrowers as $n) {
+                    $broaderEntry;
+                    if($treeName === 'sandbox') {
+                        $broaderEntry = new ThBroaderSandbox();
+                    } else {
+                        $broaderEntry = new ThBroader();
+                    }
+                    $broaderEntry->broader_id = $b->broader_id;
+                    $broaderEntry->narrower_id = $n->narrower_id;
                 }
             }
         }
-        return $pos;
+        DB::table($thConcept)
+            ->where('id', $id)
+            ->delete();
+
+        return response()->json(null, 204);
+    }
+
+    private static function deleteOrphanedConcepts($descs, $tree) {
+        $conceptTable = Helpers::getTreeBuilder($tree);
+        $uniqueDescs = $conceptTable
+            ->whereIn('id', $descs)
+            ->where('is_top_concept', false)
+            ->doesntHave('broaders')
+            ->get();
+        $descsArray = $uniqueDescs->pluck('id')->toArray();
+        $conceptTable = Helpers::getTreeBuilder($tree);
+        $conceptTable->whereIn('id', $descsArray)->delete();
+
+        foreach($descsArray as $descId) {
+            $broaderTable = Helpers::getTreeBroaderBuilder($tree);
+            $narrowers = $broaderTable->where('broader_id', $descId)->pluck('narrower_id')->toArray();
+            self::deleteOrphanedConcepts($narrowers, $tree);
+        }
     }
 
     public function import(Request $request) {
@@ -236,247 +873,6 @@ class TreeController extends Controller
         return response()->json('');
     }
 
-    public function export(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('export_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        if($request->has('format')) $format = $request->get('format');
-        else $format = 'rdf';
-        $treeName = $request->get('treeName');
-        $suffix = $treeName == 'project' ? '' : '_master';
-
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-        $graph = new \EasyRdf_Graph();
-
-        if($request->has('root')) {
-            $id = $request->get('root');
-            $concepts = DB::select("
-                WITH RECURSIVE
-                q(id, concept_url) AS
-                    (
-                        SELECT  conc.*
-                        FROM    $thConcept conc
-                        WHERE   conc.id = $id
-                        UNION ALL
-                        SELECT  conc2.*
-                        FROM    $thConcept conc2
-                        JOIN    $thBroader broad
-                        ON      conc2.id = broad.narrower_id
-                        JOIN    q
-                        ON      broad.broader_id = q.id
-                    )
-                SELECT  q.*
-                FROM    q
-                ORDER BY id ASC
-            ");
-        } else {
-            $concepts = DB::table($thConcept)
-                ->get();
-        }
-        foreach($concepts as $concept) {
-            $concept_id = $concept->id;
-            $url = $concept->concept_url;
-            $is_top_concept = $concept->is_top_concept;
-            $curr = $graph->resource($url);
-            $labels = DB::table($thLabel . ' as lbl')
-                ->select('label', 'short_name', 'concept_label_type')
-                ->join('th_language as lang', 'lbl.language_id', '=', 'lang.id')
-                ->where('concept_id', '=', $concept_id)
-                ->get();
-            foreach($labels as $label) {
-                $lbl = $label->label;
-                $lang = $label->short_name;
-                $type = $label->concept_label_type;
-                if($type == 1) {
-                    $curr->addLiteral('skos:prefLabel', $lbl, $lang);
-                } else if($type == 2) {
-                    $curr->addLiteral('skos:altLabel', $lbl, $lang);
-                }
-            }
-            if(!$is_top_concept) {
-                $broaders = DB::table($thBroader)
-                    ->select('broader_id')
-                    ->where('narrower_id', '=', $concept_id)
-                    ->get();
-                foreach($broaders as $broader) {
-                    $broader_url = DB::table($thConcept)
-                        ->where('id', '=', $broader->broader_id)
-                        ->value('concept_url');
-                    $curr->addResource('skos:broader', $broader_url);
-                }
-            } else {
-                $curr->addResource('skos:topConceptOf', "http://we.should.think.of/a/better/name/for/our/scheme");
-            }
-            $narrowers = DB::table($thBroader)
-                ->select('narrower_id')
-                ->where('broader_id', '=', $concept_id)
-                ->get();
-            foreach($narrowers as $narrower) {
-                $narrower_url = DB::table($thConcept)
-                    ->where('id', '=', $narrower->narrower_id)
-                    ->value('concept_url');
-                $curr->addResource('skos:narrower', $narrower_url);
-            }
-            $curr->addType('skos:Concept');
-        }
-        if($format === 'rdf') {
-            $arc = new \EasyRdf_Serialiser_Arc();
-            $data = $arc->serialise($graph, 'rdfxml');
-        } else if($format === 'js') {
-            $data = $graph->serialise('json');
-        }
-        if (!is_scalar($data)) {
-            $data = var_export($data, true);
-        }
-
-        //dirty hack, because it is not possible to get the desired output with either correct namespace or correct element structure
-        $nsFound = preg_match('@xmlns:([^=]*)="http://www.w3.org/2004/02/skos/core#"@', $data, $matches);
-        if($nsFound === 1) {
-            $skosNs = $matches[1];
-            $data = str_replace($skosNs . ':', 'skos:', $data);
-            $data = str_replace('xmlns:' . $skosNs . '="http://www.w3.org/2004/02/skos/core#"', 'xmlns:skos="http://www.w3.org/2004/02/skos/core#"', $data);
-        }
-
-        $file = uniqid() . '.rdf';
-        Storage::put(
-            $file,
-            $data
-        );
-        return response()->download(storage_path() . '/app/' . $file)->deleteFileAfterSend(true);
-    }
-
-    public function getLanguages() {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        return response()->json(ThLanguage::all());
-    }
-
-    public function getTree(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-
-        $which = $request->query('t', '');
-        $lang = Preference::getUserPreference($user->id, 'prefs.gui-language')->value;
-
-        $conceptTable;
-
-        if($which === 'sandbox') {
-            $conceptTable = ThConceptSandbox::query();
-        } else {
-            $conceptTable = ThConcept::query();
-        }
-
-        $topConcepts = $conceptTable
-            ->with(['labels.language' => function($query) use($lang) {
-                $query->orderByRaw("short_name = '$lang' desc");
-            }])
-            ->withCount('narrowers as children_count')
-            ->where('is_top_concept', true)
-            ->get();
-        return response()->json($topConcepts);
-    }
-
-    public function getDescendants(Request $request, $id) {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-
-        $which = $request->query('t', '');
-        $lang = Preference::getUserPreference($user->id, 'prefs.gui-language')->value;
-
-        try {
-            if($which === 'sandbox') {
-                ThConceptSandbox::findOrFail($id);
-            } else {
-                ThConcept::findOrFail($id);
-            }
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-
-        $conceptTable;
-        $broaderTable;
-
-        if($which === 'sandbox') {
-            $conceptTable = ThConceptSandbox::query();
-            $broaderTable = ThBroaderSandbox::query();
-        } else {
-            $conceptTable = ThConcept::query();
-            $broaderTable = ThBroader::query();
-        }
-
-        $ids = $broaderTable
-            ->where('broader_id', $id)
-            ->pluck('narrower_id');
-        $concepts = $conceptTable
-            ->with(['labels.language' => function($query) use($lang) {
-                $query->orderByRaw("short_name = '$lang' desc");
-            }])
-            ->withCount('narrowers as children_count')
-            ->whereIn('id', $ids)
-            ->get();
-        return response()->json($concepts);
-    }
-
-    public function getConcept(Request $request, $id) {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-
-        $which = $request->query('t', '');
-        $lang = Preference::getUserPreference($user->id, 'prefs.gui-language')->value;
-
-        try {
-            if($which === 'sandbox') {
-                ThConceptSandbox::findOrFail($id);
-            } else {
-                ThConcept::findOrFail($id);
-            }
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-
-        $conceptTable;
-
-        if($which === 'sandbox') {
-            $conceptTable = ThConceptSandbox::query();
-        } else {
-            $conceptTable = ThConcept::query();
-        }
-        $concept = $conceptTable->with(['narrowers', 'broaders', 'notes.language' => function($query) use($lang) {
-                $query->orderByRaw("short_name = '$lang' desc");
-            }, 'labels.language' => function($query) use($lang) {
-                $query->orderByRaw("short_name = '$lang' desc");
-            }])
-            ->where('id', $id)
-            ->first();
-        return response()->json($concept);
-    }
-
     private function createConceptLists($rows) {
         $concepts = [];
         $topConcepts = [];
@@ -506,467 +902,6 @@ class TreeController extends Controller
             'conceptList' => $conceptList,
             'concepts' => $concepts
         ];
-    }
-
-    public function getRelations(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        if(!$request->has('id')) {
-            return response()->json([
-                'error' => 'id field is mandatory'
-            ]);
-        }
-        $id = $request->get('id');
-
-        if($request->has('lang')) $lang = $request->get('lang');
-        else $lang = 'de';
-        $treeName = $request->get('treeName');
-
-        if($treeName === 'project') {
-            $suffix = '';
-        } else {
-            $suffix = '_master';
-        }
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-        // narrower
-        $narrower = \DB::select(\DB::raw("
-            WITH summary AS
-            (
-                SELECT c.id, concept_url, concept_scheme, is_top_concept, c.lasteditor, c.created_at, c.updated_at, label, language_id, th_language.short_name, b.broader_id, b.narrower_id,
-                ROW_NUMBER() OVER
-                (
-                    PARTITION BY c.id
-                    ORDER BY c.id, short_name != '$lang', concept_label_type
-                ) AS rk
-                FROM $thConcept as c
-                JOIN $thLabel as l ON l.concept_id = c.id
-                JOIN th_language ON language_id = th_language.id
-                JOIN $thBroader as b ON c.id = b.narrower_id
-                WHERE b.broader_id = $id
-            )
-            SELECT id, concept_url, concept_scheme, is_top_concept, lasteditor, created_at, updated_at, label, language_id, short_name as lang, broader_id, narrower_id
-            FROM summary s
-            WHERE s.rk = 1"));
-        // broader
-        $broaderIds = DB::table($thConcept . ' as c')
-            ->select('broad.broader_id')
-            ->join($thBroader . ' as broad', 'c.id', '=', 'broad.narrower_id')
-            ->where('c.id', '=', $id)
-            ->get();
-        $broader = array();
-        foreach($broaderIds as $bid) {
-            if($bid->broader_id == -1) continue;
-            $br = \DB::select(\DB::raw("
-                WITH summary AS
-                (
-                    SELECT c.id, concept_url, concept_scheme, is_top_concept, c.lasteditor, c.created_at, c.updated_at, label, language_id, th_language.short_name,
-                    ROW_NUMBER() OVER
-                    (
-                        PARTITION BY c.id
-                        ORDER BY c.id, short_name != '$lang', c
-                    ) AS rk
-                    FROM $thConcept as c
-                    JOIN $thLabel as l ON l.concept_id = c.id
-                    JOIN th_language ON language_id = th_language.id
-                )
-                SELECT id, concept_url, concept_scheme, is_top_concept, lasteditor, created_at, updated_at, label, language_id, short_name as lang
-                FROM summary s
-                WHERE s.rk = 1 AND s.id = $bid->broader_id"));
-
-            foreach($br as &$b) {
-                $broader[] = $b;
-            }
-        }
-        return response()->json([
-            'broader' => $broader,
-            'narrower' => $narrower
-        ]);
-    }
-
-    public function deleteElementCascade(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('delete_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        $id = $request->get('id');
-        $treeName = $request->get('treeName');
-
-        $suffix = $treeName == 'project' ? '' : '_master';
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-        DB::table($thConcept)
-            ->where('id', '=', $id)
-            ->delete();
-        //TODO remove descendants with no remaining broader
-    }
-
-    public function deleteElementOneUp(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('delete_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        $id = $request->get('id');
-        $treeName = $request->get('treeName');
-
-        $suffix = $treeName == 'project' ? '' : '_master';
-        $thConcept = 'th_concept' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-        $cnt = DB::table($thBroader)
-            ->where('narrower_id', '=', $id)
-            ->count();
-
-        $narrowers = DB::table($thBroader)
-            ->where('broader_id', '=', $id)
-            ->get();
-
-        $broader_ids = DB::table($thBroader)
-            ->where('narrower_id', '=', $id)
-            ->get();
-        // deleted element has no broaders, set children as top concept
-        if(!isset($broader_ids) || $broader_ids->isEmpty()) {
-            foreach($narrowers as $n) {
-                DB::table($thConcept)
-                    ->where('id', '=', $n->narrower_id)
-                    ->update([
-                        'is_top_concept' => true
-                    ]);
-            }
-        } else {
-            foreach($broader_ids as $b) {
-                foreach($narrowers as $n) {
-                    DB::table($thBroader)
-                    ->insert([
-                        'broader_id' => $b->broader_id,
-                        'narrower_id' => $n->narrower_id
-                    ]);
-                }
-            }
-        }
-        DB::table($thConcept)
-            ->where('id', '=', $id)
-            ->delete();
-    }
-
-    public function removeConcept(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('delete_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        $id = $request->get('id');
-        $treeName = $request->get('treeName');
-
-        $suffix = $treeName == 'project' ? '' : '_master';
-
-        $thConcept = 'th_concept' . $suffix;
-        $thLabel = 'th_concept_label' . $suffix;
-        $thBroader = 'th_broaders' . $suffix;
-
-        if($request->has('broader_id')) { //is broader
-            $broaderId = $request->get('broader_id');
-            DB::table($thBroader)
-                ->where([
-                    ['broader_id', '=', $broaderId],
-                    ['narrower_id', '=', $id]
-                ])
-                ->delete();
-            //if count narrower_id = $id == 0 => concept with $id is now top_concept
-            $brCnt = DB::table($thBroader)
-                ->where('narrower_id', '=', $id)
-                ->count();
-            if($brCnt == 0) {
-                DB::table($thConcept)
-                    ->where('id', '=', $id)
-                    ->update([
-                        'is_top_concept' => 't'
-                    ]);
-            }
-        } else if($request->has('narrower_id')) { //is narrower
-            $narrowerId = $request->get('narrower_id');
-            DB::table($thBroader)
-                ->where([
-                    ['broader_id', '=', $id],
-                    ['narrower_id', '=', $narrowerId]
-                ])
-                ->delete();
-            //TODO
-            $brCnt = DB::table($thBroader)
-                ->where('narrower_id', '=', $narrowerId)
-                ->count();
-
-            if($brCnt == 0) {
-                DB::table($thConcept)
-                    ->where('id', '=', $narrowerId)
-                    ->update([
-                        'is_top_concept' => 't'
-                    ]);
-            }
-        } else {
-            return response()->json([
-                'error' => 'missing id'
-            ]);
-        }
-        return response()->json($id);
-    }
-
-    public function addBroader(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('add_move_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        $id = $request->get('id');
-        $broader = $request->get('broader_id');
-        $treeName = $request->get('treeName');
-
-        $entry;
-        if($treeName == 'project') {
-            $entry = new ThBroaderProject();
-        } else {
-            $entry = new ThBroader();
-        }
-
-        $entry->broader_id = $broader;
-        $entry->narrower_id = $id;
-        $entry->save();
-
-        return response()->json([
-            'broader' => $entry
-        ]);
-    }
-
-    public function addConcept(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('add_move_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        $projName = $request->get('projName');
-        $scheme = $request->get('concept_scheme');
-        $label = $request->get('label');
-        $lang = $request->get('lang');
-        $treeName = $request->get('treeName');
-
-        if($treeName == 'project') {
-            $thConcept = new ThConceptProject();
-            $thBroader = new ThBroaderProject();
-            $thConceptLabel = new ThConceptLabelProject();
-        } else {
-            $thConcept = new ThConcept();
-            $thBroader = new ThBroader();
-            $thConceptLabel = new ThConceptLabel();
-        }
-
-        $tc = $request->has('is_top_concept') && $request->get('is_top_concept') === 'true';
-        if($request->has('broader_id') && $tc) {
-            return response()->json([
-                'error' => 'Can not add top concept with broader. Please remove broader from the request or set is_top_concept to false'
-            ]);
-        }
-
-        $normalizedProjName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $projName);
-        $normalizedLabelName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $label);
-        $normalizedSchemeName = transliterator_transliterate('Any-Latin; Latin-ASCII; [\u0100-\u7fff] remove; Lower()', $scheme);
-        $normalizedProjName = $this->removeIllegalChars($normalizedProjName);
-        $normalizedLabelName = $this->removeIllegalChars($normalizedLabelName);
-        $normalizedSchemeName = $this->removeIllegalChars($normalizedSchemeName);
-        $ts = date("YmdHis");
-
-        $url = "https://spacialist.escience.uni-tuebingen.de/$normalizedProjName/$normalizedLabelName#$ts";
-
-        $thConcept->concept_url = $url;
-        $thConcept->concept_scheme = $normalizedSchemeName;
-        $thConcept->is_top_concept = $tc;
-        $thConcept->lasteditor = 'postgres';
-        $thConcept->save();
-
-        if($request->has('broader_id')) {
-            $broader = $request->get('broader_id');
-            if($broader > 0) {
-                $thBroader->broader_id = $broader;
-                $thBroader->narrower_id = $thConcept->id;
-                $thBroader->save();
-            }
-        }
-
-        $thConceptLabel->label = $label;
-        $thConceptLabel->concept_id = $thConcept->id;
-        $thConceptLabel->language_id = $lang;
-        $thConceptLabel->lasteditor = 'postgres';
-        $thConceptLabel->save();
-
-        return response()->json([
-            'entry' => $thConcept
-        ]);
-    }
-
-    public function removeLabel(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('edit_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        $id = $request->get('id');
-        $treeName = $request->get('treeName');
-
-        $suffix = $treeName === 'project' ? '' : '_master';
-        $thLabel = 'th_concept_label' . $suffix;
-
-        $elem = DB::table($thLabel)
-            ->where([
-                ['id', '=', $id]
-            ])
-            ->first();
-        // check if removed elem was pref label
-        if($elem->concept_label_type == 1) {
-            // if there is another label of the same language
-            // make it a pref label
-            $newPrefElem = DB::table($thLabel)
-                ->where([
-                    ['language_id', $elem->language_id],
-                    ['concept_id', $elem->concept_id],
-                    ['concept_label_type', 2] // we have to add this, because the old prefLabel still exists
-                ])
-                ->first();
-            if(isset($newPrefElem)) {
-                DB::table($thLabel)
-                    ->where('id', $newPrefElem->id)
-                    ->update([
-                        'concept_label_type' => 1
-                    ]);
-            }
-        }
-        $elem = DB::table($thLabel)
-            ->where([
-                ['id', '=', $id]
-            ])
-            ->delete();
-    }
-
-    public function addLabel(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('edit_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-
-        $this->validate($request, [
-            'content' => 'required|string',
-            'lid' => 'required|integer|exists:th_language,id',
-            'cid' => 'required|integer',
-            'tree_name' => 'nullable|string',
-        ]);
-
-        $label = $request->get('content');
-        $langId = $request->get('lid');
-        $cid = $request->get('cid');
-        $treeName = $request->get('tree_name');
-
-        try {
-            if($treeName === 'sandbox') {
-                ThConceptSandbox::findOrFail($cid);
-            } else {
-                ThConcept::findOrFail($cid);
-            }
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-
-        $cond = [
-            ['language_id', '=', $langId],
-            ['concept_id', '=', $cid],
-            ['concept_label_type', '=', 1]
-        ];
-
-        if($treeName == 'sandbox') {
-            $thLabel = new ThConceptLabelSandbox();
-            $query = ThConceptLabelSandbox::where($cond);
-        } else {
-            $thLabel = new ThConceptLabel();
-            $query = ThConceptLabel::where($cond);
-        }
-        // set label type based on existing labels
-        $type = $query->count() > 0 ? 2 : 1;
-
-        $thLabel->label = $label;
-        $thLabel->concept_id = $cid;
-        $thLabel->language_id = $langId;
-        $thLabel->concept_label_type = $type;
-        $thLabel->lasteditor = $user->name;
-        $thLabel->save();
-
-        $thLabel->language;
-
-        return response()->json($thLabel);
-    }
-
-    public function addNote(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('edit_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-
-        $this->validate($request, [
-            'content' => 'required|string',
-            'lid' => 'required|integer|exists:th_language,id',
-            'cid' => 'required|integer',
-            'tree_name' => 'nullable|string',
-        ]);
-
-        $label = $request->get('content');
-        $langId = $request->get('lid');
-        $cid = $request->get('cid');
-        $treeName = $request->get('tree_name');
-
-        try {
-            if($treeName === 'sandbox') {
-                ThConceptSandbox::findOrFail($cid);
-            } else {
-                ThConcept::findOrFail($cid);
-            }
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-
-        if($treeName == 'sandbox') {
-            $note = new ThConceptNoteSandbox();
-        } else {
-            $note = new ThConceptNote();
-        }
-
-        $note->content = $label;
-        $note->concept_id = $cid;
-        $note->language_id = $langId;
-        $note->save();
-
-        $note->language;
-
-        return response()->json($note);
     }
 
     public function copy(Request $request) {
@@ -1214,56 +1149,5 @@ class TreeController extends Controller
             'concepts' => [],
             'conceptNames' => []
         ]);
-    }
-
-    public function getAllParents(Request $request) {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        if(!$request->has('id')) return response()->json();
-        $id = $request->get('id');
-        $where = "WHERE narrower_id = $id";
-        if($request->has('treeName')) $which = $request->get('treeName');
-        else $which = 'master';
-
-        $suffix = $which == 'project' ? '' : '_master';
-        $thBroader = 'th_broaders' . $suffix;
-
-        $broaders = array();
-        if($request->has('broader_id')) {
-            $broaders[] = (object) [
-                'broader_id' => $request->get('broader_id')
-            ];
-        } else {
-            $broaders = DB::table($thBroader)
-                ->select('broader_id')
-                ->where('narrower_id', '=', $id)
-                ->get();
-        }
-
-        foreach($broaders as $broader) {
-            $currentWhere = $where . " AND broader_id = " . $broader->broader_id;
-            $parents = DB::select("
-                WITH RECURSIVE
-                    q (broader_id, narrower_id, lvl) AS
-                    (
-                        SELECT b1.broader_id, b1.narrower_id, 0
-                        FROM $thBroader b1
-                        $currentWhere
-                        UNION ALL
-                        SELECT b2.broader_id, b2.narrower_id, lvl + 1
-                        FROM $thBroader b2
-                        JOIN q ON q.broader_id = b2.narrower_id
-                    )
-                SELECT q.*
-                FROM q
-                ORDER BY lvl DESC
-            ");
-        }
-
-        return response()->json($parents);
     }
 }

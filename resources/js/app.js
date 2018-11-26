@@ -7,6 +7,10 @@ import Axios from 'axios';
 import VueRouter from 'vue-router';
 import moment from 'moment';
 
+// Components
+import Notifications from 'vue-notification';
+import VModal from 'vue-js-modal';
+
 import VueI18n from 'vue-i18n';
 import en from './i18n/en';
 import de from './i18n/de';
@@ -16,10 +20,6 @@ import App from './App.vue';
 import MainView from './components/MainView.vue';
 import Login from './components/Login.vue';
 import ConceptDetail from './components/ConceptDetail.vue';
-
-// Components
-import Notifications from 'vue-notification';
-import VModal from 'vue-js-modal';
 
 library.add(fas, far, fab);
 dom.watch(); // search for <i> tags to replace with <svg>
@@ -164,6 +164,7 @@ Vue.component('about-dialog', require('./components/About.vue'));
 
 // Components
 Vue.component('concept-tree', require('./components/ConceptTree.vue'));
+Vue.component('concept-search', require('./components/ConceptSearch.vue'));
 
 // Filters
 Vue.filter('date', function(value, format = 'DD.MM.YYYY HH:mm', useLocale = false) {

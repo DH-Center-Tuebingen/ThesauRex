@@ -3,6 +3,14 @@
 namespace App;
 
 use App\Bibliography;
+use App\ThBroader;
+use App\ThBroaderSandbox;
+use App\ThConcept;
+use App\ThConceptSandbox;
+use App\ThConceptLabel;
+use App\ThConceptLabelSandbox;
+use App\ThConceptNote;
+use App\ThConceptNoteSandbox;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,40 +20,69 @@ class Helpers {
         return in_array($str, $acceptable, true);
     }
 
-    public static function getFullFilePath($filename) {
-        return Storage::disk('public')->url(env('SP_FILE_PATH') .'/'. $filename);
-    }
-
-    public static function getStorageFilePath($filename) {
-        return Storage::url(env('SP_FILE_PATH') .'/'. $filename);
-    }
-
-    public static function exifDataExists($exif, $rootKey, $dataKey) {
-        return array_key_exists($rootKey, $exif) && array_key_exists($dataKey, $exif[$rootKey]);
-    }
-
-    public static function parseSql($builder) {
-        $sql = $builder->toSql();
-        $bindings = $builder->getBindings();
-        foreach($bindings as $binding) {
-            $value = is_numeric($binding) ? $binding : "'".$binding."'";
-            $sql = preg_replace('/\?/', $value, $sql, 1);
+    public static function getTreeBuilder($name, $langCode = null) {
+        $builder;
+        if($name === 'sandbox') {
+            $builder = ThConceptSandbox::query();
+        } else {
+            $builder = ThConcept::query();
         }
-        return $sql;
+        if($langCode === null) {
+            return $builder;
+        } else {
+            return $builder->with(['narrowers', 'broaders', 'notes.language' => function($query) use($langCode) {
+                    $query->orderByRaw("short_name = '$langCode' desc");
+                }, 'labels.language' => function($query) use($langCode) {
+                    $query->orderByRaw("short_name = '$langCode' desc");
+                }]);
+        }
     }
 
-    public static function getColumnNames($table) {
-        switch($table) {
-            case 'attributes':
-                return \DB::table('information_schema.columns')
-                    ->select('column_name')
-                    ->where('table_name', $table)
-                    ->where('table_schema', 'public')
-                    ->get()
-                    ->pluck('column_name');
-            default:
-                return Schema::getColumnListing($table);
+    public static function getTreeBroaderBuilder($name, $langCode = null) {
+        $builder;
+        if($name === 'sandbox') {
+            $builder = ThBroaderSandbox::query();
+        } else {
+            $builder = ThBroader::query();
+        }
+        if($langCode === null) {
+            return $builder;
+        } else {
+            return $builder->with(['language' => function($query) use($langCode) {
+                    $query->orderByRaw("short_name = '$langCode' desc");
+                }]);
+        }
+    }
 
+    public static function getTreeLabelBuilder($name, $langCode = null) {
+        $builder;
+        if($name === 'sandbox') {
+            $builder = ThConceptLabelSandbox::query();
+        } else {
+            $builder = ThConceptLabel::query();
+        }
+        if($langCode === null) {
+            return $builder;
+        } else {
+            return $builder->with(['language' => function($query) use($langCode) {
+                    $query->orderByRaw("short_name = '$langCode' desc");
+                }]);
+        }
+    }
+
+    public static function getTreeNoteBuilder($name, $langCode = null) {
+        $builder;
+        if($name === 'sandbox') {
+            $builder = ThConceptNoteSandbox::query();
+        } else {
+            $builder = ThConceptNote::query();
+        }
+        if($langCode === null) {
+            return $builder;
+        } else {
+            return $builder->with(['language' => function($query) use($langCode) {
+                    $query->orderByRaw("short_name = '$langCode' desc");
+                }]);
         }
     }
 }

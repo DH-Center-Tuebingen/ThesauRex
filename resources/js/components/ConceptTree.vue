@@ -2,43 +2,65 @@
     <div class="h-100 d-flex flex-column">
         <div class="d-flex flex-row justify-content-start">
             <div class="btn-group mr-2">
-                <button type="button" class="btn btn-outline-secondary">Import RDF</button>
+                <button type="button" class="btn btn-outline-secondary">
+                    {{ $t('tree.import.label') }}
+                </button>
                 <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="#">Import only new</a>
-                    <a class="dropdown-item" href="#">New + Update</a>
-                    <a class="dropdown-item" href="#">Replace</a>
+                    <a class="dropdown-item" href="#">
+                        {{ $t('tree.import.new') }}
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        {{ $t('tree.import.new-update') }}
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        {{ $t('tree.import.replace') }}
+                    </a>
                 </div>
             </div>
-            <button type="button" class="btn btn-outline-secondary">Export RDF</button>
+            <button type="button" class="btn btn-outline-secondary" @click="exportTree()">
+                {{ $t('tree.export.label') }}
+            </button>
         </div>
         <tree-search
             class="my-2"
             :on-multiselect="onSearchMultiSelect"
-            :on-clear="resetHighlighting">
+            :on-clear="resetHighlighting"
+            :tree-name="treeName">
         </tree-search>
-        <tree
-            id="entity-tree"
-            class="col px-0 scroll-y-auto"
-            :data="tree"
-            :draggable="isDragAllowed"
-            :drop-allowed="isDropAllowed"
-            size="small"
-            @change="itemClick"
-            @drop="itemDrop"
-            @toggle="itemToggle">
-        </tree>
+        <div class="d-flex flex-column col">
+            <a href="" class="text-secondary" @click.prevent="requestConcept()">
+                {{ $t('tree.new-top-concept') }}
+            </a>
+            <tree
+                id="entity-tree"
+                class="col px-0 scroll-y-auto"
+                :data="tree"
+                :draggable="isDragAllowed"
+                :drop-allowed="isDropAllowed"
+                size="small"
+                @change="itemClick"
+                @drop="itemDrop"
+                @toggle="itemToggle">
+            </tree>
+            <a href="" class="text-secondary" @click.prevent="requestConcept()">
+                {{ $t('tree.new-top-concept') }}
+            </a>
+        </div>
     </div>
 </template>
 
 <script>
     import * as treeUtility from 'tree-vue-component';
+    import { VueContext } from 'vue-context';
     import VueScrollTo from 'vue-scrollto';
     import { transliterate as tr, slugify } from 'transliteration';
+    import DeleteConceptModal from './modals/DeleteConceptModal.vue';
 
     Vue.component('tree-node', require('./TreeNode.vue'));
+    Vue.component('tree-contextmenu', require('./TreeContextMenu.vue'));
     Vue.component('tree-search', require('./TreeSearch.vue'));
     Vue.use(VueScrollTo);
 
@@ -62,10 +84,13 @@
                 dropPosition: DropPosition.empty,
                 dropAllowed: true,
             };
+            this.eventBus = vm.eventBus;
+            this.treeName = vm.treeName;
             this.icon = false;
             this.children = [];
             this.childrenLoaded = this.children.length == this.children_count;
             this.component = 'tree-node';
+            this.contextmenu = 'tree-contextmenu';
             this.dragDelay = vm.dragDelay;
             this.dragAllowed = _ => vm.isDragAllowed;
             this.onToggle = vm.itemToggle;
@@ -98,6 +123,22 @@
         },
         mounted() {
             this.init();
+        },
+        created() {
+            this.eventBus.$on(`cm-item-add-${this.treeName}`, this.handleAddConceptRequest);
+            this.eventBus.$on(`cm-item-export-${this.treeName}`, this.handleConceptExport);
+            this.eventBus.$on(`cm-item-delete-${this.treeName}`, this.handleConceptDelete);
+
+            this.eventBus.$on(`dc-delete-all-${this.treeName}`, this.handleDeleteAll);
+            this.eventBus.$on(`dc-delete-one-${this.treeName}`, this.handleDeleteOneUp);
+        },
+        beforeDestroy() {
+            this.eventBus.$off(`cm-item-add-${this.treeName}`);
+            this.eventBus.$off(`cm-item-export-${this.treeName}`);
+            this.eventBus.$off(`cm-item-delete-${this.treeName}`);
+
+            this.eventBus.$off(`dc-delete-all-${this.treeName}`);
+            this.eventBus.$off(`dc-delete-one-${this.treeName}`);
         },
         methods: {
             itemClick(eventData) {
@@ -152,6 +193,12 @@
                     vm.insertIntoTree(node, newParent);
                 }));
             },
+            requestConcept(parent, text = '') {
+                this.$emit('request-concept', {
+                    parent: parent,
+                    text: text
+                });
+            },
             fetchChildren(id) {
                 return $httpQueue.add(() => $http.get(`/tree/byParent/${id}?t=${this.treeName}`)
                 .then(response => {
@@ -162,39 +209,6 @@
                     });
                     return newNodes;
                 }));
-            },
-            getNewRank(dropData) {
-                let newRank;
-                if(dropData.targetData.state.dropPosition == DropPosition.inside) {
-                    newRank = dropData.targetData.children_count + 1;
-                } else {
-                    const newParent = treeUtility.getNodeFromPath(this.tree, dropData.targetPath.slice(0, dropData.targetPath.length - 1));
-                    const oldParent = treeUtility.getNodeFromPath(this.tree, dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
-                    const children_count = newParent ? newParent.children_count : this.tree.length;
-                    const oldRank = dropData.sourceData.rank;
-
-                    if(this.sort.by == 'rank') {
-                        if(dropData.targetData.state.dropPosition == DropPosition.up) {
-                            if(this.sort.dir == 'asc') {
-                                newRank = dropData.targetData.rank;
-                            } else {
-                                newRank = dropData.targetData.rank + 1;
-                            }
-                        } else if(dropData.targetData.state.dropPosition == DropPosition.down) {
-                            if(this.sort.dir == 'asc') {
-                                newRank = dropData.targetData.rank + 1;
-                            } else {
-                                newRank = dropData.targetData.rank;
-                            }
-                        }
-                        if(newParent == oldParent && newRank > oldRank) {
-                            newRank--;
-                        }
-                    } else {
-                        newRank = newParent.children_count + 1;
-                    }
-                }
-                return newRank
             },
             onAdd(entity, parent) {
                 const vm = this;
@@ -254,27 +268,6 @@
                 if(parent) parent.children_count++;
                 vm.entities[node.id] = node;
             },
-            requestAddNewEntity(parent) {
-                const vm = this;
-                if(!vm.$can('create_concepts')) return;
-
-                let selection = [];
-                if(parent) {
-                    selection = vm.$getEntityType(parent.entity_type_id).sub_entity_types;
-                } else {
-                    selection = Object.values(vm.$getEntityTypes()).filter(f => f.is_root);
-                }
-                let entity = {
-                    name: '',
-                    entity_type_id: selection.length == 1 ? selection[0].id : null,
-                    selection: selection,
-                    root_entity_id: parent ? parent.id : null,
-                };
-                vm.$modal.show(AddNewEntityModal, {
-                    newEntity: entity,
-                    onSubmit: e => vm.onAdd(e, parent)
-                });
-            },
             requestDeleteEntity(entity, path) {
                 const vm = this;
                 if(!vm.$can('delete_move_concepts')) return;
@@ -332,6 +325,46 @@
                     this.tree.push(n);
                 });
             },
+            exportTree(rootElement) {
+                if(rootElement) {
+                    let filename = `thesaurex-${this.$getLabel(rootElement)}-export.rdf`;
+                    const id = rootElement.id;
+                    $httpQueue.add(() => $http.get(`tree/${id}/export`).then(response => {
+                        this.$createDownloadLink(response.data, filename, false, response.headers['content-type']);
+                    }));
+                } else {
+                    let filename = `thesaurex-export.rdf`;
+                    $httpQueue.add(() => $http.get(`tree/export`).then(response => {
+                        this.$createDownloadLink(response.data, filename, false, response.headers['content-type']);
+                    }));
+                }
+            },
+            handleAddConceptRequest(e) {
+                this.requestConcept(e.element);
+            },
+            handleConceptExport(e) {
+                this.exportTree(e.element);
+            },
+            handleConceptDelete(e) {
+                const opts = {
+                    treeName: this.treeName,
+                    eventBus: this.eventBus
+                };
+                const props = Object.assign({}, e, opts);
+                this.$modal.show(DeleteConceptModal, props);
+            },
+            handleDeleteAll(e) {
+                const id = e.element.id;
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}`).then(response => {
+                    console.log("all deleted");
+                }));
+            },
+            handleDeleteOneUp(e) {
+                const id = e.element.id;
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move`).then(response => {
+                    console.log("moved one level up");
+                }));
+            },
             isDropAllowed(dropData) {
                 //TODO check if it works with tree-vue-component
                 const item = dropData.sourceData;
@@ -376,7 +409,7 @@
             },
             highlightItems(items) {
                 items.forEach(i => {
-                    return this.openPath(i.parentIds).then(targetNode => {
+                    return this.openPath(i.path).then(targetNode => {
                         targetNode.state.highlighted = true;
                         this.highlightedItems.push(targetNode);
                     });
@@ -386,7 +419,7 @@
                 this.highlightedItems.forEach(i => i.state.highlighted = false);
                 this.highlightedItems = [];
             },
-            async openPath(ids, tree=this.tree) {
+            async openPath(ids, tree = this.tree) {
                 const index = ids.pop();
                 const elem = this.concepts[index];
                 if(ids.length == 0) {
@@ -414,15 +447,6 @@
             deselectNode(id) {
                 if(this.concepts[id]) {
                     this.concepts[id].state.selected = false;
-                }
-            },
-            handleEntityUpdate(e) {
-                switch(e.type) {
-                    case 'name':
-                        this.concepts[e.entity_id].name = e.value;
-                        break;
-                    default:
-                        vm.$throwError({message: `Unknown event type ${e.type} received.`});
                 }
             },
             handleEntityDelete(e) {
