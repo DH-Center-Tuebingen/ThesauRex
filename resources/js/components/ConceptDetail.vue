@@ -192,6 +192,10 @@
             languages: {
                 required: true,
                 type: Array
+            },
+            eventBus: {
+                required: true,
+                type: Object
             }
         },
         beforeRouteEnter(to, from, next) {
@@ -218,6 +222,9 @@
                 this.selectedLanguage = this.languages[0];
                 this.resetProperty(this.newLabel);
                 this.resetProperty(this.newNote);
+                this.eventBus.$emit(`concept-selected-${this.treeName}`, {
+                    concept: this.concept
+                });
                 this.dataLoaded = true;
             },
             addLabel(label) {

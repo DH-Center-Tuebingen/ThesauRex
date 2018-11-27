@@ -35,7 +35,7 @@
                 {{ $t('tree.new-top-concept') }}
             </a>
             <tree
-                id="entity-tree"
+                :id="treeId"
                 class="col px-0 scroll-y-auto"
                 :data="tree"
                 :draggable="isDragAllowed"
@@ -125,6 +125,10 @@
             this.init();
         },
         created() {
+            this.eventBus.$on(`concept-selected-${this.treeName}`, (e) => {
+                this.selectConcept(e.concept);
+            });
+
             this.eventBus.$on(`cm-item-add-${this.treeName}`, this.handleAddConceptRequest);
             this.eventBus.$on(`cm-item-export-${this.treeName}`, this.handleConceptExport);
             this.eventBus.$on(`cm-item-delete-${this.treeName}`, this.handleConceptDelete);
@@ -133,6 +137,8 @@
             this.eventBus.$on(`dc-delete-one-${this.treeName}`, this.handleDeleteOneUp);
         },
         beforeDestroy() {
+            this.eventBus.$off(`concept-selected-${this.treeName}`);
+
             this.eventBus.$off(`cm-item-add-${this.treeName}`);
             this.eventBus.$off(`cm-item-export-${this.treeName}`);
             this.eventBus.$off(`cm-item-delete-${this.treeName}`);
@@ -435,18 +441,23 @@
                 elem.state.opened = true;
                 return this.openPath(ids, elem.children);
             },
-            selectEntity() {
-                if(!this.selectedEntity.id) return;
-                this.openPath(this.selectedEntity.parentIds.slice()).then(targetNode => {
+            selectConcept(concept) {
+                if(this.selectedConceptId != -1 && concept.id != this.selectedConceptId) {
+                    this.deselectConcept(this.selectedConceptId);
+                }
+                this.selectedConceptId = concept.id;
+                this.openPath(concept.path.slice()).then(targetNode => {
                     targetNode.state.selected = true;
                     // Scroll tree to selected element
                     const elem = document.getElementById(`tree-node-${targetNode.id}`);
+                    console.log(this.scrollTo.options.container);
                     VueScrollTo.scrollTo(elem, this.scrollTo.duration, this.scrollTo.options);
                 });
             },
-            deselectNode(id) {
+            deselectConcept(id) {
                 if(this.concepts[id]) {
                     this.concepts[id].state.selected = false;
+                    this.selectedConceptId = -1;
                 }
             },
             handleEntityDelete(e) {
@@ -461,24 +472,30 @@
                 concepts: [],
                 tree: [],
                 highlightedItems: [],
-                scrollTo: {
+                selectedConceptId: -1
+            }
+        },
+        computed: {
+            topLevelCount() {
+                return this.tree.length || 0;
+            },
+            isDragAllowed() {
+                return true;
+            },
+            treeId() {
+                return `concept-tree-${this.treeName}`;
+            },
+            scrollTo() {
+                return {
                     duration: 500,
                     options: {
-                        container: '#concept-tree',
+                        container: `#${this.treeId}`,
                         force: false,
                         cancelable: true,
                         x: false,
                         y: true
                     }
-                }
-            }
-        },
-        computed: {
-            topLevelCount: function() {
-                return this.tree.length || 0;
-            },
-            isDragAllowed: function() {
-                return true;
+                };
             }
         }
     }

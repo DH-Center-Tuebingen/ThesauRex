@@ -24,6 +24,7 @@
         </div>
         <div class="col-md-6">
             <router-view
+                :event-bus="eventBus"
                 :languages="languages"
                 @label-update="handleLabelUpdate"
                 @request-concept="openNewConceptModal"
