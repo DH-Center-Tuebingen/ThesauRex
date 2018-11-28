@@ -139,6 +139,7 @@
             this.eventBus.$on(`concept-selected-${this.treeName}`, (e) => {
                 this.selectConcept(e.concept);
             });
+            this.eventBus.$on(`label-update-${this.treeName}`, this.handleLabelUpdate);
 
             this.eventBus.$on(`cm-item-add-${this.treeName}`, this.handleAddConceptRequest);
             this.eventBus.$on(`cm-item-export-${this.treeName}`, this.handleConceptExport);
@@ -149,6 +150,7 @@
         },
         beforeDestroy() {
             this.eventBus.$off(`concept-selected-${this.treeName}`);
+            this.eventBus.$off(`label-update-${this.treeName}`);
 
             this.eventBus.$off(`cm-item-add-${this.treeName}`);
             this.eventBus.$off(`cm-item-export-${this.treeName}`);
@@ -413,6 +415,10 @@
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move`).then(response => {
                     // TODO handle update (concept deleted, descs one level up)
                 }));
+            },
+            handleLabelUpdate(e) {
+                let concept = this.concepts[e.concept_id];
+                concept.labels = e.labels;
             },
             isDropAllowed(dropData) {
                 //TODO check if it works with tree-vue-component

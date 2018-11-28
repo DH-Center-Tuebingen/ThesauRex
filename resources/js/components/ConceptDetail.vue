@@ -1,7 +1,7 @@
 <template>
     <div class="h-100 d-flex flex-column" v-if="dataLoaded">
         <h4 class="mb-0">
-            {{ $getLabel(concept) }}
+            {{ label }}
             <small>
                 {{ $t('detail.title') }}
             </small>
@@ -237,14 +237,17 @@
                 $httpQueue.add(() => $http.put(`tree/label`, data).then(response => {
                     this.concept.labels.push(response.data);
                     this.resetProperty(label);
-                    this.$emit('label-update');
+                    this.eventBus.$emit(`label-update-${this.treeName}`, {
+                        concept_id: this.concept.id,
+                        labels: this.concept.labels.slice()
+                    });
                 }));
             },
             deleteLabel(index) {
                 let label = this.concept.labels[index];
                 if(!label) return;
                 $httpQueue.add(() => $http.delete(`tree/label/${label.id}?t=${this.treeName}`).then(response => {
-                    this.concept.labels.splice(index, 1);
+                    const removed = this.concept.labels.splice(index, 1);
                     if(response.data && response.data.updated) {
                         const updId = response.data.id;
                         const updType = response.data.type;
@@ -253,6 +256,10 @@
                         });
                         updLabel.concept_label_type = updType;
                     }
+                    this.eventBus.$emit(`label-update-${this.treeName}`, {
+                        concept_id: this.concept.id,
+                        labels: this.concept.labels.slice()
+                    });
                     this.$showToast(
                         this.$t('detail.label.toasts.deleted.title'),
                         this.$t('detail.label.toasts.deleted.message', {
@@ -377,6 +384,9 @@
                 return this.concept.labels.filter(l => {
                     return l.concept_label_type == 1;
                 }).length;
+            },
+            label() {
+                return this.$getLabel(this.concept);
             }
         }
     }

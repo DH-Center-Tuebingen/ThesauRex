@@ -1,6 +1,6 @@
 <template>
     <div @dragenter="onDragEnter" @dragleave="onDragLeave" :id="`tree-node-${data.id}`">
-        <span>{{ $getLabel(data) }}</span>
+        <span>{{ label }}</span>
     </div>
 </template>
 
@@ -36,6 +36,9 @@
             asyncToggle() {
                 return debounce(this.doToggle, this.data.dragDelay || 500);
             },
+            label() {
+                return this.$getLabel(this.data);
+            }
         }
     }
 </script>

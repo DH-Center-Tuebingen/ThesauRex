@@ -4,7 +4,7 @@
             <h5 class="modal-title">
                 {{
                     $t('modals.delete-concept.title', {
-                        name: $getLabel(element)
+                        name: label
                     })
                 }}
             </h5>
@@ -13,7 +13,7 @@
             </button>
         </div>
         <div class="modal-body col">
-            <p class="alert alert-info" v-html="$t('modals.delete-concept.info', {name: $getLabel(element)})">
+            <p class="alert alert-info" v-html="$t('modals.delete-concept.info', {name: label})">
             </p>
         </div>
         <div class="modal-footer d-flex justify-content-between">
@@ -22,7 +22,7 @@
                     <i class="fas fa-trash"></i>
                     <i class="fas fa-arrow-up" data-fa-transform="shrink-2 left-4 up-5"></i>
                 </span>
-                <span v-html="$t('modals.delete-concept.delete', {name: $getLabel(element)})"></span>
+                <span v-html="$t('modals.delete-concept.delete', {name: label})"></span>
             </button>
             <button type="button" class="btn btn-outline-danger" @click="deleteAll()">
                 <i class="fas fa-fw fa-trash"></i>
@@ -74,6 +74,11 @@
         },
         data() {
             return {
+            }
+        },
+        computed: {
+            label() {
+                return this.$getLabel(this.element);
             }
         }
     }

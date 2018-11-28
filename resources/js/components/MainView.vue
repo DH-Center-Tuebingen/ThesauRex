@@ -26,7 +26,6 @@
             <router-view
                 :event-bus="eventBus"
                 :languages="languages"
-                @label-update="handleLabelUpdate"
                 @request-concept="openNewConceptModal"
             ></router-view>
         </div>
@@ -96,9 +95,6 @@
                     }
                     // TODO handle update
                 }));
-            },
-            handleLabelUpdate(e) {
-                // TODO handle update
             },
             handleConceptClick(e) {
                 this.$router.push({

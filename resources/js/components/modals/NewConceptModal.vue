@@ -5,7 +5,7 @@
                 <span v-if="parent">
                     {{
                         $t('modals.new-concept.title-parent', {
-                            name: $getLabel(parent)
+                            name: parentLabel
                         })
                     }}
                 </span>
@@ -103,6 +103,9 @@
         computed: {
             validated() {
                 return !!this.selectedLanguage && this.labelText && this.labelText.length;
+            },
+            parentLabel() {
+                return this.parent ? this.$getLabel(this.parent) : '';
             }
         }
     }
