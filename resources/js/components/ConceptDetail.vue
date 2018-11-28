@@ -306,7 +306,12 @@
                 const bid = e.concept.id;
                 const id = this.concept.id;
                 $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}`).then(response => {
-
+                    this.concept.broaders.push(e.concept);
+                    this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                        type: 'add',
+                        broader_id: bid,
+                        narrower_id: id
+                    });
                 }));
             },
             removeBroader(index) {
@@ -315,6 +320,11 @@
                 const id = this.concept.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}`).then(response => {
                     this.concept.broaders.splice(index, 1);
+                    this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                        type: 'remove',
+                        broader_id: bid,
+                        narrower_id: id
+                    });
                 }));
             },
             narrowerSelected(e) {
@@ -328,7 +338,12 @@
                     const bid = e.concept.id;
                     const id = this.concept.id;
                     $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}`).then(response => {
-
+                        this.concept.narrowers.push(e.concept);
+                        this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                            type: 'add',
+                            broader_id: id,
+                            narrower_id: bid
+                        });
                     }));
                 }
             },
@@ -338,6 +353,11 @@
                 const id = this.concept.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}`).then(response => {
                     this.concept.narrowers.splice(index, 1);
+                    this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                        type: 'remove',
+                        broader_id: id,
+                        narrower_id: bid
+                    });
                 }));
             },
             setHoverState(prop, index, state) {

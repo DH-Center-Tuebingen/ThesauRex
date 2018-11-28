@@ -26,12 +26,12 @@
         <div class="dropdown-menu" style="display: flex; flex-direction: column;" v-show="hasItems">
             <a href="#" class="dropdown-item" v-for="(item, $item) in items" :class="activeClass($item)" @click.prevent="hit" @mousemove="setActive($item)">
                 <span>
-                    {{ $getLabel(item) }}
+                    {{ item.selectedLabel }}
                 </span>
                 <ol class="breadcrumb mb-0 p-0 pb-1 bg-none small">
                     <li class="breadcrumb-item" v-for="p in item.parents">
                         <span>
-                            {{ $getLabel(p) }}
+                            {{ p.selectedLabel }}
                         </span>
                     </li>
                 </ol>
@@ -93,6 +93,15 @@
             clearItem() {
                 if(this.onClear) this.onClear();
                 this.reset();
+            },
+            prepareResponseData(data) {
+                data.forEach(c => {
+                    c.selectedLabel = this.$getLabel(c);
+                    c.parents.forEach(p => {
+                        p.selectedLabel = this.$getLabel(p);
+                    });
+                });
+                return data;
             },
             hit() {
                 if(this.current !== -1) {

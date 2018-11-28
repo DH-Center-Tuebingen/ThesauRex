@@ -5,7 +5,6 @@
         class="form-control"
         v-model="query"
         :placeholder="$t(placeholder)"
-        @blur="closeSelect"
         @input="debounce"
         @keydown.down="down"
         @keydown.enter="hit"
@@ -24,12 +23,12 @@
         </div>
 
         <div class="dropdown-menu" style="display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto;" v-show="hasItems || hasAddNewOption">
-            <a href="#" class="dropdown-item px-1" v-for="(item, k) in items" :class="activeClass(k)" @mosedown="hit" @mousemove="setActive(k)">
-                {{ $getLabel(item) }}
+            <a href="#" class="dropdown-item px-1" v-for="(item, k) in items" :class="activeClass(k)" @click.prevent="hit" @mousemove="setActive(k)">
+                {{ item.selectedLabel }}
                 <ol class="breadcrumb mb-0 p-0 pb-1 bg-none small">
                     <li class="breadcrumb-item" v-for="p in item.parents">
                         <span>
-                            {{ p }}
+                            {{ p.selectedLabel }}
                         </span>
                     </li>
                 </ol>
@@ -103,7 +102,7 @@
                 });
             },
             prepareResponseData(data) {
-                return data.filter(c => {
+                let newData = data.filter(c => {
                     if(c.id == this.concept.id) {
                         return false;
                     }
@@ -116,6 +115,13 @@
 
                     return true;
                 });
+                newData.forEach(c => {
+                    c.selectedLabel = this.$getLabel(c);
+                    c.parents.forEach(p => {
+                        p.selectedLabel = this.$getLabel(p);
+                    });
+                });
+                return newData;
             },
             onHit(item) {
                 if(item) {
@@ -139,8 +145,9 @@
                 this.onHit();
             },
             closeSelect() {
-                this.items = [];
-                this.loading = false;
+                // this.items = [];
+                // this.loading = false;
+                this.reset();
             }
         },
         data () {

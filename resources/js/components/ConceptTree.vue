@@ -140,6 +140,7 @@
                 this.selectConcept(e.concept);
             });
             this.eventBus.$on(`label-update-${this.treeName}`, this.handleLabelUpdate);
+            this.eventBus.$on(`relation-updated-${this.treeName}`, this.handleRelationUpdate);
 
             this.eventBus.$on(`cm-item-add-${this.treeName}`, this.handleAddConceptRequest);
             this.eventBus.$on(`cm-item-export-${this.treeName}`, this.handleConceptExport);
@@ -151,6 +152,7 @@
         beforeDestroy() {
             this.eventBus.$off(`concept-selected-${this.treeName}`);
             this.eventBus.$off(`label-update-${this.treeName}`);
+            this.eventBus.$off(`broader-added-${this.treeName}`);
 
             this.eventBus.$off(`cm-item-add-${this.treeName}`);
             this.eventBus.$off(`cm-item-export-${this.treeName}`);
@@ -222,8 +224,13 @@
                 return $httpQueue.add(() => $http.get(`/tree/byParent/${id}?t=${this.treeName}`)
                 .then(response => {
                     const newNodes = response.data.map(e => {
-                        const n = new Node(e, this);
-                        this.concepts[n.id] = n;
+                        let n;
+                        if(this.concepts[e.id]) {
+                            n = this.concepts[e.id];
+                        } else {
+                            n = new Node(e, this);
+                            this.concepts[n.id] = n;
+                        }
                         return n;
                     });
                     return newNodes;
@@ -419,6 +426,33 @@
             handleLabelUpdate(e) {
                 let concept = this.concepts[e.concept_id];
                 concept.labels = e.labels;
+            },
+            handleRelationUpdate(e) {
+                let broader;
+                let narrower;
+                switch(e.type) {
+                    case 'add':
+                        broader = this.concepts[e.broader_id];
+                        narrower = this.concepts[e.narrower_id];
+                        broader.children_count++;
+                        if(broader.childrenLoaded) {
+                            broader.children.push(narrower);
+                        }
+                        break;
+                    case 'remove':
+                        broader = this.concepts[e.broader_id];
+                        narrower = this.concepts[e.narrower_id];
+                        broader.children_count--;
+                        if(broader.childrenLoaded) {
+                            const childIndex = broader.children.findIndex(c => {
+                                return c.id == narrower.id;
+                            });
+                            if(childIndex > -1) {
+                                broader.children.splice(childIndex, 1);
+                            }
+                        }
+                        break;
+                }
             },
             isDropAllowed(dropData) {
                 //TODO check if it works with tree-vue-component
