@@ -25,9 +25,9 @@
                     </form>
                     <ul class="list-group list-group-xs scroll-y-auto" v-if="concept.broaders.length">
                         <li class="list-group-item d-flex flex-row justify-content-between" v-for="(broader, i) in concept.broaders" @mouseenter="setHoverState('broaders', i, true)" @mouseleave="setHoverState('broaders', i, false)">
-                            <span>
+                            <a href="" @click.prevent="gotoConcept(broader.id)">
                                 {{ broader.concept_url }}
-                            </span>
+                            </a>
                             <span v-show="hoverStates.broaders[i]" @click="removeBroader(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
                             </span>
@@ -54,9 +54,9 @@
                     </form>
                     <ul class="list-group list-group-xs scroll-y-auto" v-if="concept.narrowers.length">
                         <li class="list-group-item d-flex flex-row justify-content-between" v-for="(narrower, i) in concept.narrowers" @mouseenter="setHoverState('narrowers', i, true)" @mouseleave="setHoverState('narrowers', i, false)">
-                            <span>
+                            <a href="" @click.prevent="gotoConcept(narrower.id)">
                                 {{ narrower.concept_url }}
-                            </span>
+                            </a>
                             <span v-show="hoverStates.narrowers[i]" @click="removeNarrower(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
                             </span>
@@ -226,6 +226,12 @@
                     concept: this.concept
                 });
                 this.dataLoaded = true;
+            },
+            gotoConcept(id) {
+                this.eventBus.$emit('concept-clicked', {
+                    id: id,
+                    from: this.treeName
+                });
             },
             addLabel(label) {
                 const data = {
