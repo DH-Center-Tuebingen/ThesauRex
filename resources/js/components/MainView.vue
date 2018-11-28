@@ -94,10 +94,11 @@
                         }
                         cs.push(response.data);
                     }
+                    // TODO handle update
                 }));
             },
             handleLabelUpdate(e) {
-                console.log("Label updated!");
+                // TODO handle update
             },
             handleConceptClick(e) {
                 this.$router.push({

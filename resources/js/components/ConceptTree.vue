@@ -2,20 +2,31 @@
     <div class="h-100 d-flex flex-column">
         <div class="d-flex flex-row justify-content-start">
             <div class="btn-group mr-2">
-                <button type="button" class="btn btn-outline-secondary">
+                <file-upload style="display: none;"
+                    accept="application/rdf+xml,application/xml"
+                    extensions="xml,rdf"
+                    ref="upload"
+                    v-model="uploadFiles"
+                    :custom-action="uploadFile"
+                    :directory="false"
+                    :drop="false"
+                    :multiple="false"
+                    @input-file="importFile">
+                </file-upload>
+                <button type="button" class="btn btn-outline-secondary" @click="triggerFileUpload('extend')">
                     {{ $t('tree.import.label') }}
                 </button>
                 <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="#">
-                        {{ $t('tree.import.new') }}
+                    <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('extend')">
+                        {{ $t('tree.import.extend') }}
                     </a>
-                    <a class="dropdown-item" href="#">
-                        {{ $t('tree.import.new-update') }}
+                    <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('update-extend')">
+                        {{ $t('tree.import.update-extend') }}
                     </a>
-                    <a class="dropdown-item" href="#">
+                    <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('replace')">
                         {{ $t('tree.import.replace') }}
                     </a>
                 </div>
@@ -331,6 +342,38 @@
                     this.tree.push(n);
                 });
             },
+            triggerFileUpload(type) {
+                this.importType = type;
+                this.$refs.upload.$el.children.file.click();
+            },
+            importFile(newFile, oldFile) {
+                // Wait for response
+                if(newFile && oldFile && newFile.success && !oldFile.success) {
+                    this.filesUploaded++;
+                }
+                if(newFile && oldFile && newFile.error && !oldFile.error) {
+                    this.filesErrored++;
+                }
+                // Enable automatic upload
+                if(Boolean(newFile) !== Boolean(oldFile) || oldFile.error !== newFile.error) {
+                    if(!this.$refs.upload.active) {
+                        this.$refs.upload.active = true
+                    }
+                }
+                if(this.filesUploaded + this.filesErrored == this.uploadFiles.length) {
+                    if(this.filesUploaded > 0) {
+                        this.filesUploaded = 0;
+                        this.filesErrored = 0;
+                        // TODO handle update
+                    }
+                }
+            },
+            uploadFile(file, component) {
+                let formData = new FormData();
+                formData.append('file', file.file);
+                formData.append('type', this.importType);
+                return $http.post(`tree/file?t=${this.treeName}`, formData);
+            },
             exportTree(rootElement) {
                 if(rootElement) {
                     let filename = `thesaurex-${this.$getLabel(rootElement)}-export.rdf`;
@@ -362,13 +405,13 @@
             handleDeleteAll(e) {
                 const id = e.element.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}`).then(response => {
-                    console.log("all deleted");
+                    // TODO handle update (sub-tree deleted)
                 }));
             },
             handleDeleteOneUp(e) {
                 const id = e.element.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move`).then(response => {
-                    console.log("moved one level up");
+                    // TODO handle update (concept deleted, descs one level up)
                 }));
             },
             isDropAllowed(dropData) {
@@ -450,7 +493,6 @@
                     targetNode.state.selected = true;
                     // Scroll tree to selected element
                     const elem = document.getElementById(`tree-node-${targetNode.id}`);
-                    console.log(this.scrollTo.options.container);
                     VueScrollTo.scrollTo(elem, this.scrollTo.duration, this.scrollTo.options);
                 });
             },
@@ -472,7 +514,10 @@
                 concepts: [],
                 tree: [],
                 highlightedItems: [],
-                selectedConceptId: -1
+                selectedConceptId: -1,
+                uploadFiles: [],
+                filesUploaded: 0,
+                filesErrored: 0
             }
         },
         computed: {

@@ -10,6 +10,7 @@ import moment from 'moment';
 // Components
 import Notifications from 'vue-notification';
 import VModal from 'vue-js-modal';
+import VueUploadComponent from 'vue-upload-component';
 
 import VueI18n from 'vue-i18n';
 import en from './i18n/en';
@@ -165,6 +166,7 @@ Vue.component('about-dialog', require('./components/About.vue'));
 // Components
 Vue.component('concept-tree', require('./components/ConceptTree.vue'));
 Vue.component('concept-search', require('./components/ConceptSearch.vue'));
+Vue.component('file-upload', VueUploadComponent);
 
 // Filters
 Vue.filter('date', function(value, format = 'DD.MM.YYYY HH:mm', useLocale = false) {

@@ -60,8 +60,8 @@ const en = {
     tree: {
         import: {
             label: 'Import RDF',
-            new: 'Only import new concepts',
-            'new-update': 'Update existing concepts & add new ones',
+            extend: 'Only import new concepts',
+            'update-extend': 'Update existing concepts & add new ones',
             replace: 'Delete existing concepts  & add new ones'
         },
         export: {

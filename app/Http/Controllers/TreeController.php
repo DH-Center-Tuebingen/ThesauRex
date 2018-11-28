@@ -22,7 +22,7 @@ use App\ThLanguage;
 
 class TreeController extends Controller
 {
-    private $importTypes = ['extend', 'update', 'new'];
+    public const importTypes = ['extend', 'update-extend', 'replace'];
 
     public function getLanguages() {
         $user = \Auth::user();
@@ -45,7 +45,7 @@ class TreeController extends Controller
         $which = $request->query('t', '');
         $lang = $user->getLanguage();
 
-        $conceptTable = Helpers::getTreeBuilder($which, $lang);
+        $conceptTable = Helpers::getTreeBuilder($which, $lang, 1);
 
         $topConcepts = $conceptTable
             ->withCount('narrowers as children_count')
@@ -78,7 +78,7 @@ class TreeController extends Controller
             ], 400);
         }
 
-        $conceptTable = Helpers::getTreeBuilder($which, $lang);
+        $conceptTable = Helpers::getTreeBuilder($which, $lang, 1);
         $broaderTable = Helpers::getTreeBroaderBuilder($which, $lang);
 
         $ids = $broaderTable
@@ -692,32 +692,29 @@ class TreeController extends Controller
                 'error' => 'You do not have the permission to call this method'
             ], 403);
         }
-        if(!$request->hasFile('file') || !$request->file('file')->isValid()) return response()->json('null');
+
+        $this->validate($request, [
+            'file' => 'required|file',
+            'type' => 'upload_type'
+        ]);
+
+        $treeName = $request->query('t', '');
         $file = $request->file('file');
-        $type = $request->get('type');
-
-        if(!in_array($type, $this->importTypes)) {
-            return response()->json([
-                'error' => 'Please provide an import type. \'type\' has to be one of \'' . implode('\', \'', $this->importTypes) . '\''
-            ]);
-        }
-
-        $treeName = $request->get('treeName');
-        $suffix = $treeName == 'project' ? '' : '_master';
+        $type = $request->input('type', 'extend');
+        $suffix = $treeName === 'sandbox' ? '_master' : '';
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
-        if($type == 'new') {
+        DB::beginTransaction();
+
+        if($type == 'replace') {
             DB::table($thConcept)
                 ->delete();
         }
 
-        $languages = [];
-        foreach(DB::table('th_language')->get() as $l) {
-            $languages[$l->short_name] = $l->id;
-        }
+        $languages = ThLanguage::all()->keyBy('short_name');
 
         $graph = new \EasyRdf_Graph();
         $graph->parseFile($file->getRealPath());
@@ -725,9 +722,9 @@ class TreeController extends Controller
         $relations = [];
         foreach($resources as $url => $r) {
             $concept = DB::table($thConcept)
-                ->where('concept_url', '=', $url)
+                ->where('concept_url', $url)
                 ->first();
-            $conceptExists = $concept != null;
+            $conceptExists = $concept !== null;
             //if type = extend we only want to add new concepts (count = 0)
             if($type == 'extend' && $conceptExists) continue;
 
@@ -738,9 +735,9 @@ class TreeController extends Controller
                     count($r->allResources('skos:broaderTransitive')) === 0;
             }
             $scheme = '';
-            $lasteditor = 'postgres';
+            $lasteditor = $user->name;
 
-            $needsUpdate = $type == 'update' && $conceptExists;
+            $needsUpdate = $type == 'update-extend' && $conceptExists;
             if($needsUpdate) {
                 $cid = $concept->id;
             } else {
@@ -755,7 +752,12 @@ class TreeController extends Controller
 
             $prefLabels = $r->allLiterals('skos:prefLabel');
             foreach($prefLabels as $pL) {
-                $lid = $languages[$pL->getLang()];
+                $lang = $languages[$pL->getLang()];
+                if(!isset($lang)) {
+                    \Log::info("Language $pL->getLang() is missing. Skipping entry.");
+                    continue;
+                }
+                $lid = $lang->id;
                 $label = $pL->getValue();
                 if($needsUpdate) {
                     $where = [
@@ -797,7 +799,12 @@ class TreeController extends Controller
 
             $altLabels = $r->allLiterals('skos:altLabel');
             foreach($altLabels as $aL) {
-                $lid = $languages[$aL->getLang()];
+                $lang = $languages[$aL->getLang()];
+                if(!isset($lang)) {
+                    \Log::info("Language $aL->getLang() is missing. Skipping entry.");
+                    continue;
+                }
+                $lid = $lang->id;
                 $label = $aL->getValue();
                 if($needsUpdate) {
                     $where = [
@@ -851,17 +858,17 @@ class TreeController extends Controller
             $b = $rel['broader'];
             $n = $rel['narrower'];
             $bid = DB::table($thConcept)
-                ->where('concept_url', '=', $b)
+                ->where('concept_url', $b)
                 ->value('id');
             $nid = DB::table($thConcept)
-                ->where('concept_url', '=', $n)
+                ->where('concept_url', $n)
                 ->value('id');
             $relationExists = DB::table($thBroader)
                 ->where([
                     ['broader_id', '=', $bid],
                     ['narrower_id', '=', $nid]
                 ])
-                ->count() > 0;
+                ->exists();
             if(!$relationExists) {
                 DB::table($thBroader)
                     ->insert([
@@ -870,7 +877,38 @@ class TreeController extends Controller
                 ]);
             }
         }
-        return response()->json('');
+
+        // check circles
+        $circles = DB::select(DB::raw("
+            WITH RECURSIVE
+            cte(bid, nid, depth, path, is_cycle) AS (
+                SELECT b.broader_id, b.narrower_id, 1, ARRAY[b.broader_id], false
+                FROM th_broaders b
+              UNION ALL
+                SELECT b.broader_id, b.narrower_id, cte.depth + 1, path || b.broader_id, b.broader_id = ANY(path)
+                FROM th_broaders b, cte
+                WHERE b.broader_id = cte.nid AND NOT is_cycle
+            )
+            SELECT distinct bid
+            FROM cte
+            WHERE is_cycle = TRUE
+        "));
+
+        if(count($circles) > 0) {
+            $circleList = '';
+            foreach($circles as $circle) {
+                $broader_concept = Db::table($thConcept)->where('id', $circle->bid)->first();
+                $circleList .= "$broader_concept->concept_url\n";
+            }
+            DB::rollBack();
+            return response()->json([
+                'error' => "Your imported tree has circles for the following concepts:\n\n$circleList\n\nPlease fix and re-upload."
+            ], 400);
+        }
+
+        DB::commit();
+
+        return response()->json(null, 204);
     }
 
     private function createConceptLists($rows) {

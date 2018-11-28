@@ -60,6 +60,8 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::get('/{id}/export', 'TreeController@export')->where('id', '[0-9]+');
     Route::get('/export', 'TreeController@export');
 
+    Route::post('/file', 'TreeController@import');
+
     Route::put('/concept', 'TreeController@addConcept');
     Route::put('/label', 'TreeController@addLabel');
     Route::put('/note', 'TreeController@addNote');

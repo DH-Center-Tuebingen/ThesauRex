@@ -60,8 +60,8 @@ const de = {
     tree: {
         import: {
             label: 'RDF importieren',
-            new: 'Nur neue Konzepte importieren',
-            'new-update': 'Vorhandene Konzepte aktualisieren & neue hinzufügen',
+            extend: 'Nur neue Konzepte importieren',
+            'update-extend': 'Vorhandene Konzepte aktualisieren & neue hinzufügen',
             replace: 'Vorhandene Konzepte löschen & neue hinzufügen'
         },
         export: {

@@ -20,21 +20,37 @@ class Helpers {
         return in_array($str, $acceptable, true);
     }
 
-    public static function getTreeBuilder($name, $langCode = null) {
+    // detail level
+    // 0 = no relations
+    // 1 = labels
+    // 2 = all
+    public static function getTreeBuilder($name, $langCode = null, $detailLevel = 2) {
         $builder;
         if($name === 'sandbox') {
             $builder = ThConceptSandbox::query();
         } else {
             $builder = ThConcept::query();
         }
-        if($langCode === null) {
+        if($detailLevel === 0 || $langCode === null) {
             return $builder;
         } else {
-            return $builder->with(['narrowers', 'broaders', 'notes.language' => function($query) use($langCode) {
+            $labelWith = [
+                'labels.language' => function($query) use($langCode) {
                     $query->orderByRaw("short_name = '$langCode' desc");
-                }, 'labels.language' => function($query) use($langCode) {
-                    $query->orderByRaw("short_name = '$langCode' desc");
-                }]);
+                }
+            ];
+            $detailedWith = [];
+            if($detailLevel == 2) {
+                $detailedWith = [
+                    'notes.language' => function($query) use($langCode) {
+                        $query->orderByRaw("short_name = '$langCode' desc");
+                    },
+                    'narrowers',
+                    'broaders'
+                ];
+            }
+            $withs = array_merge($labelWith, $detailedWith);
+            return $builder->with($withs);
         }
     }
 
