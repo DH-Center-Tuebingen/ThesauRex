@@ -33,7 +33,7 @@
                     </li>
                 </ol>
             </a>
-            <a v-if="addNew" href="#" class="dropdown-item px-1" :class="activeClass(items.length)" @mosedown="newItem(query)" @mousemove="setActive(items.length)">
+            <a v-if="addNew" href="#" class="dropdown-item px-1" :class="activeClass(items.length)" @click.prevent="newItem(query)" @mousemove="setActive(items.length)">
                 {{ query }} (Add new)
             </a>
         </div>

@@ -83,17 +83,11 @@
                 if(concept.parent) {
                     data.parent_id = concept.parent.id;
                 }
-                $httpQueue.add(() => $http.put(`/tree/concept?t=${this.treeName}`, data).then(response => {
-                    let cs;
-                    if(!concept.parent) {
-                        if(this.treeName === 'sandbox') {
-                            cs = this.sandbox.concepts;
-                        } else {
-                            cs = this.concepts;
-                        }
-                        cs.push(response.data);
-                    }
-                    // TODO handle update
+                $httpQueue.add(() => $http.put(`/tree/concept?t=${concept.tree}`, data).then(response => {
+                    this.eventBus.$emit(`concept-created-${concept.tree}`, {
+                        parent_id: concept.parent ? concept.parent.id : undefined,
+                        concept: response.data
+                    });
                 }));
             },
             handleConceptClick(e) {

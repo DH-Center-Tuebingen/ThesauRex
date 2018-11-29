@@ -313,7 +313,7 @@ class TreeController extends Controller
         $thConceptLabel->lasteditor = $user->name;
         $thConceptLabel->save();
 
-        $thConcept->labels();
+        $thConcept->loadMissing('labels');
 
         return response()->json($thConcept, 201);
     }

@@ -118,6 +118,10 @@
                 required: true,
                 type: String
             },
+            eventBus: {
+                required: true,
+                type: Object
+            },
             selectedEntity: {
                 required: false,
                 type: Object
@@ -126,10 +130,6 @@
                 required: false,
                 type: Number,
                 default: 500
-            },
-            eventBus: {
-                required: false, // TODO was true
-                type: Object
             }
         },
         mounted() {
@@ -139,6 +139,7 @@
             this.eventBus.$on(`concept-selected-${this.treeName}`, (e) => {
                 this.selectConcept(e.concept);
             });
+            this.eventBus.$on(`concept-created-${this.treeName}`, this.handleConceptCreated);
             this.eventBus.$on(`label-update-${this.treeName}`, this.handleLabelUpdate);
             this.eventBus.$on(`relation-updated-${this.treeName}`, this.handleRelationUpdate);
 
@@ -151,6 +152,7 @@
         },
         beforeDestroy() {
             this.eventBus.$off(`concept-selected-${this.treeName}`);
+            this.eventBus.$off(`concept-created-${this.treeName}`);
             this.eventBus.$off(`label-update-${this.treeName}`);
             this.eventBus.$off(`broader-added-${this.treeName}`);
 
@@ -217,7 +219,8 @@
             requestConcept(parent, text = '') {
                 this.$emit('request-concept', {
                     parent: parent,
-                    text: text
+                    text: text,
+                    tree: this.treeName
                 });
             },
             fetchChildren(id) {
@@ -235,64 +238,6 @@
                     });
                     return newNodes;
                 }));
-            },
-            onAdd(entity, parent) {
-                const vm = this;
-                if(!vm.$can('create_concepts')) return;
-                let data = {};
-                data.name = entity.name;
-                data.entity_type_id = entity.entity_type_id;
-                if(entity.root_entity_id) data.root_entity_id = entity.root_entity_id;
-                if(entity.geodata_id) entity.geodata_id = entity.geodata_id;
-
-                $httpQueue.add(() => vm.$http.post('/entity', data).then(function(response) {
-                    vm.insertIntoTree(response.data, parent);
-                }));
-            },
-            insertIntoTree(entity, parent) {
-                const vm = this;
-                const node = new Node(entity, vm);
-                if (parent && !parent.childrenLoaded) {
-                    parent.children_count++;
-                    return;
-                }
-                let siblings = parent ? parent.children : vm.tree;
-                const isAsc = vm.sort.dir == 'asc';
-                siblings.map(s => {
-                    if(s.rank >= node.rank) {
-                        s.rank++;
-                    }
-                });
-                let insertIndex;
-                if(vm.sort.by == 'rank') {
-                    if(isAsc) {
-                        insertIndex = node.rank - 1;
-                    } else {
-                        insertIndex = siblings.length - (node.rank - 1);
-                    }
-                } else {
-                    let sortField;
-                    switch(vm.sort.by) {
-                        case 'alpha':
-                        sortField = 'name';
-                        break;
-                        case 'children':
-                        sortField = 'children_count';
-                        break;
-                        default:
-                        vm.$throwError({message: `Sort key unknown.`});
-                    }
-                    insertIndex = siblings.length;
-                    for(let i = 0; i < siblings.length; i++) {
-                        if((siblings[i][sortField] < node[sortField]) != isAsc) {
-                            insertIndex = i;
-                            break;
-                        }
-                    }
-                }
-                siblings.splice(insertIndex, 0, node);
-                if(parent) parent.children_count++;
-                vm.entities[node.id] = node;
             },
             requestDeleteEntity(entity, path) {
                 const vm = this;
@@ -415,6 +360,7 @@
                 const id = e.element.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}`).then(response => {
                     // TODO handle update (sub-tree deleted)
+                    this.concepts[id] = null;
                 }));
             },
             handleDeleteOneUp(e) {
@@ -422,6 +368,18 @@
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move`).then(response => {
                     // TODO handle update (concept deleted, descs one level up)
                 }));
+            },
+            handleConceptCreated(e) {
+                const parent = this.concepts[e.parent_id];
+                const n = new Node(e.concept, this);
+                this.concepts[n.id] = n;
+
+                this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                    type: 'add',
+                    concept: this.concepts[e.concept.id],
+                    broader_id: e.parent_id ? parent.id : undefined,
+                    narrower_id: e.concept.id
+                });
             },
             handleLabelUpdate(e) {
                 let concept = this.concepts[e.concept_id];
@@ -434,10 +392,12 @@
                     case 'add':
                         broader = this.concepts[e.broader_id];
                         narrower = this.concepts[e.narrower_id];
-                        broader.children_count++;
-                        if(broader.childrenLoaded) {
-                            broader.children.push(narrower);
+                        if(e.broader_id && !broader.childrenLoaded) {
+                            broader.children_count++;
+                            break;
                         }
+                        let siblings = e.broader_id ? broader.children : this.tree;
+                        siblings.push(narrower);
                         break;
                     case 'remove':
                         broader = this.concepts[e.broader_id];

@@ -215,6 +215,18 @@
                 $('[data-toggle="popover"]').popover()
             });
         },
+        created() {
+            this.eventBus.$on(`relation-updated-${this.treeName}`, this.handleRelationUpdate);
+
+            this.eventBus.$on(`dc-delete-all-${this.treeName}`, this.handleConceptDeleteAll);
+            this.eventBus.$on(`dc-delete-one-${this.treeName}`, this.handleConceptDeleteOneUp);
+        },
+        beforeDestroy() {
+            this.eventBus.$off(`relation-updated-${this.treeName}`);
+
+            this.eventBus.$off(`dc-delete-all-${this.treeName}`);
+            this.eventBus.$off(`dc-delete-one-${this.treeName}`);
+        },
         methods: {
             init(data, treeName) {
                 this.concept = data;
@@ -301,14 +313,52 @@
                     );
                 }));
             },
+            handleConceptDeleteAll(e) {
+                if(this.concept.id == e.element.id) {
+                    this.$router.push({
+                        name: 'home'
+                    });
+                    return;
+                }
+                // TODO
+            },
+            handleConceptDeleteOneUp(e) {
+                if(this.concept.id == e.element.id) {
+                    this.$router.push({
+                        name: 'home'
+                    });
+                    return;
+                }
+                // TODO
+            },
+            handleRelationUpdate(e) {
+                switch(e.type) {
+                    case 'add':
+                        if(e.narrower_id == this.concept.id) {
+                            this.concept.broaders.push(e.concept);
+                        } else if(e.broader_id == this.concept.id) {
+                            this.concept.narrowers.push(e.concept);
+                        }
+                        break;
+                    case 'remove':
+                        if(e.narrower_id == this.concept.id) {
+                            const idx = this.concept.broaders.findIndex(b => b.id == e.broader_id);
+                            this.concept.broaders.splice(idx, 1);
+                        } else if(e.broader_id == this.concept.id) {
+                            const idx = this.concept.narrowers.findIndex(n => n.id == e.narrower_id);
+                            this.concept.narrowers.splice(idx, 1);
+                        }
+                        break;
+                }
+            },
             broaderSelected(e) {
                 if(!e.concept) return;
                 const bid = e.concept.id;
                 const id = this.concept.id;
                 $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}`).then(response => {
-                    this.concept.broaders.push(e.concept);
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'add',
+                        concept: e.concept,
                         broader_id: bid,
                         narrower_id: id
                     });
@@ -319,7 +369,6 @@
                 const bid = broader.id;
                 const id = this.concept.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}`).then(response => {
-                    this.concept.broaders.splice(index, 1);
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: bid,
@@ -332,15 +381,16 @@
                 if(e.concept.is_new) {
                     this.$emit('request-concept', {
                         parent: this.concept,
-                        label: e.concept.label
+                        label: e.concept.label,
+                        tree: this.treeName
                     });
                 } else {
                     const bid = e.concept.id;
                     const id = this.concept.id;
                     $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}`).then(response => {
-                        this.concept.narrowers.push(e.concept);
                         this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                             type: 'add',
+                            concept: e.concept,
                             broader_id: id,
                             narrower_id: bid
                         });
@@ -352,7 +402,6 @@
                 const bid = broader.id;
                 const id = this.concept.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}`).then(response => {
-                    this.concept.narrowers.splice(index, 1);
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: id,

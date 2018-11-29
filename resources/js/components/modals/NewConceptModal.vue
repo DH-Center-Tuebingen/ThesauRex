@@ -63,6 +63,10 @@
                 required: true,
                 type: Array
             },
+            tree: {
+                required: true,
+                type: String
+            },
             onSubmit: {
                 required: true,
                 type: Function
@@ -88,7 +92,8 @@
                 const c = {
                     label: this.labelText,
                     language: this.selectedLanguage,
-                    parent: this.parent
+                    parent: this.parent,
+                    tree: this.tree
                 };
                 this.onSubmit(c);
                 this.$emit('close');
