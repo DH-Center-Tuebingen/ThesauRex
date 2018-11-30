@@ -77,6 +77,10 @@ const de = {
     },
     detail: {
         title: 'Konzept-Eigenschaften',
+        copy_url: {
+            title: 'URL in Zwischenablage kopiert',
+            message: '<span class="font-weight-medium">{url}</span> erfolgreich in die Zwischenablage kopiert.'
+        },
         broader: {
             title: 'Übergeordnete Konzepte',
             empty: 'Keine übergeordneten Konzepte vorhanden'

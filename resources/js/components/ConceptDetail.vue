@@ -6,7 +6,12 @@
                 {{ $t('detail.title') }}
             </small>
         </h4>
-        <code class="normal text-black-50">{{ concept.concept_url }}</code>
+        <div class="d-flex flex-row justify-content-start">
+            <code id="concept-url" class="normal text-black-50">{{ concept.concept_url }}</code>
+            <a href="" class="pl-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
+                <i class="fas fa-fw fa-copy"></i>
+            </a>
+        </div>
         <hr class="w-100" />
         <div class="row h-100">
             <div class="col-md-6 d-flex flex-column">
@@ -318,6 +323,25 @@
                         'success'
                     );
                 }));
+            },
+            copyToClipboard(id) {
+                const range = document.createRange();
+                const selection = window.getSelection();
+                const elem = document.getElementById(id);
+                range.selectNodeContents(elem);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                try {
+                    document.execCommand("copy");
+                    selection.removeAllRanges();
+                    const title = this.$t('detail.copy_url.title');
+                    const msg = this.$t('detail.copy_url.message', {
+                        url: elem.innerText
+                    });
+                    this.$showToast(title, msg, 'info');
+                } catch(err) {
+                    console.log(err);
+                }
             },
             handleConceptDeleteAll(e) {
                 if(this.concept.id == e.element.id) {

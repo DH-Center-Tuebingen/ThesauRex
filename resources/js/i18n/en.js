@@ -77,6 +77,10 @@ const en = {
     },
     detail: {
         title: 'Concept Properties',
+        copy_url: {
+            title: 'Copied URL to Clipboard',
+            message: '<span class="font-weight-medium">{url}</span> successfully copied to the Clipboard.'
+        },
         broader: {
             title: 'Broader Concepts',
             empty: 'No broader concepts available'
