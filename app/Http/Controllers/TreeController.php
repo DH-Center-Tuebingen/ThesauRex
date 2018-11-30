@@ -119,6 +119,8 @@ class TreeController extends Controller
         $concept = $conceptTable
             ->where('id', $id)
             ->first();
+        $concept->broaders->loadMissing('labels.language');
+        $concept->narrowers->loadMissing('labels.language');
         $concept->setAppends(['parents', 'path']);
         return response()->json($concept);
     }

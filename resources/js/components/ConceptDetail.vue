@@ -26,7 +26,7 @@
                     <ul class="list-group list-group-xs scroll-y-auto" v-if="concept.broaders.length">
                         <li class="list-group-item d-flex flex-row justify-content-between" v-for="(broader, i) in concept.broaders" @mouseenter="setHoverState('broaders', i, true)" @mouseleave="setHoverState('broaders', i, false)">
                             <a href="" @click.prevent="gotoConcept(broader.id)">
-                                {{ broader.concept_url }}
+                                {{ broader.selectedLabel }}
                             </a>
                             <span v-show="hoverStates.broaders[i]" @click="removeBroader(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
@@ -55,7 +55,7 @@
                     <ul class="list-group list-group-xs scroll-y-auto" v-if="concept.narrowers.length">
                         <li class="list-group-item d-flex flex-row justify-content-between" v-for="(narrower, i) in concept.narrowers" @mouseenter="setHoverState('narrowers', i, true)" @mouseleave="setHoverState('narrowers', i, false)">
                             <a href="" @click.prevent="gotoConcept(narrower.id)">
-                                {{ narrower.concept_url }}
+                                {{ narrower.selectedLabel }}
                             </a>
                             <span v-show="hoverStates.narrowers[i]" @click="removeNarrower(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
@@ -229,6 +229,12 @@
         },
         methods: {
             init(data, treeName) {
+                data.broaders.forEach(b => {
+                    b.selectedLabel = this.$getLabel(b);
+                });
+                data.narrowers.forEach(n => {
+                    n.selectedLabel = this.$getLabel(n);
+                });
                 this.concept = data;
                 this.treeName = treeName == 'sandbox' ? 'sandbox' : '';
                 this.selectedLanguage = this.languages[0];
