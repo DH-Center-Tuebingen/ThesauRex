@@ -19,7 +19,7 @@ class ThConcept extends Model
         'lasteditor',
     ];
 
-    protected $appends = ['parents', 'path'];
+    // protected $appends = ['parents', 'path'];
 
     public static function getMap() {
         $lang = 'de'; // TODO

@@ -51,7 +51,7 @@ class TreeController extends Controller
             ->withCount('narrowers as children_count')
             ->where('is_top_concept', true)
             ->get();
-        // $topConcepts = [];
+        $topConcepts->each->setAppends(['parents', 'path']);
         return response()->json($topConcepts);
     }
 
@@ -88,6 +88,7 @@ class TreeController extends Controller
             ->withCount('narrowers as children_count')
             ->whereIn('id', $ids)
             ->get();
+        $concepts->each->setAppends(['parents', 'path']);
         return response()->json($concepts);
     }
 
@@ -118,6 +119,7 @@ class TreeController extends Controller
         $concept = $conceptTable
             ->where('id', $id)
             ->first();
+        $concept->setAppends(['parents', 'path']);
         return response()->json($concept);
     }
 
