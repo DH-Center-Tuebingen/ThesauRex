@@ -136,7 +136,14 @@ class RolesPermissionsSeeder extends Seeder
 
         // Roles
         // Admin
-        $admin = Role::where('name', '=', 'admin')->first();
+        $admin = Role::where('name', 'admin')->first();
+        if($admin === null) {
+            $admin = new Role();
+            $admin->name = 'admin';
+            $admin->display_name = 'Administrator';
+            $admin->description = 'Project Administrator';
+            $admin->save();
+        }
         // Add all permissions to admin
         $admin->attachPermission($add_move_concepts_th);
         $admin->attachPermission($delete_concepts_th);
