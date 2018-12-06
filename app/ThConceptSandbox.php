@@ -109,11 +109,11 @@ class ThConceptSandbox extends Model
                     q (broader_id, narrower_id, lvl) AS
                     (
                         SELECT b1.broader_id, b1.narrower_id, 0
-                        FROM th_broaders_sandbox b1
+                        FROM th_broaders_master b1
                         $currentWhere
                         UNION ALL
                         SELECT b2.broader_id, b2.narrower_id, lvl + 1
-                        FROM th_broaders_sandbox b2
+                        FROM th_broaders_master b2
                         JOIN q ON q.broader_id = b2.narrower_id
                     )
                 SELECT q.*
