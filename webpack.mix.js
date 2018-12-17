@@ -2,6 +2,26 @@ const mix = require('laravel-mix');
 
 /*
  |--------------------------------------------------------------------------
+ | App Path
+ |--------------------------------------------------------------------------
+ |
+ | The relative path of your app in your web browser's root folder
+ | **without** leading and **with** trailing slash
+ |
+ |--------------------------------------------------------------------------
+ | Example
+ |--------------------------------------------------------------------------
+ |
+ | Document Root: /var/www/html
+ | App Root: /var/www/html/spacialist/instance1
+ | => appPath = 'spacialist/instance1/'
+ |
+ */
+
+const appPath = '';
+
+/*
+ |--------------------------------------------------------------------------
  | Mix Asset Management
  |--------------------------------------------------------------------------
  |
@@ -13,9 +33,14 @@ const mix = require('laravel-mix');
 
 mix.js('resources/js/app.js', 'public/js')
    .sass('resources/sass/app.scss', 'public/css')
+   .options({
+       fileLoaderDirs: {
+           fonts: appPath + 'fonts'
+       }
+   })
    .webpackConfig({
       output: {
-         publicPath: '/'
+         publicPath: '/' + appPath
       }
    })
    .autoload({
