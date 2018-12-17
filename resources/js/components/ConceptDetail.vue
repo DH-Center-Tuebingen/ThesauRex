@@ -221,16 +221,22 @@
             });
         },
         created() {
-            this.eventBus.$on(`relation-updated-${this.treeName}`, this.handleRelationUpdate);
+            this.eventBus.$on(`relation-updated-`, this.handleRelationUpdate);
+            this.eventBus.$on(`relation-updated-sandbox`, this.handleRelationUpdate);
 
-            this.eventBus.$on(`dc-delete-all-${this.treeName}`, this.handleConceptDeleteAll);
-            this.eventBus.$on(`dc-delete-one-${this.treeName}`, this.handleConceptDeleteOneUp);
+            this.eventBus.$on(`dc-delete-all-`, this.handleConceptDeleteAll);
+            this.eventBus.$on(`dc-delete-all-sandbox`, this.handleConceptDeleteAll);
+            this.eventBus.$on(`dc-delete-one-`, this.handleConceptDeleteOneUp);
+            this.eventBus.$on(`dc-delete-one-sandbox`, this.handleConceptDeleteOneUp);
         },
         beforeDestroy() {
-            this.eventBus.$off(`relation-updated-${this.treeName}`);
+            this.eventBus.$off(`relation-updated-`);
+            this.eventBus.$off(`relation-updated-sandbox`);
 
-            this.eventBus.$off(`dc-delete-all-${this.treeName}`);
-            this.eventBus.$off(`dc-delete-one-${this.treeName}`);
+            this.eventBus.$off(`dc-delete-all-`);
+            this.eventBus.$off(`dc-delete-all-sandbox`);
+            this.eventBus.$off(`dc-delete-one-`);
+            this.eventBus.$off(`dc-delete-one-sandbox`);
         },
         methods: {
             init(data, treeName) {
@@ -263,7 +269,7 @@
                     cid: this.concept.id,
                     tree_name: this.treeName
                 };
-                $httpQueue.add(() => $http.put(`tree/label`, data).then(response => {
+                $httpQueue.add(() => $http.put(`tree/label?t=${this.treeName}`, data).then(response => {
                     this.concept.labels.push(response.data);
                     this.resetProperty(label);
                     this.eventBus.$emit(`label-update-${this.treeName}`, {
@@ -305,7 +311,7 @@
                     cid: this.concept.id,
                     tree_name: this.treeName
                 };
-                $httpQueue.add(() => $http.put(`tree/note`, data).then(response => {
+                $httpQueue.add(() => $http.put(`tree/note?t=${this.treeName}`, data).then(response => {
                     this.concept.notes.push(response.data);
                     this.resetProperty(note);
                 }));
@@ -385,7 +391,7 @@
                 if(!e.concept) return;
                 const bid = e.concept.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}`).then(response => {
+                $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}/?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'add',
                         concept: e.concept,
@@ -398,7 +404,7 @@
                 const broader = this.concept.broaders[index];
                 const bid = broader.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}`).then(response => {
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}/?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: bid,
@@ -417,7 +423,7 @@
                 } else {
                     const bid = e.concept.id;
                     const id = this.concept.id;
-                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}`).then(response => {
+                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}/?t=${this.treeName}`).then(response => {
                         this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                             type: 'add',
                             concept: e.concept,
@@ -431,7 +437,7 @@
                 const broader = this.concept.narrowers[index];
                 const bid = broader.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}`).then(response => {
+                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}/?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: id,

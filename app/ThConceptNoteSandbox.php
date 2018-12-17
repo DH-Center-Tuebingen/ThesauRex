@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ThConceptNoteSandbox extends Model
 {
-    protected $table = 'th_concept_notes_sandbox';
+    protected $table = 'th_concept_notes_master';
     /**
      * The attributes that are assignable.
      *

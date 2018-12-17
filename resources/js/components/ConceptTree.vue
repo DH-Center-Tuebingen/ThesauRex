@@ -372,6 +372,7 @@
             handleConceptCreated(e) {
                 const parent = this.concepts[e.parent_id];
                 const n = new Node(e.concept, this);
+                n.selectedLabel = this.$getLabel(n);
                 this.concepts[n.id] = n;
 
                 this.eventBus.$emit(`relation-updated-${this.treeName}`, {

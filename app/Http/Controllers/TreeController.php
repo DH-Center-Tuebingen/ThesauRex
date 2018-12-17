@@ -317,7 +317,8 @@ class TreeController extends Controller
         $thConceptLabel->lasteditor = $user->name;
         $thConceptLabel->save();
 
-        $thConcept->loadMissing('labels');
+        $thConcept->loadMissing('labels.language');
+        $thConcept->children_count = 0;
 
         return response()->json($thConcept, 201);
     }
@@ -512,22 +513,30 @@ class TreeController extends Controller
             ], 403);
         }
 
-        try {
-            ThConcept::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-        try {
-            ThConcept::findOrFail($bid);
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-
         $treeName = $request->query('t', '');
+
+        try {
+            if($treeName === 'sandbox') {
+                ThConceptSandbox::findOrFail($id);
+            } else {
+                ThConcept::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+        try {
+            if($treeName === 'sandbox') {
+                ThConceptSandbox::findOrFail($bid);
+            } else {
+                ThConcept::findOrFail($bid);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
 
         $entry;
         if($treeName == 'sandbox') {
@@ -552,22 +561,31 @@ class TreeController extends Controller
             ], 403);
         }
 
-        try {
-            ThConcept::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-        try {
-            ThConcept::findOrFail($bid);
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
-        }
-
         $treeName = $request->query('t', '');
+
+        $concept;
+        try {
+            if($treeName === 'sandbox') {
+                $concept = ThConceptSandbox::findOrFail($id);
+            } else {
+                $concept = ThConcept::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
+        try {
+            if($treeName === 'sandbox') {
+                ThConceptSandbox::findOrFail($bid);
+            } else {
+                ThConcept::findOrFail($bid);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist'
+            ], 400);
+        }
 
         $query;
         if($treeName == 'sandbox') {
@@ -579,6 +597,23 @@ class TreeController extends Controller
         $query->where('broader_id', $bid)
             ->where('narrower_id', $id)
             ->delete();
+
+        // if narrower is not a top concept
+        // check if there are other broader-narrower
+        // relations. If not, delete the concept
+        if(!$concept->is_top_concept) {
+            if($treeName == 'sandbox') {
+                $query = ThBroaderSandbox::query();
+            } else {
+                $query = ThBroader::query();
+            }
+
+            $broadCnt = $query->where('narrower_id', $id)->count();
+
+            if($broadCnt === 0) {
+                $concept->delete();
+            }
+        }
 
         return response()->json(null, 204);
     }

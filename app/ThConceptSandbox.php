@@ -83,15 +83,15 @@ class ThConceptSandbox extends Model
     }
 
     public function notes() {
-        return $this->hasMany('App\ThConceptNote', 'concept_id');
+        return $this->hasMany('App\ThConceptNoteSandbox', 'concept_id');
     }
 
     public function narrowers() {
-        return $this->belongsToMany('App\ThConceptSandbox', 'th_broaders', 'broader_id', 'narrower_id');
+        return $this->belongsToMany('App\ThConceptSandbox', 'th_broaders_master', 'broader_id', 'narrower_id');
     }
 
     public function broaders() {
-        return $this->belongsToMany('App\ThConceptSandbox', 'th_broaders', 'narrower_id', 'broader_id');
+        return $this->belongsToMany('App\ThConceptSandbox', 'th_broaders_master', 'narrower_id', 'broader_id');
     }
 
     public function parentIds() {
