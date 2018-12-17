@@ -39,6 +39,8 @@ class SearchController extends Controller
         })
             ->get();
 
+        $concepts->each->setAppends(['parents', 'path']);
+
         return response()->json($concepts);
     }
 }
