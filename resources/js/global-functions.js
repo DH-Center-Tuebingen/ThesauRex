@@ -126,27 +126,33 @@ Vue.prototype.$rgb2hex = function(rgb) {
     return [r, g, b];
 }
 
-Vue.prototype.$getLabel = function(node) {
+Vue.prototype.$getLabel = function(node, displayForeign = false) {
     if(!node) return 'No Title';
     if(!node.labels || !node.labels.length) return node.concept_url;
-    if(node.labels.length === 1) return node.labels[0].label;
     const prefLang = this.$getPreference('prefs.gui-language');
-    let sortIndex = l => {
-        let idx = 0;
-        if(l.language.short_name == prefLang) {
-            idx -= 50;
-        } else if(l.language.short_name == 'en') {
-            idx -= 25;
-        }
-        if(l.concept_label_type === 1) {
-            idx -= 10;
-        }
-        return idx;
-    };
-    node.labels.sort((a, b) => {
-        return sortIndex(a) - sortIndex(b);
-    });
-    return node.labels[0].label;
+    if(node.labels.length > 1) {
+        let sortIndex = l => {
+            let idx = 0;
+            if(l.language.short_name == prefLang) {
+                idx -= 50;
+            } else if(l.language.short_name == 'en') {
+                idx -= 25;
+            }
+            if(l.concept_label_type === 1) {
+                idx -= 10;
+            }
+            return idx;
+        };
+        node.labels.sort((a, b) => {
+            return sortIndex(a) - sortIndex(b);
+        });
+    }
+    const bestLabel = node.labels[0];
+    let label = bestLabel.label;
+    if(displayForeign && bestLabel.language.short_name != prefLang) {
+        label += ' ' + Vue.prototype.$ce.flag(bestLabel.language.short_name);
+    }
+    return label;
 }
 
 Vue.prototype.$hasConcept = function(url) {

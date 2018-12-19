@@ -96,7 +96,7 @@
             },
             prepareResponseData(data) {
                 data.forEach(c => {
-                    c.selectedLabel = this.$getLabel(c);
+                    c.selectedLabel = this.$getLabel(c, true);
                     c.parents.forEach(p => {
                         p.selectedLabel = this.$getLabel(p);
                     });

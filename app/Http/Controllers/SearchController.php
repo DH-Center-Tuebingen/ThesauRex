@@ -39,6 +39,17 @@ class SearchController extends Controller
         })
             ->get();
 
+        $foreignConcepts = Helpers::getTreeBuilder($tree, $langCode)
+            ->whereDoesntHave('labels', function($query) use ($language) {
+                $query->where('language_id', $language->id);
+            })
+            ->whereHas('labels', function($query) use ($q) {
+                $query->where('label', 'ilike', "%$q%");
+            })
+            ->get();
+
+        $concepts = $concepts->union($foreignConcepts);
+
         $concepts->each->setAppends(['parents', 'path']);
 
         return response()->json($concepts);
