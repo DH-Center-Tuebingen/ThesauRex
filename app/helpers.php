@@ -1,8 +1,5 @@
 <?php
 
-namespace App;
-
-use App\Bibliography;
 use App\ThBroader;
 use App\ThBroaderSandbox;
 use App\ThConcept;
@@ -11,20 +8,20 @@ use App\ThConceptLabel;
 use App\ThConceptLabelSandbox;
 use App\ThConceptNote;
 use App\ThConceptNoteSandbox;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
-class Helpers {
-    public static function parseBoolean($str) {
+if(!function_exists('sp_parse_boolean')) {
+    function sp_parse_boolean($str) {
         $acceptable = [true, 1, '1', 'true', 'TRUE'];
         return in_array($str, $acceptable, true);
     }
+}
 
-    // detail level
-    // 0 = no relations
-    // 1 = labels
-    // 2 = all
-    public static function getTreeBuilder($name, $langCode = null, $detailLevel = 2) {
+// detail level
+// 0 = no relations
+// 1 = labels
+// 2 = all
+if(!function_exists('th_tree_builder')) {
+    function th_tree_builder($name, $langCode = null, $detailLevel = 2) {
         $builder;
         if($name === 'sandbox') {
             $builder = ThConceptSandbox::query();
@@ -53,8 +50,10 @@ class Helpers {
             return $builder->with($withs);
         }
     }
+}
 
-    public static function getTreeBroaderBuilder($name, $langCode = null) {
+if(!function_exists('th_broader_builder')) {
+    function th_broader_builder($name, $langCode = null) {
         $builder;
         if($name === 'sandbox') {
             $builder = ThBroaderSandbox::query();
@@ -69,8 +68,10 @@ class Helpers {
                 }]);
         }
     }
+}
 
-    public static function getTreeLabelBuilder($name, $langCode = null) {
+if(!function_exists('th_label_builder')) {
+    function th_label_builder($name, $langCode = null) {
         $builder;
         if($name === 'sandbox') {
             $builder = ThConceptLabelSandbox::query();
@@ -85,8 +86,10 @@ class Helpers {
                 }]);
         }
     }
+}
 
-    public static function getTreeNoteBuilder($name, $langCode = null) {
+if(!function_exists('th_note_builder')) {
+    function th_note_builder($name, $langCode = null) {
         $builder;
         if($name === 'sandbox') {
             $builder = ThConceptNoteSandbox::query();

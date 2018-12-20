@@ -45,7 +45,7 @@ class TreeController extends Controller
         $which = $request->query('t', '');
         $lang = $user->getLanguage();
 
-        $conceptTable = Helpers::getTreeBuilder($which, $lang, 1);
+        $conceptTable = th_tree_builder($which, $lang, 1);
 
         $topConcepts = $conceptTable
             ->withCount('narrowers as children_count')
@@ -78,8 +78,8 @@ class TreeController extends Controller
             ], 400);
         }
 
-        $conceptTable = Helpers::getTreeBuilder($which, $lang, 1);
-        $broaderTable = Helpers::getTreeBroaderBuilder($which, $lang);
+        $conceptTable = th_tree_builder($which, $lang, 1);
+        $broaderTable = th_broader_builder($which, $lang);
 
         $ids = $broaderTable
             ->where('broader_id', $id)
@@ -115,7 +115,7 @@ class TreeController extends Controller
             ], 400);
         }
 
-        $conceptTable = Helpers::getTreeBuilder($which, $lang);
+        $conceptTable = th_tree_builder($which, $lang);
         $concept = $conceptTable
             ->where('id', $id)
             ->first();
@@ -177,7 +177,7 @@ class TreeController extends Controller
                 ORDER BY id ASC
             ");
         } else {
-            $conceptTable = Helpers::getTreeBuilder($treeName);
+            $conceptTable = th_tree_builder($treeName);
             $concepts = $conceptTable->get();
         }
 
@@ -335,7 +335,7 @@ class TreeController extends Controller
         $treeName = $request->get('t');
         $lang = $user->getLanguage();
 
-        $labelTable = Helpers::getTreeLabelBuilder($treeName);
+        $labelTable = th_label_builder($treeName);
 
         $elem = $labelTable
             ->where('id', $id)
@@ -344,7 +344,7 @@ class TreeController extends Controller
         $prefLabelUpdated = false;
         // check if removed elem was pref label
         if($elem->concept_label_type === 1) {
-            $labelTable = Helpers::getTreeLabelBuilder($treeName);
+            $labelTable = th_label_builder($treeName);
             // if there is another label of the same language
             // make it a pref label
             $newPrefLabel = $labelTable
@@ -388,7 +388,7 @@ class TreeController extends Controller
         $treeName = $request->get('t');
         $lang = $user->getLanguage();
 
-        $noteTable = Helpers::getTreeNoteBuilder($treeName);
+        $noteTable = th_note_builder($treeName);
 
         $noteTable
             ->where('id', $id)
@@ -639,8 +639,8 @@ class TreeController extends Controller
             ], 400);
         }
 
-        $conceptTable = Helpers::getTreeBuilder($treeName);
-        $broaderTable = Helpers::getTreeBroaderBuilder($treeName);
+        $conceptTable = th_tree_builder($treeName);
+        $broaderTable = th_broader_builder($treeName);
 
         $narrowers = $broaderTable->where('broader_id', $id)->pluck('narrower_id')->toArray();
 
@@ -707,18 +707,18 @@ class TreeController extends Controller
     }
 
     private static function deleteOrphanedConcepts($descs, $tree) {
-        $conceptTable = Helpers::getTreeBuilder($tree);
+        $conceptTable = th_tree_builder($tree);
         $uniqueDescs = $conceptTable
             ->whereIn('id', $descs)
             ->where('is_top_concept', false)
             ->doesntHave('broaders')
             ->get();
         $descsArray = $uniqueDescs->pluck('id')->toArray();
-        $conceptTable = Helpers::getTreeBuilder($tree);
+        $conceptTable = th_tree_builder($tree);
         $conceptTable->whereIn('id', $descsArray)->delete();
 
         foreach($descsArray as $descId) {
-            $broaderTable = Helpers::getTreeBroaderBuilder($tree);
+            $broaderTable = th_broader_builder($tree);
             $narrowers = $broaderTable->where('broader_id', $descId)->pluck('narrower_id')->toArray();
             self::deleteOrphanedConcepts($narrowers, $tree);
         }

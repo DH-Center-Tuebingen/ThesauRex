@@ -23,7 +23,7 @@ class SearchController extends Controller
 
         $langCode = Preference::getUserPreference($user->id, 'prefs.gui-language')->value;
 
-        $builder = Helpers::getTreeBuilder($tree, $langCode);
+        $builder = th_tree_builder($tree, $langCode);
 
         try {
             $language = ThLanguage::where('short_name', $langCode)->firstOrFail();
@@ -39,7 +39,7 @@ class SearchController extends Controller
         })
             ->get();
 
-        $foreignConcepts = Helpers::getTreeBuilder($tree, $langCode)
+        $foreignConcepts = th_tree_builder($tree, $langCode)
             ->whereDoesntHave('labels', function($query) use ($language) {
                 $query->where('language_id', $language->id);
             })
