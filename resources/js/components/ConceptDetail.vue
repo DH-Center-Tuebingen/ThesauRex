@@ -114,14 +114,28 @@
                     <ul class="list-group list-group-xs col of-hidden pr-0 scroll-y-auto" v-if="concept.labels.length">
                         <li class="list-group-item d-flex flex-row justify-content-between" v-for="(label, i) in concept.labels" @mouseenter="setHoverState('labels', i, true)" @mouseleave="setHoverState('labels', i, false)">
                             <span class="col">
-                                {{ label.label }}
+                                <span v-if="!(editLabel.active && editLabel.index === i)">
+                                    {{ label.label }}
+                                </span>
+                                <div v-else class="d-flex flex-row">
+                                    <input type="text" class="form-input flex-grow-1" v-model="editLabel.value" />
+                                    <button type="button" class="btn btn-outline-success btn-sm ml-2" @click="confirmEditLabel(i)">
+                                        <i class="fas fa-fw fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm ml-2" @click="disableEditMode()">
+                                        <i class="fas fa-fw fa-ban"></i>
+                                    </button>
+                                </div>
                             </span>
                             <div>
+                                <span v-show="hoverStates.labels[i] && !(editLabel.active && editLabel.index === i)" @click="enableEditMode(i)">
+                                    <i class="fas fa-fw fa-edit clickable"></i>
+                                </span>
                                 <i v-show="label.concept_label_type == 1" class="fas fa-fw fa-star color-yellow"></i>
                                 <span>
                                     {{ $ce.flag(label.language.short_name) }}
                                 </span>
-                                <span v-show="hoverStates.labels[i]" @click="deleteLabel(i)">
+                                <span v-show="hoverStates.labels[i] && !(editLabel.active && editLabel.index === i)" @click="deleteLabel(i)">
                                     <i class="fas fa-fw fa-trash text-danger clickable"></i>
                                 </span>
                             </div>
@@ -277,6 +291,31 @@
                         labels: this.concept.labels.slice()
                     });
                 }));
+            },
+            enableEditMode(index) {
+                const label = this.concept.labels[index];
+                this.editLabel.value = label.label;
+                this.editLabel.id = label.id;
+                this.editLabel.index = index;
+                this.editLabel.active = true;
+            },
+            confirmEditLabel(index) {
+                const label = this.concept.labels[index];
+                const data = {
+                    label: this.editLabel.value
+                };
+                $httpQueue.add(() => $http.patch(`tree/label/${label.id}?t=${this.treeName}`, data).then(response => {
+                    const updatedLabel = response.data;
+                    label.label = updatedLabel.label;
+                    label.updated_at = updatedLabel.updated_at;
+                    this.disableEditMode();
+                }));
+            },
+            disableEditMode() {
+                this.editLabel.value = null;
+                this.editLabel.id = null;
+                this.editLabel.index = null;
+                this.editLabel.active = false;
             },
             deleteLabel(index) {
                 let label = this.concept.labels[index];
@@ -484,6 +523,12 @@
                 newLabel: {
                     language: null,
                     value: null
+                },
+                editLabel: {
+                    value: null,
+                    id: null,
+                    index: null,
+                    active: false
                 }
             }
         },

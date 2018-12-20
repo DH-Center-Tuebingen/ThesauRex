@@ -950,6 +950,39 @@ class TreeController extends Controller
         return response()->json(null, 204);
     }
 
+    public function patchLabel(Request $request, $id) {
+        $user = \Auth::user();
+        if(!$user->can('delete_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'label' => 'required|string'
+        ]);
+
+        $which = $request->query('t', '');
+        $label;
+
+        try {
+            if($which === 'sandbox') {
+                $label = ThConceptLabelSandbox::findOrFail($id);
+            } else {
+                $label = ThConceptLabel::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This label does not exist'
+            ], 400);
+        }
+
+        $label->label = $request->get('label');
+        $label->save();
+
+        return response()->json($label);
+    }
+
     private function createConceptLists($rows) {
         $concepts = [];
         $topConcepts = [];
@@ -1087,7 +1120,7 @@ class TreeController extends Controller
                 //if the concept already exists, set label type of copied label to alt label (2)
                 if($conceptAlreadyExists) $l->concept_label_type = 2;
                 if($src == 'project') $currentLabel = new ThConceptLabel();
-                else $currentLabel = new ThConceptLabelProject();
+                else $currentLabel = new ThConceptLabelSandbox();
                 $currentLabel->lasteditor = 'postgres';
                 $currentLabel->label = $l->label;
                 $currentLabel->concept_id = $l->concept_id;

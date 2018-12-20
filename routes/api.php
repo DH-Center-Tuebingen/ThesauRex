@@ -62,6 +62,8 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 
     Route::post('/file', 'TreeController@import');
 
+    Route::patch('/label/{id}', 'TreeController@patchLabel')->where('id', '[0-9]+');
+
     Route::put('/concept', 'TreeController@addConcept');
     Route::put('/label', 'TreeController@addLabel');
     Route::put('/note', 'TreeController@addNote');
