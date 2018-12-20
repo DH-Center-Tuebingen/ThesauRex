@@ -34,6 +34,7 @@ return [
     | Supported: "session", "token"
     |
     */
+    'model' => \App\User::class,
 
     'guards' => [
         'web' => [
@@ -68,6 +69,7 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\User::class,
+            'table' => 'users'
         ],
 
         // 'users' => [
