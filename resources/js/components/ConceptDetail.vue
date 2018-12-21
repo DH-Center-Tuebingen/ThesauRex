@@ -301,6 +301,10 @@
             },
             confirmEditLabel(index) {
                 const label = this.concept.labels[index];
+                // If value did not change, simply return to normal state
+                if(label.label == this.editLabel.value) {
+                    this.disableEditMode();
+                }
                 const data = {
                     label: this.editLabel.value
                 };
