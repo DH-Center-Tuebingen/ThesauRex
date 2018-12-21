@@ -112,13 +112,13 @@
                         </div>
                     </form>
                     <ul class="list-group list-group-xs col of-hidden pr-0 scroll-y-auto" v-if="concept.labels.length">
-                        <li class="list-group-item d-flex flex-row justify-content-between" v-for="(label, i) in concept.labels" @mouseenter="setHoverState('labels', i, true)" @mouseleave="setHoverState('labels', i, false)">
-                            <span class="col">
+                        <li class="list-group-item d-flex flex-row justify-content-between align-items-center" v-for="(label, i) in concept.labels" @mouseenter="setHoverState('labels', i, true)" @mouseleave="setHoverState('labels', i, false)">
+                            <div class="col">
                                 <span v-if="!(editLabel.active && editLabel.index === i)">
                                     {{ label.label }}
                                 </span>
-                                <div v-else class="d-flex flex-row">
-                                    <input type="text" class="form-input flex-grow-1" v-model="editLabel.value" />
+                                <div v-else class="d-flex flex-row align-items-center">
+                                    <input type="text" class="form-control" v-model="editLabel.value" />
                                     <button type="button" class="btn btn-outline-success btn-sm ml-2" @click="confirmEditLabel(i)">
                                         <i class="fas fa-fw fa-check"></i>
                                     </button>
@@ -126,7 +126,7 @@
                                         <i class="fas fa-fw fa-ban"></i>
                                     </button>
                                 </div>
-                            </span>
+                            </div>
                             <div>
                                 <span v-show="hoverStates.labels[i] && !(editLabel.active && editLabel.index === i)" @click="enableEditMode(i)">
                                     <i class="fas fa-fw fa-edit clickable"></i>

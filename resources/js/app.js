@@ -13,6 +13,9 @@ import Notifications from 'vue-notification';
 import VModal from 'vue-js-modal';
 import VueUploadComponent from 'vue-upload-component';
 
+import ConceptTree from './components/ConceptTree.vue';
+import ConceptSearch from './components/ConceptSearch.vue';
+
 import VueI18n from 'vue-i18n';
 import en from './i18n/en';
 import de from './i18n/de';
@@ -22,6 +25,8 @@ import App from './App.vue';
 import MainView from './components/MainView.vue';
 import Login from './components/Login.vue';
 import ConceptDetail from './components/ConceptDetail.vue';
+import ErrorModal from './components/ErrorModal.vue';
+import AboutDialog from './components/About.vue';
 // Settings
 import Users from './components/Users.vue';
 import Roles from './components/Roles.vue';
@@ -40,6 +45,7 @@ dom.watch(); // search for <i> tags to replace with <svg>
  */
 
 const PQueue = require('p-queue');
+let VueScrollTo = require('vue-scrollto');
 require('typeface-raleway');
 require('typeface-source-code-pro');
 require('popper.js');
@@ -56,6 +62,7 @@ window.$httpQueue = new PQueue({concurrency: 1});
 Axios.defaults.baseURL = 'api/v1';
 
 Vue.prototype.$httpQueue = window.$httpQueue;
+Vue.prototype.$VueScrollTo = VueScrollTo;
 Vue.queue = window.$httpQueue;
 Vue.prototype.$http = Axios;
 Vue.axios = Axios;
@@ -64,6 +71,7 @@ Vue.use(VueI18n);
 Vue.use(VeeValidate);
 Vue.use(Notifications);
 Vue.use(VModal, {dynamic: true});
+Vue.use(VueScrollTo);
 
 const router = new VueRouter({
     scrollBehavior(to, from, savedPosition) {
@@ -204,12 +212,12 @@ Vue.use(require('@websanova/vue-auth'), {
 // Imported Components
 Vue.component('multiselect', Multiselect);
 // Pages
-Vue.component('error-modal', require('./components/ErrorModal.vue'));
-Vue.component('about-dialog', require('./components/About.vue'));
+Vue.component('error-modal', ErrorModal);
+Vue.component('about-dialog', AboutDialog);
 
 // Components
-Vue.component('concept-tree', require('./components/ConceptTree.vue'));
-Vue.component('concept-search', require('./components/ConceptSearch.vue'));
+Vue.component('concept-tree', ConceptTree);
+Vue.component('concept-search', ConceptSearch);
 Vue.component('file-upload', VueUploadComponent);
 
 Vue.component('discard-changes-modal', DiscardChangesModal);

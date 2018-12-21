@@ -66,14 +66,11 @@
 <script>
     import * as treeUtility from 'tree-vue-component';
     import { VueContext } from 'vue-context';
-    import VueScrollTo from 'vue-scrollto';
     import { transliterate as tr, slugify } from 'transliteration';
     import DeleteConceptModal from './modals/DeleteConceptModal.vue';
-
-    Vue.component('tree-node', require('./TreeNode.vue'));
-    Vue.component('tree-contextmenu', require('./TreeContextMenu.vue'));
-    Vue.component('tree-search', require('./TreeSearch.vue'));
-    Vue.use(VueScrollTo);
+    import TreeNode from './TreeNode.vue';
+    import TreeContextMenu from './TreeContextMenu.vue';
+    import TreeSearch from './TreeSearch.vue';
 
     const DropPosition = {
         empty: 0,
@@ -100,8 +97,8 @@
             this.icon = false;
             this.children = [];
             this.childrenLoaded = this.children.length == this.children_count;
-            this.component = 'tree-node';
-            this.contextmenu = 'tree-contextmenu';
+            this.component = TreeNode;
+            this.contextmenu = TreeContextMenu;
             this.dragDelay = vm.dragDelay;
             this.dragAllowed = _ => vm.isDragAllowed;
             this.onToggle = vm.itemToggle;
@@ -131,6 +128,9 @@
                 type: Number,
                 default: 500
             }
+        },
+        components: {
+            'tree-search': TreeSearch
         },
         mounted() {
             this.init();
@@ -494,7 +494,7 @@
                     targetNode.state.selected = true;
                     // Scroll tree to selected element
                     const elem = document.getElementById(`tree-node-${targetNode.id}`);
-                    VueScrollTo.scrollTo(elem, this.scrollTo.duration, this.scrollTo.options);
+                    this.$VueScrollTo.scrollTo(elem, this.scrollTo.duration, this.scrollTo.options);
                 });
             },
             deselectConcept(id) {

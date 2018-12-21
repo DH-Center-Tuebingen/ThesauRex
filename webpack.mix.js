@@ -50,35 +50,6 @@ mix.js('resources/js/app.js', 'public/js')
    .autoload({
        jquery: ['$'],
        axios: ['$http']
-   })
-   .extract([
-       '@fortawesome/fontawesome-svg-core',
-       '@fortawesome/free-brands-svg-icons',
-       '@fortawesome/free-regular-svg-icons',
-       '@fortawesome/free-solid-svg-icons',
-       '@websanova/vue-auth',
-       'axios',
-       'bootstrap',
-       'country-emoji',
-       'debounce',
-       'jquery',
-       'lodash',
-       'moment',
-       'p-queue',
-       'popper.js',
-       'transliteration',
-       'tree-vue-component',
-       'v-tooltip',
-       'vee-validate',
-       'vue',
-       'vue-i18n',
-       'vue-context',
-       'vue-infinite-scroll',
-       'vue-js-modal',
-       'vue-multiselect',
-       'vue-notification',
-       'vue-router',
-       'vue-typeahead',
-       'vue-upload-component',
-       'vuedraggable'
-   ]);
+   });
+   // TODO wait for webpack 5, since css extraction does not work with v4 and extract()
+   // .extract();
