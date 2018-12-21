@@ -1,22 +1,26 @@
 # Installation
-We recommend a recent unix/linux-based OS. Please check if your desired OS meets the following requirements. If not, we recommend debian (8.5 aka _jessie_ or later) or Ubuntu (16.04 LTS aka _Xenial Xerus_ or later). For better PHP performance we recommend a system with PHP 7.x support such as Ubuntu 16.04. Note: Installation on Windows 10 with PHP 5.6 was also successfully tested, but you will need to adjust the commands in these instructions by yourself to your local Windows version equivalents.
+We recommend a recent unix/linux-based OS. Please check if your desired OS meets the following requirements. If not, we recommend debian (9.5 aka _Stretch_ or later) or Ubuntu (18.04 LTS aka _Bionic Beaver_ or later). For Giza and later at least PHP 7.1.3 is required
+**Note**: Installation on Windows 10 with PHP 5.6 was also successfully tested, but you will need to adjust the commands in these instructions by yourself to your local Windows version equivalents.
 
 ## Requirements
 The following packages you should be able to install from your package manager:
 - git
 - Apache (or any other web server-software, e.g. nginx)
-- PHP (`>= 5.6.4`) with the following extensions installed and enabled:
+- PHP (`>= 7.1.3`) with the following extensions installed and enabled:
   - memcached (on Windows this will not work -- see later)
   - mbstring
   - php-pgsql
-  - php-intl (on Windows, php_intl.dll ships with PHP, so just uncomment the line `;extension=php_intl.dll` in php.ini)
 - libapache2-mod-php (on Unix systems)
 - [Composer](https://getcomposer.org)
 - PostgreSQL (`>= 9.1.0`)
 - memcached (extension DLL not available for Windows at the moment, see later)
 - nodejs
 - npm
-- bower (run `npm install -g bower` on the command line, **Please note**: on Linux you may have to link your `nodejs` executable to the new command `node`. e.g. `sudo ln -s /usr/bin/nodejs /usr/bin/node`)
+
+## Migration from < 0.6 (Lumen- and Angular-based releases)
+There are no additional database migrations steps required. Laravel's migration command should take care of database changes. **But** you have to update to the latest pre-0.6 release before switching to 0.6+.
+However, since we switched to a different code base, you have to get the new dependencies (see _Download Dependencies_ in [Package Installation](INSTALL.md#package-installation)).
+You should also check for changes in [Proxy Setup](INSTALL.md#proxy-setup) and [Configure Laravel](INSTALL.md#configure-laravel).
 
 ## Setup
 ### Package Installation
@@ -24,7 +28,7 @@ The following packages you should be able to install from your package manager:
 1. Install all the required packages. For debian-based/apt systems you can use the following command
 
    ```bash
-    sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-intl php-memcached php-mbstring memcached python3 python-pip python-rdflib python-psycopg2 nodejs npm
+    sudo apt-get install git apache2 libapache2-mod-php php composer postgresql php-pgsql php-memcached php-mbstring memcached nodejs npm
    ```
 
 2. Clone This Repository
@@ -37,27 +41,13 @@ The following packages you should be able to install from your package manager:
 
    ```bash
     cd ThesauRex
-    bower install
-    cd lumen
+    npm install
     composer install
    ```
 
-**Please note**: During the `composer install` you might get an error regarding an unsecure installation. To fix this you have to edit your `composer.json` file (only edit this file if you know what you're doing) in the `lumen` folder to disable secure HTTP connections. Add `"secure-http": false` or set `"secure-http": true` to `false` if the line already exists. After editing the `composer.json` you have to re-run `composer` with
-```bash
-composer update
-```
-
-In order to use the export functionality you have to link the `arc2` library to a subfolder of the `easyrdf` library. Both libraries should be downloaded using the `composer` command above. To link the libraries you have to (on Linux-based OS) run the following command.
-```bash
-cd vendor/easyrdf/easyrdf/lib/EasyRdf/Serialiser #make sure you're in the correct folder
-ln -s ../../../../../semsol/arc2/ arc
-```
-
 ### Proxy Setup
-To communicate with Lumen, ThesauRex requires the API folder to be in the ThesauRex folder. If you run ThesauRex under `yourdomain.tld/ThesauRex`, the Lumen API has to be `yourdomain.tld/ThesauRex/api`.
-
-Since Lumen has a sub-folder as document root `lumen/public`, it won't work to simply copy Lumen to your webserver's root directory.
-One solution is to setup a proxy on the same machine and re-route all requests from `/ThesauRex/api` to Lumen's public folder (e.g. `/var/www/html/ThesauRex/lumen/public`).
+Since Laravel has a sub-folder as document root `ThesauRex/public`, it won't work to simply copy Laravel to your webserver's root directory.
+One solution is to setup a proxy on the same machine and re-route all requests from `/ThesauRex` to Laravel's public folder (e.g. `/var/www/html/ThesauRex/public`). For testing purposes you can run `php artisan serve` and navigate your browser to `localhost:8000`.
 
 1. Enable the webserver's proxy packages and the rewrite engine
 
@@ -70,26 +60,26 @@ One solution is to setup a proxy on the same machine and re-route all requests f
    ```bash
     sudo nano /etc/hosts
     # Add an entry to "redirect" a domain to your local machine (localhost)
-    127.0.0.1 thesaurex-lumen.tld # or anything you want
+    127.0.0.1 thesaurex-laravel.tld # or anything you want
    ```
 
 3. Add a new vHost file to your apache
 
    ```bash
     cd /etc/apache2/sites-available
-    sudo nano thesaurex-lumen.conf
+    sudo nano thesaurex-laravel.conf
    ```
 
     Paste the following snippet into the file:
    ```apache
     <VirtualHost *:80>
-      ServerName thesaurex-lumen.tld
+      ServerName thesaurex-laravel.tld
       ServerAdmin webmaster@localhost
-      DocumentRoot /var/www/html/ThesauRex/lumen/public
+      DocumentRoot /var/www/html/ThesauRex/public
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/ThesauRex/lumen/public">
+      <Directory "/var/www/html/ThesauRex/public">
         AllowOverride All
         Require all granted
       </Directory>
@@ -99,18 +89,40 @@ One solution is to setup a proxy on the same machine and re-route all requests f
 4. Add the proxy route to your default vHost file (e.g. `/etc/apache2/sites-available/000-default.conf`)
 
    ```apache
-    ProxyPass "/ThesauRex/api" "http://thesaurex-lumen.tld"
-    ProxyPassReverse "/ThesauRex/api" "http://thesaurex-lumen.tld"
+    ProxyPass "/ThesauRex/api" "http://thesaurex-laravel.tld"
+    ProxyPassReverse "/ThesauRex/api" "http://thesaurex-laravel.tld"
    ```
 
 5. Enable the new vHost file and restart the webserver
 
    ```bash
-    sudo a2ensite thesaurex-lumen.conf
+    sudo a2ensite thesaurex-laravel.conf
     sudo service apache2 restart
    ```
 
-### Configure Lumen
+### Configure JavaScript
+ThesauRex is based on several JavaScript libraries, which are bundled using Webpack (configuration is done using Laravel Mix, a webpack-wrapper for Laravel). Only the zipped releases contain the already bundled JavaScript libraries. All other users have to run webpack to bundle these libraries.
+
+Before running webpack, you have to adjust the public path in the mix config file `webpack.mix.js`. Replace `publicPath` inside the `webpackConfig` call with the path of your instance.
+
+```bash
+.webpackConfig({
+   output: {
+       publicPath: '/ThesauRex/'
+   }
+})
+```
+
+Now you can run webpack using
+
+```bash
+npm run dev
+# or
+npm run prod
+```
+depending on whether you want a debugging-friendly development build or an optimized production-ready build.
+
+### Configure Laravel
 Lumen should now work, but to test it you need to create a `.env` file which stores the Lumen configuration.
 Inside the `lumen`-subfolder in the ThesauRex installation, create the `.env` file:
 ```bash
@@ -120,9 +132,10 @@ sudo nano .env
 
 Then paste this configuration (Please edit some of the configuration settings `*` to match your installation). **Note**: on Windows, memchached extension DLL seems unavailable. Use `CACHE_DRIVER=array` instead where indicated:
 ```
+APP_NAME=ThesauRex
 APP_ENV=local
 APP_DEBUG=true
-APP_KEY=* #this needs to be a 32 digit random key. Use an online generator or run php artisan jwt:secret twice
+APP_KEY=* base64:<32bit-key> #this needs to be a 32 digit random key. Use 'php artisan key:generate'
 
 # Your database setup. pgsql is PostgreSQL. Host, port, database, username and password need to be configured first (e.g. using your database server's commands).
 DB_CONNECTION=pgsql
@@ -132,7 +145,9 @@ DB_DATABASE=*
 DB_USERNAME=*
 DB_PASSWORD=*
 
+BROADCAST_DRIVER=log
 CACHE_DRIVER=memcached # on Windows memcached extension unavailable, but it seems to work with "array"
+SESSION_DRIVER=file
 QUEUE_DRIVER=sync
 
 JWT_SECRET=* #same as APP_KEY, run php artisan jwt:secret
@@ -156,10 +171,10 @@ When you want to run ThesauRex as standalone software without [Spacialist](https
 php artisan db:seed --class=StandaloneSeeder
 ```
 
-To test your installation, simply open `http://yourdomain.tld/ThesauRex/api`. You should see a website with Lumen's current version.
+To test your installation, simply open `http://yourdomain.tld/ThesauRex/api`. You should see a website with Laravel's current version.
 Example:
 ```
-Lumen (5.3.2) (Laravel Components 5.3.*)
+Laravel (5.5.33)
 ```
 
 ## Installing ThesauRex as part of [Spacialist](https://github.com/eScienceCenter/Spacialist)
@@ -183,10 +198,10 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     127.0.0.1 project.thesaurex # or anything you want
    ```
 
-3. Append an additional configuration to the `spacialist-lumen.conf` file of  your apache that you created while installing Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)). The `DocumentRoot` and `<Directory ... >` must point to the location of your `lumen/public` folder and might be adjusted if needed.
+3. Append an additional configuration to the `spacialist-laravel.conf` file of  your apache that you created while installing Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)). The `DocumentRoot` and `<Directory ... >` must point to the location of your `public` folder and might be adjusted if needed.
 
    ```bash
-    sudo nano /etc/apache2/sites-available/spacialist-lumen.conf
+    sudo nano /etc/apache2/sites-available/spacialist-laravel.conf
    ```
 
    ```apache
@@ -194,11 +209,11 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     <VirtualHost *:80>
       ServerName project.spacialist
       ServerAdmin webmaster@localhost
-      DocumentRoot /var/www/html/spacialist/lumen/public # adjust path if needed
+      DocumentRoot /var/www/html/spacialist/public # adjust path if needed
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/spacialist/lumen/public"> # adjust path if needed
+      <Directory "/var/www/html/spacialist/public"> # adjust path if needed
         AllowOverride All
         Require all granted
       </Directory>
@@ -208,11 +223,11 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     <VirtualHost *:80>
       ServerName project.thesaurex
       ServerAdmin webmaster@localhost
-      DocumentRoot /var/www/html/spacialist/thesaurex/lumen/public # adjust path if needed
+      DocumentRoot /var/www/html/spacialist/thesaurex/public # adjust path if needed
 
       DirectoryIndex index.php
 
-      <Directory "/var/www/html/spacialist/thesaurex/lumen/public"> # adjust path if needed
+      <Directory "/var/www/html/spacialist/thesaurex/public"> # adjust path if needed
         AllowOverride All
         Require all granted
       </Directory>
@@ -226,10 +241,10 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     ProxyPassReverse "/spacialist/thesaurex/api" "http://project.thesaurex"
    ```
 
-### Configure Lumen
+### Configure Laravel
 
 As you have configured your `.env` file with your DB connection during the installation of Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)) its sufficient to just set a soft link to the `.env` file of Spacialist
 
 ```bash
-ln -s /var/www/html/spacialist/lumen/.env /var/www/html/spacialist/thesaurex/lumen/.env
+ln -s /var/www/html/spacialist/.env /var/www/html/spacialist/thesaurex/.env
 ```

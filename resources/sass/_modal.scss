@@ -1,0 +1,19 @@
+.modal-content {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.atom-label {
+	text-shadow: -1px 1px 1px rgb(0,0,0);
+	margin-left: 25px;
+}
+
+.v--modal-overlay {
+    z-index: $zindex-sticky + 1 !important;
+}

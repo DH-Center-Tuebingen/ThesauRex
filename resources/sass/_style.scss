@@ -1,0 +1,45 @@
+body {
+  font-family: $font-family-sans-serif;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $body-color;
+  // background-color: #f5f8fa;
+}
+
+html {
+    height: 100vh;
+}
+
+body, #app {
+    height: 100%;
+}
+
+code {
+    font-family: "Source Code Pro" !important;
+    font-size: 1.2em !important;
+    font-weight: 500 !important;
+}
+
+code.normal {
+    font-size: 100% !important;
+    font-weight: 400 !important;
+}
+
+.v-can-hidden {
+    display: none !important;
+}
+
+.logo {
+    height: $logo-size;
+    width: $logo-size;
+    display: inline-block !important;
+    vertical-align: middle;
+}
+
+.login-header {
+    text-align: center;
+}
+
+.notification-info {
+    margin-left: -.5rem;
+}

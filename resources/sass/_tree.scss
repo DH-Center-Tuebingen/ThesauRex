@@ -1,0 +1,27 @@
+.tree-hovered {
+    background-color: rgba(red($orange), green($orange), blue($orange), 0.75) !important;
+}
+
+.tree-clicked {
+    font-weight: $font-weight-bold !important;
+    background-color: rgba(red($yellow), green($yellow), blue($yellow), 0.75) !important;
+}
+
+.tree-search {
+    font-style: normal !important;
+    font-weight: $font-weight-normal;
+    // color: $white !important;
+    background-color: rgba(red($yellow), green($yellow), blue($yellow), 0.5) !important;
+
+    border-radius: $border-radius;
+}
+
+.tree-node {
+    padding: 0.1rem 0;
+}
+
+.tree-anchor {
+    background-color: $orange;
+    border-radius: 3px;
+    padding: 0 0.5rem;
+}
