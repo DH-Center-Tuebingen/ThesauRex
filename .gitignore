@@ -7,9 +7,7 @@ package-lock.json
 ## Created by Laravel
 composer.lock
 /node_modules
-/public/css
-/public/fonts
-/public/js
+/public
 /public/hot
 /public/storage
 /storage/*.key
