@@ -12,6 +12,16 @@ const en = {
         clear: 'Clear',
         confirm: 'OK',
         create: 'Create',
+        delete_name: {
+            title: 'Delete {name}',
+            desc: 'Do you really want to delete <span class="font-weight-medium">{name}</span>?'
+        },
+        discard: {
+            title: 'Unsaved Changes',
+            msg: 'Unsaved changes in <span class="font-weight-medium">{name}</span>. Do you really want to continue and discard changes?',
+            confirm: 'Yes, discard changes',
+            confirmpos: 'No, save and continue'
+        },
         search: 'Search...',
         login: 'Login',
         'login-title': 'Log In',
@@ -23,6 +33,7 @@ const en = {
             title: 'Settings',
             users: 'User Management',
             roles: 'Role Management',
+            languages: 'Languages',
             system: 'System Preferences',
             about: 'About'
         },
@@ -39,7 +50,8 @@ const en = {
         label: 'Label',
         url: 'URL',
         name: 'Name',
-        'display-name': 'Display Name',
+        display_name: 'Display Name',
+        short_name: 'Short Name',
         email: 'E-Mail Address',
         password: 'Password',
         'remember-me': 'Remember me',
@@ -165,6 +177,21 @@ const en = {
                 }
             },
             'add-permission-placeholder': 'Add permissions'
+        },
+        language: {
+            'add-button': 'Add new Language',
+            toasts: {
+                updated: {
+                    title: 'Language updated',
+                    msg: '{name} successfully updated.'
+                }
+            },
+            modal: {
+                new: {
+                    title: 'New Language'
+                }
+            },
+            set_short_placeholder: 'Select Short Name'
         },
         preference: {
             toasts: {

@@ -12,6 +12,16 @@ const de = {
         clear: 'Leeren',
         confirm: 'Ok',
         create: 'Anlegen',
+        delete_name: {
+            title: '{name} löschen',
+            desc: 'Willst du <span class="font-weight-medium">{name}</span> wirklich löschen?'
+        },
+        discard: {
+            title: 'Ungespeicherte Änderungen',
+            msg: 'Ungespeicherte Änderungen in <span class="font-weight-medium">{name}</span>. Willst du wirklich fortfahren und die Änderungen verwerfen?',
+            confirm: 'Ja, Änderungen verwerfen',
+            confirmpos: 'Nein, Speichern und fortfahren'
+        },
         search: 'Suche...',
         login: 'Einloggen',
         'login-title': 'Anmelden',
@@ -23,6 +33,7 @@ const de = {
             title: 'Einstellungen',
             users: 'Benutzerverwaltung',
             roles: 'Rollenverwaltung',
+            languages: 'Sprachen',
             system: 'System-Einstellungen',
             about: 'Über'
         },
@@ -39,7 +50,8 @@ const de = {
         label: 'Beschriftung',
         url: 'URL',
         name: 'Name',
-        'display-name': 'Anzeigename',
+        display_name: 'Anzeigename',
+        short_name: 'Kürzel',
         email: 'E-Mail-Adresse',
         password: 'Passwort',
         'remember-me': 'Eingeloggt bleiben',
@@ -165,6 +177,21 @@ const de = {
                 }
             },
             'add-permission-placeholder': 'Berechtigungen hinzufügen'
+        },
+        language: {
+            'add-button': 'Neue Sprache hinzufügen',
+            toasts: {
+                updated: {
+                    title: 'Sprache aktualisiert',
+                    msg: '{name} wurde erfolgreich aktualisiert.'
+                }
+            },
+            modal: {
+                new: {
+                    title: 'Neue Sprache'
+                }
+            },
+            set_short_placeholder: 'Sprach-Kürzel auswählen'
         },
         preference: {
             toasts: {

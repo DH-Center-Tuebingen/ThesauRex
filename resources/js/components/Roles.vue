@@ -4,7 +4,7 @@
             <thead class="thead-light">
                 <tr>
                     <th>{{ $t('global.name') }}</th>
-                    <th>{{ $t('global.display-name') }}</th>
+                    <th>{{ $t('global.display_name') }}</th>
                     <th>{{ $t('global.description') }}</th>
                     <th>{{ $t('global.permissions') }}</th>
                     <th>{{ $t('global.created-at') }}</th>
@@ -99,7 +99,7 @@
                         </div>
                         <div class="form-group">
                             <label class="col-form-label col-md-3" for="display_name">
-                                {{ $t('global.display-name') }}:
+                                {{ $t('global.display_name') }}:
                             </label>
                             <div class="col-md-9">
                                 <input class="form-control" type="text" id="display_name" v-model="newRole.display_name" />
@@ -129,13 +129,13 @@
         <modal name="confirm-delete-role-modal" height="auto" :scrollable="true" v-can="'delete_role'">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ $t('global.delete-name.title', {name: selectedRole.display_name}) }}</h5>
+                    <h5 class="modal-title">{{ $t('global.delete_name.title', {name: selectedRole.display_name}) }}</h5>
                     <button type="button" class="close" aria-label="Close" @click="hideDeleteRoleModal">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    {{ $t('global.delete-name.desc', {name: selectedRole.display_name}) }}
+                    <span v-html="$t('global.delete_name.desc', {name: selectedRole.display_name})"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-success" @click="deleteRole(selectedRole.id)">

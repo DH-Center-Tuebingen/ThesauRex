@@ -1,4 +1,4 @@
-const {flag, code, name} = require('country-emoji');
+const {flag, code, name, countries} = require('country-emoji');
 
 // Validators
 Vue.prototype.$validateObject = function(value) {
@@ -79,7 +79,8 @@ Vue.prototype.$ce = {
         return flag(code);
     },
     code: code,
-    name: name
+    name: name,
+    countries: countries
 };
 
 Vue.prototype.$throwError = function(error) {
@@ -97,6 +98,22 @@ Vue.prototype.$throwError = function(error) {
         this.$showErrorModal(error.message || error);
     }
 };
+
+Vue.prototype.$getErrorMessages = function(error, msgObject, suffix = '') {
+    for(let k in msgObject) {
+        delete msgObject[k];
+    }
+    const r = error.response;
+    if(r.status == 422) {
+        if(r.data.errors) {
+            for(let k in r.data.errors) {
+                Vue.set(msgObject, `${k}${suffix}`, r.data.errors[k]);
+            }
+        }
+    } else if(r.status == 400) {
+        Vue.set(msgObject, 'global', r.data.error);
+    }
+}
 
 Vue.prototype.$showErrorModal = function(errorMsg, headers, request) {
     this.$modal.show('error-modal', {msg: errorMsg, headers: headers, request: request});

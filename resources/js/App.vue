@@ -40,6 +40,9 @@
                             <router-link :to="{name: 'roles'}" class="dropdown-item">
                                 <i class="fas fa-fw fa-shield-alt"></i> {{ $t('global.settings.roles') }}
                             </router-link>
+                            <router-link :to="{name: 'languages'}" class="dropdown-item">
+                                <i class="fas fa-fw fa-language"></i> {{ $t('global.settings.languages') }}
+                            </router-link>
                             <router-link :to="{name: 'preferences'}" class="dropdown-item">
                                 <i class="fas fa-fw fa-cog"></i> {{ $t('global.settings.system') }}
                             </router-link>

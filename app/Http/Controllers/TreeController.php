@@ -24,16 +24,6 @@ class TreeController extends Controller
 {
     public const importTypes = ['extend', 'update-extend', 'replace'];
 
-    public function getLanguages() {
-        $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-        return response()->json(ThLanguage::all());
-    }
-
     public function getTree(Request $request) {
         $user = \Auth::user();
         if(!$user->can('view_concepts_th')) {

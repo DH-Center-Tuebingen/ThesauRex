@@ -30,6 +30,7 @@ import AboutDialog from './components/About.vue';
 // Settings
 import Users from './components/Users.vue';
 import Roles from './components/Roles.vue';
+import Languages from './components/Languages.vue';
 import Preferences from './components/Preferences.vue';
 import UserPreferences from './components/UserPreferences.vue';
 // Sites
@@ -118,6 +119,14 @@ const router = new VueRouter({
             path: '/mg/roles',
             name: 'roles',
             component: Roles,
+            meta: {
+                auth: true
+            }
+        },
+        {
+            path: '/mg/lang',
+            name: 'languages',
+            component: Languages,
             meta: {
                 auth: true
             }

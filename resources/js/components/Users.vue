@@ -148,13 +148,13 @@
         <modal name="confirm-delete-user-modal" height="auto" :scrollable="true">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ $t('global.delete-name.title', {name: selectedUser.name}) }}</h5>
+                    <h5 class="modal-title">{{ $t('global.delete_name.title', {name: selectedUser.name}) }}</h5>
                     <button type="button" class="close" aria-label="Close" @click="hideDeleteUserModal">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    {{ $t('global.delete-name.desc', {name: selectedUser.name}) }}
+                    <span v-html="$t('global.delete_name.desc', {name: selectedUser.name})"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-success" @click="deleteUser(selectedUser.id)">

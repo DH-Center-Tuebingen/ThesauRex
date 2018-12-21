@@ -56,7 +56,6 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::get('/', 'TreeController@getTree');
     Route::get('/byParent/{id}', 'TreeController@getDescendants')->where('id', '[0-9]+');
     Route::get('/{id}', 'TreeController@getConcept')->where('id', '[0-9]+');
-    Route::get('/languages', 'TreeController@getLanguages');
     Route::get('/{id}/export', 'TreeController@export')->where('id', '[0-9]+');
     Route::get('/export', 'TreeController@export');
 
@@ -74,6 +73,17 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::delete('/label/{id}', 'TreeController@deleteLabel')->where('id', '[0-9]+');
     Route::delete('/note/{id}', 'TreeController@deleteNote')->where('id', '[0-9]+');
     Route::delete('/concept/{id}/broader/{bid}', 'TreeController@removeBroader')->where('id', '[0-9]+')->where('bid', '[0-9]+');
+});
+
+// LANGUAGE
+Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1/language')->group(function() {
+    Route::get('', 'LanguageController@getLanguages');
+
+    Route::post('', 'LanguageController@addLanguage');
+
+    Route::patch('/{id}', 'LanguageController@patchLanguage')->where('id', '[0-9]+');
+
+    Route::delete('/{id}', 'LanguageController@deleteLanguage')->where('id', '[0-9]+');
 });
 
 // PREFERENCES

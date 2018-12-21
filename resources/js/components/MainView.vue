@@ -43,7 +43,7 @@
                 return $http.get('tree?t=sandbox');
                 }).then(response => {
                     sandboxConcepts = response.data
-                    return $http.get(`tree/languages`);
+                    return $http.get(`language`);
                 }).then(response => {
                     next(vm => vm.init(projectConcepts, sandboxConcepts, response.data));
                 })
