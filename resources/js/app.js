@@ -1,4 +1,4 @@
-// import Multiselect from 'vue-multiselect';
+import Multiselect from 'vue-multiselect';
 import { library, dom } from '@fortawesome/fontawesome-svg-core';
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import { far } from '@fortawesome/free-regular-svg-icons';
@@ -8,6 +8,7 @@ import VueRouter from 'vue-router';
 import moment from 'moment';
 
 // Components
+import VeeValidate from 'vee-validate';
 import Notifications from 'vue-notification';
 import VModal from 'vue-js-modal';
 import VueUploadComponent from 'vue-upload-component';
@@ -21,6 +22,13 @@ import App from './App.vue';
 import MainView from './components/MainView.vue';
 import Login from './components/Login.vue';
 import ConceptDetail from './components/ConceptDetail.vue';
+// Settings
+import Users from './components/Users.vue';
+import Roles from './components/Roles.vue';
+import Preferences from './components/Preferences.vue';
+import UserPreferences from './components/UserPreferences.vue';
+// Sites
+import DiscardChangesModal from './components/DiscardChangesModal.vue';
 
 library.add(fas, far, fab);
 dom.watch(); // search for <i> tags to replace with <svg>
@@ -53,6 +61,7 @@ Vue.prototype.$http = Axios;
 Vue.axios = Axios;
 Vue.use(VueRouter);
 Vue.use(VueI18n);
+Vue.use(VeeValidate);
 Vue.use(Notifications);
 Vue.use(VModal, {dynamic: true});
 
@@ -86,6 +95,39 @@ const router = new VueRouter({
             component: Login,
             meta: {
                 auth: false
+            }
+        },
+        // Settings
+        {
+            path: '/mg/users',
+            name: 'users',
+            component: Users,
+            meta: {
+                auth: true
+            }
+        },
+        {
+            path: '/mg/roles',
+            name: 'roles',
+            component: Roles,
+            meta: {
+                auth: true
+            }
+        },
+        {
+            path: '/preferences',
+            name: 'preferences',
+            component: Preferences,
+            meta: {
+                auth: true
+            }
+        },
+        {
+            path: '/preferences/u/:id',
+            name: 'userpreferences',
+            component: UserPreferences,
+            meta: {
+                auth: true
             }
         },
     ]
@@ -159,6 +201,8 @@ Vue.use(require('@websanova/vue-auth'), {
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
+// Imported Components
+Vue.component('multiselect', Multiselect);
 // Pages
 Vue.component('error-modal', require('./components/ErrorModal.vue'));
 Vue.component('about-dialog', require('./components/About.vue'));
@@ -167,6 +211,8 @@ Vue.component('about-dialog', require('./components/About.vue'));
 Vue.component('concept-tree', require('./components/ConceptTree.vue'));
 Vue.component('concept-search', require('./components/ConceptSearch.vue'));
 Vue.component('file-upload', VueUploadComponent);
+
+Vue.component('discard-changes-modal', DiscardChangesModal);
 
 // Filters
 Vue.filter('date', function(value, format = 'DD.MM.YYYY HH:mm', useLocale = false) {

@@ -134,6 +134,76 @@ const de = {
             'export-concept': 'Sub-Baum exportieren',
             'delete-concept': 'Konzept löschen'
         }
+    },
+    settings: {
+        user: {
+            'add-button': 'Neuen Benutzer hinzufügen',
+            toasts: {
+                updated: {
+                    title: 'Benutzer aktualisiert',
+                    msg: '{name} wurde erfolgreich aktualisiert.'
+                }
+            },
+            modal: {
+                new: {
+                    title: 'Neuer Benutzer'
+                }
+            },
+            'add-role-placeholder': 'Rollen hinzufügen'
+        },
+        role: {
+            'add-button': 'Neue Rolle hinzufügen',
+            toasts: {
+                updated: {
+                    title: 'Rolle aktualisiert',
+                    msg: '{name} wurde erfolgreich aktualisiert.'
+                }
+            },
+            modal: {
+                new: {
+                    title: 'Neue Rolle'
+                }
+            },
+            'add-permission-placeholder': 'Berechtigungen hinzufügen'
+        },
+        preference: {
+            toasts: {
+                updated: {
+                    title: 'Einstellung aktualisiert',
+                    msg: '{name} wurde erfolgreich aktualisiert.'
+                }
+            },
+            key: {
+                language: 'Sprache',
+                tooltips: 'Infos anzeigen',
+                'link-thesaurex': 'Link zu ThesauRex anzeigen',
+                project: {
+                    name: 'Projektname',
+                    maintainer: 'Verantwortlicher',
+                    public: 'Öffentlich verfügbar'
+                }
+            },
+            labels: {
+                prefs: {
+                    'gui-language': '@:settings.preference.key.language',
+                    'show-tooltips': '@:settings.preference.key.tooltips',
+                    'link-to-thesaurex': '@:settings.preference.key.link-thesaurex',
+                    'project-name': '@:settings.preference.key.project.name',
+                    'project-maintainer': '@:settings.preference.key.project.maintainer'
+                }
+            }
+        },
+        about: {
+            title: 'Über ThesauRex',
+            desc: 'ThesauRex wird vom Ministerium für Wissenschaft, Forschung und Kunst, Baden-Württemberg im Rahmen des "E-Science"-Programms gefördert.',
+            release: {
+                name: 'Name der Veröffentlichung',
+                time: 'Datum der Veröffentlichung',
+                'full-name': 'Vollständiger Name'
+            },
+            'build-info': 'Mit <i class="fab fa-fw fa-laravel"></i> & <i class="fab fa-fw fa-vuejs"></i> erstellt!',
+            contributor: 'Mitwirkender | Mitwirkende'
+        },
     }
 }
 

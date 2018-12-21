@@ -44,8 +44,8 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::post('/role', 'UserController@addRole');
     Route::post('/auth/logout', 'UserController@logout');
 
-    Route::patch('/user/{id}/role', 'UserController@setRoles');
-    Route::patch('/role/{id}/permission', 'UserController@setPermissions');
+    Route::patch('/user/{id}', 'UserController@patchUser');
+    Route::patch('/role/{id}', 'UserController@patchRole');
 
     Route::delete('/user/{id}', 'UserController@deleteUser')->where('id', '[0-9]+');
     Route::delete('/role/{id}', 'UserController@deleteRole')->where('id', '[0-9]+');
@@ -74,6 +74,14 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::delete('/label/{id}', 'TreeController@deleteLabel')->where('id', '[0-9]+');
     Route::delete('/note/{id}', 'TreeController@deleteNote')->where('id', '[0-9]+');
     Route::delete('/concept/{id}/broader/{bid}', 'TreeController@removeBroader')->where('id', '[0-9]+')->where('bid', '[0-9]+');
+});
+
+// PREFERENCES
+Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1/preference')->group(function() {
+    Route::get('', 'PreferenceController@getPreferences');
+    Route::get('/{id}', 'PreferenceController@getUserPreferences')->where('id', '[0-9]+');
+
+    Route::patch('/{id}', 'PreferenceController@patchPreference')->where('id', '[0-9]+');
 });
 
 // SEARCH

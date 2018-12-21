@@ -165,3 +165,10 @@ Vue.prototype.$getPreference = function(prefKey) {
     if(!pref) return {};
     return pref;
 }
+
+Vue.prototype.$getValidClass = function(msgObject, field) {
+    return {
+        // 'is-valid': !msgObject[field],
+        'is-invalid': !!msgObject[field]
+    };
+}

@@ -134,6 +134,76 @@ const en = {
             'export-concept': 'Export Sub-Tree',
             'delete-concept': 'Delete concept'
         }
+    },
+    settings: {
+        user: {
+            'add-button': 'Add new User',
+            toasts: {
+                updated: {
+                    title: 'User updated',
+                    msg: '{name} successfully updated.'
+                }
+            },
+            modal: {
+                new: {
+                    title: 'New User'
+                }
+            },
+            'add-role-placeholder': 'Add roles'
+        },
+        role: {
+            'add-button': 'Add new Role',
+            toasts: {
+                updated: {
+                    title: 'Role updated',
+                    msg: '{name} successfully updated.'
+                }
+            },
+            modal: {
+                new: {
+                    title: 'New Role'
+                }
+            },
+            'add-permission-placeholder': 'Add permissions'
+        },
+        preference: {
+            toasts: {
+                updated: {
+                    title: 'Preference updated',
+                    msg: '{name} successfully updated.'
+                }
+            },
+            key: {
+                language: 'Language',
+                tooltips: 'Show Tooltips',
+                'link-thesaurex': 'Show link to ThesauRex',
+                project: {
+                    name: 'Projectname',
+                    maintainer: 'Maintainer',
+                    public: 'Public accessible'
+                }
+            },
+            labels: {
+                prefs: {
+                    'gui-language': '@:settings.preference.key.language',
+                    'show-tooltips': '@:settings.preference.key.tooltips',
+                    'link-to-thesaurex': '@:settings.preference.key.link-thesaurex',
+                    'project-name': '@:settings.preference.key.project.name',
+                    'project-maintainer': '@:settings.preference.key.project.maintainer'
+                }
+            }
+        },
+        about: {
+            title: 'About ThesauRex',
+            desc: 'Development of ThesauRex is co-funded by the Ministry of Science, Research and the Arts Baden-Württemberg in the "E-Science" funding programme.',
+            release: {
+                name: 'Release Name',
+                time: 'Release Date',
+                'full-name': 'Full Name'
+            },
+            'build-info': 'Built with <i class="fab fa-fw fa-laravel"></i> & <i class="fab fa-fw fa-vuejs"></i>!',
+            contributor: 'Contributor | Contributors'
+        },
     }
 }
 

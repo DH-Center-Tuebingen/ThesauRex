@@ -2,38 +2,38 @@
     <modal name="about-modal" height="auto" :scrollable="true" @opened="init">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ $t('main.about.title') }}</h5>
+                <h5 class="modal-title">{{ $t('settings.about.title') }}</h5>
                 <button type="button" class="close" aria-label="Close" @click="hideAboutModal">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="media">
-                    <img class="mr-3" src="/img/logo.png" alt="spacialist logo" width="64px" />
+                    <!-- <img class="mr-3" src="/img/logo.png" alt="thesaurex logo" width="64px" /> -->
                     <div class="media-body">
-                        <h4>Spacialist</h4>
-                        {{ $t('main.about.desc') }}
+                        <h4>ThesauRex</h4>
+                        {{ $t('settings.about.desc') }}
                     </div>
                 </div>
                 <hr />
                 <dl class="row">
-                    <dt class="col-md-6 text-right">{{ $t('main.about.release.name') }}</dt>
+                    <dt class="col-md-6 text-right">{{ $t('settings.about.release.name') }}</dt>
                     <dd class="col-md-6">
                         {{ version.name }}
                     </dd>
-                    <dt class="col-md-6 text-right">{{ $t('main.about.release.time') }}</dt>
+                    <dt class="col-md-6 text-right">{{ $t('settings.about.release.time') }}</dt>
                     <dd class="col-md-6">
                         <span id="version-time" data-toggle="popover" :data-content="version.time | datestring" data-trigger="hover" data-placement="bottom">
                             {{ version.time | date(undefined, true) }}
                         </span>
                     </dd>
-                    <dt class="col-md-6 text-right">{{ $t('main.about.release.full-name') }}</dt>
+                    <dt class="col-md-6 text-right">{{ $t('settings.about.release.full-name') }}</dt>
                     <dd class="col-md-6">
                         {{ version.full }}
                     </dd>
                 </dl>
                 <hr />
-                <h5>{{ $tc('main.about.contributor', 2) }}</h5>
+                <h5>{{ $tc('settings.about.contributor', 2) }}</h5>
                 <div class="row">
                     <div v-for="contributor in contributors" class="col-md-6">
                         {{ contributor.name }}
@@ -41,7 +41,7 @@
                 </div>
                 <hr />
                 <div class="d-flex flex-row justify-content-between">
-                    <span v-html="$t('main.about.build-info')">
+                    <span v-html="$t('settings.about.build-info')">
                     </span>
                     <div>
                         <a href="https://www.facebook.com/esciencecenter" target="_blank">

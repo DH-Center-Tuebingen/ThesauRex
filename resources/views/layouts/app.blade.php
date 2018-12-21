@@ -12,7 +12,7 @@
     <title>ThesauRex</title>
 
     <!-- Styles -->
-    <!-- <link href="css/vue-multiselect.min.css" rel="stylesheet"> -->
+    <link href="css/vue-multiselect.min.css" rel="stylesheet">
     <link href="css/app.css" rel="stylesheet">
 </head>
 <body>

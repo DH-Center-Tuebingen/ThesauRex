@@ -139,7 +139,7 @@ class UserController extends Controller
 
     // PATCH
 
-    public function setRoles(Request $request, $id) {
+    public function patchUser(Request $request, $id) {
         $user = auth()->user();
         if(!$user->can('add_remove_role')) {
             return response()->json([
@@ -147,8 +147,13 @@ class UserController extends Controller
             ], 403);
         }
         $this->validate($request, [
-            'roles' => 'required'
+            'roles' => 'array',
+            'email' => 'email'
         ]);
+
+        if(!$this->hasInput($request)) {
+            return response()->json(null, 204);
+        }
 
         try {
             $user = User::findOrFail($id);
@@ -157,16 +162,38 @@ class UserController extends Controller
                 'error' => 'This user does not exist'
             ], 400);
         }
-        $user->detachRoles($user->roles);
-        $roles = json_decode($request->get('roles'));
-        foreach($roles as $roleId) {
-            $user->attachRole($roleId);
+
+        // Check if another user with the desired email address
+        // is already added. If so, return with failed validation
+        if($request->has('email')) {
+            $userWithMail = User::where('email', $request->get('email'))->first();
+            if(isset($userWithMail) && $userWithMail->id != $id) {
+                $error = ValidationException::withMessages([
+                    'email' => [__('validation.unique', ['attribute' => 'email'])]
+                ]);
+                throw $error;
+            }
         }
 
-        return response()->json(null, 204);
+        if($request->has('roles')) {
+            $user->detachRoles($user->roles);
+            $roles = $request->get('roles');
+            foreach($roles as $roleId) {
+                $user->attachRole($roleId);
+            }
+
+            // Update updated_at column
+            $user->touch();
+        }
+        if($request->has('email')) {
+            $user->email = $request->get('email');
+            $user->save();
+        }
+
+        return response()->json($user);
     }
 
-    public function setPermissions(Request $request, $id) {
+    public function patchRole(Request $request, $id) {
         $user = auth()->user();
         if(!$user->can('add_remove_permission')) {
             return response()->json([
@@ -174,8 +201,14 @@ class UserController extends Controller
             ], 403);
         }
         $this->validate($request, [
-            'permissions' => 'required'
+            'permissions' => 'array',
+            'display_name' => 'string',
+            'description' => 'string'
         ]);
+
+        if(!$this->hasInput($request)) {
+            return response()->json(null, 204);
+        }
 
         try {
             $role = Role::findOrFail($id);
@@ -184,13 +217,24 @@ class UserController extends Controller
                 'error' => 'This role does not exist'
             ], 400);
         }
-        $role->detachPermissions($role->permissions);
-        $perms = json_decode($request->get('permissions'));
-        foreach($perms as $permId) {
-            $role->attachPermission($permId);
-        }
 
-        return response()->json(null, 204);
+        if($request->has('permissions')) {
+            $role->detachPermissions($role->permissions);
+            $perms = $request->get('permissions');
+            foreach($perms as $permId) {
+                $role->attachPermission($permId);
+            }
+            $role->touch();
+        }
+        if($request->has('display_name')) {
+            $role->display_name = $request->get('display_name');
+        }
+        if($request->has('description')) {
+            $role->description = $request->get('description');
+        }
+        $role->save();
+
+        return response()->json($role);
     }
 
     // PUT

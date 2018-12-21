@@ -33,6 +33,10 @@ const appPath = process.env.MIX_APP_PATH;
 
 mix.js('resources/js/app.js', 'public/js')
    .sass('resources/sass/app.scss', 'public/css')
+   .copy(
+       'node_modules/vue-multiselect/dist/vue-multiselect.min.css',
+       'public/css'
+   )
    .options({
        fileLoaderDirs: {
            fonts: appPath + 'fonts'
