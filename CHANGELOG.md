@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 ## 0.6.1
 ### Fixed
 - Skip resources that are not concepts of imported files
+- Wrong URLs (Add/Delete broader)
+- Font loading
+- Remove login page redirect on page load
+- Minor style fixes
 
 ## 0.6 - Federsee
 This version is a complete rewrite using Laravel and Vue.js. Please refer to the [INSTALL.md](INSTALL.md) for migration and new setup information.
