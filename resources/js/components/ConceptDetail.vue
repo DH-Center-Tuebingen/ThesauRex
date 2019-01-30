@@ -105,7 +105,7 @@
                             </div>
                             <input type="text" class="form-control" v-model="newLabel.value">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary btn-success" type="submit">
+                                <button class="btn btn-success" type="submit">
                                     <i class="fas fa-fw fa-plus"></i>
                                 </button>
                             </div>
@@ -174,7 +174,7 @@
                             </div>
                             <input type="text" class="form-control" v-model="newNote.value">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="submit">
+                                <button class="btn btn-success" type="submit">
                                     <i class="fas fa-fw fa-plus"></i>
                                 </button>
                             </div>
