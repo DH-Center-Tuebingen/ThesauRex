@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.6.1
+### Fixed
+- Skip resources that are not concepts of imported files
+
 ## 0.6 - Federsee
 This version is a complete rewrite using Laravel and Vue.js. Please refer to the [INSTALL.md](INSTALL.md) for migration and new setup information.
 

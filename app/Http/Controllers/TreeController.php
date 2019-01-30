@@ -750,6 +750,10 @@ class TreeController extends Controller
         $resources = $graph->resources();
         $relations = [];
         foreach($resources as $url => $r) {
+            // Skip resources that are not concepts
+            if(!$r->isA('skos:Concept')) {
+                continue;
+            }
             $concept = DB::table($thConcept)
                 ->where('concept_url', $url)
                 ->first();
@@ -892,6 +896,9 @@ class TreeController extends Controller
             $nid = DB::table($thConcept)
                 ->where('concept_url', $n)
                 ->value('id');
+            if(!isset($bid) || !isset($nid)) {
+                continue;
+            }
             $relationExists = DB::table($thBroader)
                 ->where([
                     ['broader_id', '=', $bid],
