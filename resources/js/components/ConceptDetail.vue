@@ -434,7 +434,7 @@
                 if(!e.concept) return;
                 const bid = e.concept.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}/?t=${this.treeName}`).then(response => {
+                $httpQueue.add(() => $http.put(`tree/concept/${id}/broader/${bid}?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'add',
                         concept: e.concept,
@@ -447,7 +447,7 @@
                 const broader = this.concept.broaders[index];
                 const bid = broader.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}/?t=${this.treeName}`).then(response => {
+                $httpQueue.add(() => $http.delete(`tree/concept/${id}/broader/${bid}?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: bid,
@@ -466,7 +466,7 @@
                 } else {
                     const bid = e.concept.id;
                     const id = this.concept.id;
-                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}/?t=${this.treeName}`).then(response => {
+                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}?t=${this.treeName}`).then(response => {
                         this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                             type: 'add',
                             concept: e.concept,
@@ -480,7 +480,7 @@
                 const broader = this.concept.narrowers[index];
                 const bid = broader.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}/?t=${this.treeName}`).then(response => {
+                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: id,
