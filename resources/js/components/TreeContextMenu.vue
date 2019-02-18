@@ -26,9 +26,7 @@ export default {
             type: Object
         }
     },
-    mounted() {
-        console.log(this.data);
-    },
+    mounted() {},
     methods: {
         onAddItem() {
             this.data.data.eventBus.$emit(`cm-item-add-${this.data.data.treeName}`, {
