@@ -15,12 +15,12 @@
         <hr class="w-100" />
         <div class="row h-100">
             <div class="col-md-6 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.broader.title') }}
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <concept-search
                                 :concept="concept"
                                 :tree-name="treeName"
@@ -43,12 +43,12 @@
                         {{ $t('detail.broader.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.narrower.title') }}
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <concept-search
                                 :add-new="true"
                                 :concept="concept"
@@ -74,7 +74,7 @@
                 </div>
             </div>
             <div class="col-md-6 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.label.title') }}
                         <span v-show="prefLabelCount < languages.length" data-toggle="popover" :data-content="$t('detail.label.info-label-missing')" data-trigger="hover" data-placement="bottom">
@@ -146,7 +146,7 @@
                         {{ $t('detail.label.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.note.title') }}
                     </h5>

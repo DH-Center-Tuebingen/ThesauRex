@@ -144,7 +144,8 @@ const de = {
         'tree-node': {
             'add-concept': 'Konzept hinzufügen',
             'export-concept': 'Sub-Baum exportieren',
-            'delete-concept': 'Konzept löschen'
+            'delete-concept': 'Konzept löschen',
+            'remove-concept-relation': 'Verbindung aufheben'
         }
     },
     settings: {

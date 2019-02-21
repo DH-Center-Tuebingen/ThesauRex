@@ -2,11 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 ## 0.6.1
+### Added
+- Drag & Drop
 ### Fixed
 - Skip resources that are not concepts of imported files
 - Wrong URLs (Add/Delete broader)
 - Font loading
 - Remove login page redirect on page load
+- Prevent adding broaders as narrowers (would create circles)
+- Several bugs in add/remove concepts
 - Minor style fixes
 
 ## 0.6 - Federsee

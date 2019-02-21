@@ -144,7 +144,8 @@ const en = {
         'tree-node': {
             'add-concept': 'Add concept',
             'export-concept': 'Export Sub-Tree',
-            'delete-concept': 'Delete concept'
+            'delete-concept': 'Delete concept',
+            'remove-concept-relation': 'Remove relation'
         }
     },
     settings: {

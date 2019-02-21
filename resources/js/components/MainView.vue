@@ -6,9 +6,11 @@
             </h4>
             <concept-tree
                 :event-bus="eventBus"
+                :drag-target="dragTarget"
                 :tree-data="sandbox.concepts"
                 :tree-name="'sandbox'"
-                @request-concept="openNewConceptModal">
+                @request-concept="openNewConceptModal"
+                @change-drag-target="changeDragTarget">
             </concept-tree>
         </div>
         <div class="col-md-3 d-flex flex-column">
@@ -17,9 +19,11 @@
             </h4>
             <concept-tree
                 :event-bus="eventBus"
+                :drag-target="dragTarget"
                 :tree-data="concepts"
                 :tree-name="''"
-                @request-concept="openNewConceptModal">
+                @request-concept="openNewConceptModal"
+                @change-drag-target="changeDragTarget">
             </concept-tree>
         </div>
         <div class="col-md-6">
@@ -53,6 +57,9 @@
             this.eventBus.$on('concept-clicked', this.handleConceptClick);
         },
         methods: {
+            changeDragTarget(e) {
+                this.dragTarget = e;
+            },
             init(projectData, sandboxData, languages) {
                 this.languages = [];
                 languages.forEach(l => {
@@ -114,7 +121,8 @@
                 // },
                 sandbox: {
                     concepts: []
-                }
+                },
+                dragTarget: {}
             }
         }
     }

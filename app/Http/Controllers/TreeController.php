@@ -313,6 +313,67 @@ class TreeController extends Controller
         return response()->json($thConcept, 201);
     }
 
+    public function cloneConceptFromTree(Request $request, $id, $bid) {
+        $user = \Auth::user();
+        if(!$user->can('add_move_concepts_th')) {
+            return response([
+                'error' => 'You do not have the permission to call this method'
+            ], 403);
+        }
+
+        $target = $request->query('t', '');
+        $from = $request->query('s', '');
+
+        if(($target === 'sandbox' && $from === 'sandbox') || ($target !== 'sandbox' && $from !== 'sandbox')) {
+            return response([
+                'error' => 'You can not clone a concept from the same tree'
+            ], 403);
+        }
+
+        if($target !== 'sandbox') {
+            $target = '';
+        }
+        if($from !== 'sandbox') {
+            $from = '';
+        }
+
+        try {
+            if($from === 'sandbox') {
+                ThConceptSandbox::findOrFail($id);
+            } else {
+                ThConcept::findOrFail($id);
+            }
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This concept does not exist in source tree'
+            ], 400);
+        }
+        if($bid != -1) {
+            try {
+                if($target === 'sandbox') {
+                    ThConceptSandbox::findOrFail($bid);
+                } else {
+                    ThConcept::findOrFail($bid);
+                }
+            } catch(ModelNotFoundException $e) {
+                return response()->json([
+                    'error' => 'This concept does not exist in source tree'
+                ], 400);
+            }
+        }
+
+        $clonedConcept = self::cloneConceptTree($id, $bid, $from, $target, $user);
+
+        $conceptTable = th_tree_builder($target, $user->getLanguage(), 1);
+
+        $clonedConcept = $conceptTable
+            ->withCount('narrowers as children_count')
+            ->find($clonedConcept->id);
+        $clonedConcept->setAppends(['parents', 'path']);
+
+        return response()->json($clonedConcept);
+    }
+
     public function deleteLabel(Request $request, $id) {
         $user = \Auth::user();
 
@@ -504,42 +565,74 @@ class TreeController extends Controller
         }
 
         $treeName = $request->query('t', '');
+        $addAsRoot = $bid === -1;
 
+        $concept;
         try {
             if($treeName === 'sandbox') {
-                ThConceptSandbox::findOrFail($id);
+                $concept = ThConceptSandbox::findOrFail($id);
             } else {
-                ThConcept::findOrFail($id);
+                $concept = ThConcept::findOrFail($id);
             }
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
             ], 400);
         }
-        try {
-            if($treeName === 'sandbox') {
-                ThConceptSandbox::findOrFail($bid);
-            } else {
-                ThConcept::findOrFail($bid);
+        if(!$addAsRoot) {
+            try {
+                if($treeName === 'sandbox') {
+                    ThConceptSandbox::findOrFail($bid);
+                } else {
+                    ThConcept::findOrFail($bid);
+                }
+            } catch(ModelNotFoundException $e) {
+                return response()->json([
+                    'error' => 'This concept does not exist'
+                ], 400);
             }
-        } catch(ModelNotFoundException $e) {
+        }
+
+        $broaderQuery = th_broader_builder($treeName);
+        $relationExists = $broaderQuery->where('broader_id', $bid)
+            ->where('narrower_id', $id)
+            ->exists();
+        if($relationExists) {
             return response()->json([
-                'error' => 'This concept does not exist'
+                'error' => 'This relation already exists'
             ], 400);
         }
+
+        DB::beginTransaction();
 
         $entry;
-        if($treeName == 'sandbox') {
-            $entry = new ThBroaderSandbox();
+        if($addAsRoot) {
+            $concept->is_top_concept = true;
+            $concept->save();
         } else {
-            $entry = new ThBroader();
+            if($treeName == 'sandbox') {
+                $entry = new ThBroaderSandbox();
+            } else {
+                $entry = new ThBroader();
+            }
+
+            $entry->broader_id = $bid;
+            $entry->narrower_id = $id;
+            $entry->save();
         }
 
-        $entry->broader_id = $bid;
-        $entry->narrower_id = $id;
-        $entry->save();
+        // check circles
+        $circles = th_detect_circles();
 
-        // TODO
+        if(count($circles) > 0) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Can not add this concept, would result in a circle.'
+            ], 400);
+        }
+
+        DB::commit();
+
         return response()->json($entry, 201);
     }
 
@@ -565,28 +658,34 @@ class TreeController extends Controller
                 'error' => 'This concept does not exist'
             ], 400);
         }
-        try {
-            if($treeName === 'sandbox') {
-                ThConceptSandbox::findOrFail($bid);
-            } else {
-                ThConcept::findOrFail($bid);
+        if($bid != -1) {
+            try {
+                if($treeName === 'sandbox') {
+                    ThConceptSandbox::findOrFail($bid);
+                } else {
+                    ThConcept::findOrFail($bid);
+                }
+            } catch(ModelNotFoundException $e) {
+                return response()->json([
+                    'error' => 'This concept does not exist'
+                ], 400);
             }
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This concept does not exist'
-            ], 400);
         }
 
-        $query;
-        if($treeName == 'sandbox') {
-            $query = ThBroaderSandbox::query();
-        } else {
-            $query = ThBroader::query();
-        }
+        if($bid != -1) {
+            $query;
+            if($treeName == 'sandbox') {
+                $query = ThBroaderSandbox::query();
+            } else {
+                $query = ThBroader::query();
+            }
 
-        $query->where('broader_id', $bid)
+            $query->where('broader_id', $bid)
             ->where('narrower_id', $id)
             ->delete();
+        } else {
+            $concept->is_top_concept = false;
+        }
 
         // if narrower is not a top concept
         // check if there are other broader-narrower
@@ -601,7 +700,13 @@ class TreeController extends Controller
             $broadCnt = $query->where('narrower_id', $id)->count();
 
             if($broadCnt === 0) {
+                $broaderTable = th_broader_builder($treeName);
+
+                $narrowers = $broaderTable->where('broader_id', $id)->pluck('narrower_id')->toArray();
+
                 $concept->delete();
+
+                self::deleteOrphanedConcepts($narrowers, $treeName);
             }
         }
 
@@ -915,20 +1020,7 @@ class TreeController extends Controller
         }
 
         // check circles
-        $circles = DB::select(DB::raw("
-            WITH RECURSIVE
-            cte(bid, nid, depth, path, is_cycle) AS (
-                SELECT b.broader_id, b.narrower_id, 1, ARRAY[b.broader_id], false
-                FROM th_broaders b
-              UNION ALL
-                SELECT b.broader_id, b.narrower_id, cte.depth + 1, path || b.broader_id, b.broader_id = ANY(path)
-                FROM th_broaders b, cte
-                WHERE b.broader_id = cte.nid AND NOT is_cycle
-            )
-            SELECT distinct bid
-            FROM cte
-            WHERE is_cycle = TRUE
-        "));
+        $circles = th_detect_circles();
 
         if(count($circles) > 0) {
             $circleList = '';
@@ -1256,5 +1348,99 @@ class TreeController extends Controller
             'concepts' => [],
             'conceptNames' => []
         ]);
+    }
+
+    private static function cloneConceptTree($srcId, $tgtBroaderId, $srcTree, $tgtTree, $user) {
+        $srcConcept;
+        $broaderConcept;
+        $clonedConcept;
+        $alreadyExists = true;
+        if($srcTree === 'sandbox') {
+            $srcConcept = ThConceptSandbox::findOrFail($srcId);
+            if($tgtBroaderId !== -1) {
+                $broaderConcept = ThConcept::findOrFail($tgtBroaderId);
+            }
+            // Check if url of source concept already exists in target tree
+            // If not, create a new one
+            $clonedConcept = ThConcept::where('concept_url', $srcConcept->concept_url)->first();
+            if(!isset($clonedConcept)) {
+                $clonedConcept = new ThConcept();
+                $alreadyExists = false;
+            }
+        } else {
+            $srcConcept = ThConcept::findOrFail($srcId);
+            if($tgtBroaderId !== -1) {
+                $broaderConcept = ThConceptSandbox::findOrFail($tgtBroaderId);
+            }
+            // Check if url of source concept already exists in target tree
+            // If not, create a new one
+            $clonedConcept = ThConceptSandbox::where('concept_url', $srcConcept->concept_url)->first();
+            if(!isset($clonedConcept)) {
+                $clonedConcept = new ThConceptSandbox();
+                $alreadyExists = false;
+            }
+        }
+
+        if(!$alreadyExists) {
+            $clonedConcept->fill($srcConcept->getAttributes());
+        }
+        $clonedConcept->is_top_concept = $tgtBroaderId === -1;
+        $clonedConcept->save();
+
+        if(!$clonedConcept->is_top_concept) {
+            $relation;
+            if($srcTree === 'sandbox') {
+                $relation = new ThBroader();
+            } else {
+                $relation = new ThBroaderSandbox();
+            }
+            $relation->broader_id = $tgtBroaderId;
+            $relation->narrower_id = $clonedConcept->id;
+            $relation->save();
+        }
+
+        $srcLabels = $srcConcept->labels;
+        $srcNotes = $srcConcept->notes;
+
+        foreach($srcLabels as $label) {
+            $attrs = [
+                'label' => $label->label,
+                'concept_id' => $clonedConcept->id,
+                'language_id' => $label->language_id
+            ];
+            $newAttrs = [
+                'lasteditor' => $user->name
+            ];
+            if($srcTree === 'sandbox') {
+                ThConceptLabel::firstOrCreate($attrs, $newAttrs);
+            } else {
+                ThConceptLabelSandbox::firstOrCreate($attrs, $newAttrs);
+            }
+        }
+        foreach($srcNotes as $note) {
+            $attrs = [
+                'content' => $note->content,
+                'concept_id' => $clonedConcept->id,
+                'language_id' => $note->language_id
+            ];
+            if($srcTree === 'sandbox') {
+                ThConceptNote::firstOrCreate($attrs);
+            } else {
+                ThConceptNoteSandbox::firstOrCreate($attrs);
+            }
+        }
+
+        $relations;
+        if($srcTree === 'sandbox') {
+            $relations = ThBroaderSandbox::where('broader_id', $srcConcept->id)->get();
+        } else {
+            $relations = ThBroader::where('broader_id', $srcConcept->id)->get();
+        }
+
+        foreach($relations as $relation) {
+            self::cloneConceptTree($relation->narrower_id, $clonedConcept->id, $srcTree, $tgtTree, $user);
+        }
+
+        return $clonedConcept;
     }
 }
