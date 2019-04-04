@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Prevent adding broaders as narrowers (would create circles)
 - Several bugs in add/remove concepts
 - Minor style fixes
+- Logout after typing too fast in tree/concept search
 
 ## 0.6 - Federsee
 This version is a complete rewrite using Laravel and Vue.js. Please refer to the [INSTALL.md](INSTALL.md) for migration and new setup information.
