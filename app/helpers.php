@@ -1,6 +1,5 @@
 <?php
 
-use \DB;
 use App\ThBroader;
 use App\ThBroaderSandbox;
 use App\ThConcept;
@@ -109,7 +108,7 @@ if(!function_exists('th_note_builder')) {
 
 if(!function_exists('th_detect_circles')) {
     function th_detect_circles() {
-        $circles = DB::select(DB::raw("
+        $circles = \DB::select(\DB::raw("
             WITH RECURSIVE
             cte(bid, nid, depth, path, is_cycle) AS (
                 SELECT b.broader_id, b.narrower_id, 1, ARRAY[b.broader_id], false
