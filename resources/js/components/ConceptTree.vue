@@ -341,10 +341,17 @@
                 }
             },
             uploadFile(file, component) {
+                this.$modal.show('importing-info-modal');
                 let formData = new FormData();
                 formData.append('file', file.file);
                 formData.append('type', this.importType);
-                return $http.post(`tree/file?t=${this.treeName}`, formData);
+                return $http.post(`tree/file?t=${this.treeName}`, formData).then(res => {
+                    this.$modal.hide('importing-info-modal');
+                    return res;
+                }).catch(error => {
+                    this.$modal.hide('importing-info-modal');
+                    return error;
+                });
             },
             exportTree(rootElement) {
                 if(rootElement) {

@@ -73,6 +73,7 @@
             <router-view :on-login="onInit"></router-view>
             <about-dialog></about-dialog>
             <error-modal></error-modal>
+            <importing-info-modal></importing-info-modal>
         </div>
         <modals-container class="visible-overflow" />
         <notifications group="thesaurex" position="bottom left" class="m-2" />

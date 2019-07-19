@@ -138,6 +138,10 @@ const de = {
             ).`,
             delete: '<span class="font-weight-medium">{name}</span> löschen',
             'delete-recursive': 'Rekursiv löschen'
+        },
+        import_info: {
+            title: 'Importiere…',
+            info: 'Bitte warte während ThesauRex die Datei importiert. Das Fenster schließt sich automatisch.'
         }
     },
     menus: {

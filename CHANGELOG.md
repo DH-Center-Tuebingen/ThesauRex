@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## 0.6.1
 ### Added
 - Drag & Drop
+- Info modal when importing a new file
 ### Fixed
 - Skip resources that are not concepts of imported files
 - Wrong URLs (Add/Delete broader)
