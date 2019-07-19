@@ -45,8 +45,8 @@ dom.watch(); // search for <i> tags to replace with <svg>
  * includes Vue and other libraries. It is a great starting point when
  * building robust, powerful web applications using Vue and Laravel.
  */
-
-const PQueue = require('p-queue');
+ 
+const {default: PQueue} = require('p-queue');
 let VueScrollTo = require('vue-scrollto');
 require('typeface-raleway');
 require('typeface-source-code-pro');
