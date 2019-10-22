@@ -2,9 +2,7 @@
 
 namespace App;
 
-use Zizaco\Entrust\EntrustRole;
-
-class Role extends EntrustRole
+class Role extends \Spatie\Permission\Models\Role
 {
     const rules = [
         'name'          => 'required|alpha_dash|max:255|unique:roles',
@@ -15,8 +13,4 @@ class Role extends EntrustRole
         'display_name'  => 'string|max:255',
         'description'   => 'string|max:255',
     ];
-
-    public function permissions() {
-        return $this->belongsToMany('App\Permission', 'permission_role', 'role_id', 'permission_id');
-    }
 }

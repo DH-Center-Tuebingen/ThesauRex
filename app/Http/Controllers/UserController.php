@@ -126,6 +126,7 @@ class UserController extends Controller
             ], 403);
         }
         $role = new Role();
+        $role->guard_name = 'web';
         foreach($request->only(array_keys(Role::rules)) as $key => $value) {
             $role->{$key} = $value;
         }
@@ -176,11 +177,9 @@ class UserController extends Controller
         }
 
         if($request->has('roles')) {
-            $user->detachRoles($user->roles);
+            $user->roles()->detach();
             $roles = $request->get('roles');
-            foreach($roles as $roleId) {
-                $user->attachRole($roleId);
-            }
+            $user->assignRole($roles);
 
             // Update updated_at column
             $user->touch();
@@ -189,6 +188,9 @@ class UserController extends Controller
             $user->email = $request->get('email');
             $user->save();
         }
+
+        // return user without roles relation
+        $user->unsetRelation('roles');
 
         return response()->json($user);
     }
@@ -219,11 +221,11 @@ class UserController extends Controller
         }
 
         if($request->has('permissions')) {
-            $role->detachPermissions($role->permissions);
+            $role->permissions()->detach();
             $perms = $request->get('permissions');
-            foreach($perms as $permId) {
-                $role->attachPermission($permId);
-            }
+            $role->syncPermissions($perms);
+
+            // Update updated_at column
             $role->touch();
         }
         if($request->has('display_name')) {
