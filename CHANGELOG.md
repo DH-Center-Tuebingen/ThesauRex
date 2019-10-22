@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.6.2
+### Changed
+- Switched (unmaintained) permission package to match Spacialist
+
 ## 0.6.1
 ### Added
 - Drag & Drop

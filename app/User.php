@@ -5,13 +5,15 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Zizaco\Entrust\Traits\EntrustUserTrait;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements JWTSubject
 {
     use Notifiable;
-    use EntrustUserTrait;
+    use HasRoles;
     // use Authenticatable;
+
+    protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
@@ -53,10 +55,6 @@ class User extends Authenticatable implements JWTSubject
 
     public function preferences() {
         return $this->hasMany('App\UserPreference');
-    }
-
-    public function roles() {
-        return $this->belongsToMany('App\Role', 'role_user', 'user_id', 'role_id');
     }
 
     /**
