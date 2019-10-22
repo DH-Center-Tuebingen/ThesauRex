@@ -105,3 +105,24 @@ if(!function_exists('th_note_builder')) {
         }
     }
 }
+
+if(!function_exists('th_detect_circles')) {
+    function th_detect_circles() {
+        $circles = \DB::select(\DB::raw("
+            WITH RECURSIVE
+            cte(bid, nid, depth, path, is_cycle) AS (
+                SELECT b.broader_id, b.narrower_id, 1, ARRAY[b.broader_id], false
+                FROM th_broaders b
+              UNION ALL
+                SELECT b.broader_id, b.narrower_id, cte.depth + 1, path || b.broader_id, b.broader_id = ANY(path)
+                FROM th_broaders b, cte
+                WHERE b.broader_id = cte.nid AND NOT is_cycle
+            )
+            SELECT distinct bid
+            FROM cte
+            WHERE is_cycle = TRUE
+        "));
+
+        return $circles;
+    }
+}

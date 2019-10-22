@@ -50,11 +50,13 @@
                 class="col px-0 scroll-y-auto"
                 :data="tree"
                 :draggable="isDragAllowed"
+                :drag-target="dragTarget"
                 :drop-allowed="isDropAllowed"
                 size="small"
                 @change="itemClick"
                 @drop="itemDrop"
-                @toggle="itemToggle">
+                @toggle="itemToggle"
+                @change-drag-target="changeDragTarget">
             </tree>
             <a href="" class="text-secondary" @click.prevent="requestConcept()">
                 {{ $t('tree.new-top-concept') }}
@@ -107,6 +109,10 @@
 
     export default {
         props: {
+            dragTarget: {
+                required: false,
+                type: Object
+            },
             treeData: {
                 required: true,
                 type: Array
@@ -146,6 +152,7 @@
             this.eventBus.$on(`cm-item-add-${this.treeName}`, this.handleAddConceptRequest);
             this.eventBus.$on(`cm-item-export-${this.treeName}`, this.handleConceptExport);
             this.eventBus.$on(`cm-item-delete-${this.treeName}`, this.handleConceptDelete);
+            this.eventBus.$on(`cm-item-remove-relation-${this.treeName}`, this.handleConceptRemoveRelation);
 
             this.eventBus.$on(`dc-delete-all-${this.treeName}`, this.handleDeleteAll);
             this.eventBus.$on(`dc-delete-one-${this.treeName}`, this.handleDeleteOneUp);
@@ -159,11 +166,15 @@
             this.eventBus.$off(`cm-item-add-${this.treeName}`);
             this.eventBus.$off(`cm-item-export-${this.treeName}`);
             this.eventBus.$off(`cm-item-delete-${this.treeName}`);
+            this.eventBus.$off(`cm-item-remove-relation-${this.treeName}`);
 
             this.eventBus.$off(`dc-delete-all-${this.treeName}`);
             this.eventBus.$off(`dc-delete-one-${this.treeName}`);
         },
         methods: {
+            changeDragTarget(e) {
+                this.$emit('change-drag-target', e);
+            },
             itemClick(eventData) {
                 const item = eventData.data;
                 this.eventBus.$emit('concept-clicked', {
@@ -188,33 +199,40 @@
                     return;
                 }
 
-                const vm = this;
-                const node = dropData.sourceData;
-                const newRank = vm.getNewRank(dropData);
-                const oldRank = node.rank;
-                let newParent;
-                const oldParent = treeUtility.getNodeFromPath(this.tree, dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
-                if(dropData.targetData.state.dropPosition == DropPosition.inside) {
-                    newParent = dropData.targetData;
+                const srcNode = dropData.sourceData;
+                const tgtNode = dropData.targetData;
+
+                let parentNode;
+                if(tgtNode.state.dropPosition == DropPosition.inside) {
+                    parentNode = tgtNode;
                 } else {
-                    newParent = treeUtility.getNodeFromPath(this.tree, dropData.targetPath.slice(0, dropData.targetPath.length - 1));
+                    parentNode = treeUtility.getNodeFromPath(this.tree, dropData.targetPath.slice(0, dropData.targetPath.length-1));
+                }
+                const nid = srcNode.id;
+                const bid = parentNode ? parentNode.id : -1;
+
+                const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
+
+                if(isFromOtherTree) {
+                    const from = this.treeName === 'sandbox' ? '' : 'sandbox';
+                    $httpQueue.add(() => $http.put(`/tree/concept/clone/${nid}/to/${bid}?t=${this.treeName}&s=${from}`).then(response => {
+                        this.eventBus.$emit(`concept-created-${this.treeName}`, {
+                            parent_id: parentNode ? parentNode.id : undefined,
+                            concept: response.data
+                        });
+                    }));
+                } else {
+                    $httpQueue.add(() => $http.put(`/tree/concept/${nid}/broader/${bid}?t=${this.treeName}`).then(response => {
+                        this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                            type: 'add',
+                            concept: this.concepts[nid],
+                            broader_id: bid,
+                            narrower_id: nid
+                        });
+                    }));
                 }
 
-                if (newParent == oldParent && newRank == oldRank) {
-                    return;
-                }
-
-                let data = {
-                    id: node.id,
-                    rank: newRank,
-                    parent_id: newParent ? newParent.id : null
-                };
-
-                $httpQueue.add(() => vm.$http.patch(`/entity/${node.id}/rank`, data).then(function(response) {
-                    vm.removeFromTree(node, dropData.sourcePath);
-                    node.rank = newRank;
-                    vm.insertIntoTree(node, newParent);
-                }));
+                return;
             },
             requestConcept(parent, text = '') {
                 this.$emit('request-concept', {
@@ -323,10 +341,17 @@
                 }
             },
             uploadFile(file, component) {
+                this.$modal.show('importing-info-modal');
                 let formData = new FormData();
                 formData.append('file', file.file);
                 formData.append('type', this.importType);
-                return $http.post(`tree/file?t=${this.treeName}`, formData);
+                return $http.post(`tree/file?t=${this.treeName}`, formData).then(res => {
+                    this.$modal.hide('importing-info-modal');
+                    return res;
+                }).catch(error => {
+                    this.$modal.hide('importing-info-modal');
+                    return error;
+                });
             },
             exportTree(rootElement) {
                 if(rootElement) {
@@ -358,15 +383,27 @@
             },
             handleDeleteAll(e) {
                 const id = e.element.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${id}`).then(response => {
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}?t=${this.treeName}`).then(response => {
                     // TODO handle update (sub-tree deleted)
                     this.concepts[id] = null;
                 }));
             },
             handleDeleteOneUp(e) {
                 const id = e.element.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move`).then(response => {
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move?t=${this.treeName}`).then(response => {
                     // TODO handle update (concept deleted, descs one level up)
+                }));
+            },
+            handleConceptRemoveRelation(e) {
+                const parentNode = treeUtility.getNodeFromPath(this.tree, e.path.slice(0, e.path.length-1));
+                const id = e.element.id;
+                const bid = parentNode ? parentNode.id : -1;
+                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}?t=${this.treeName}`).then(response => {
+                    this.eventBus.$emit(`relation-updated-${this.treeName}`, {
+                        type: 'remove',
+                        broader_id: bid != -1 ? bid : undefined,
+                        narrower_id: id
+                    });
                 }));
             },
             handleConceptCreated(e) {
@@ -389,6 +426,7 @@
             handleRelationUpdate(e) {
                 let broader;
                 let narrower;
+                let siblings;
                 switch(e.type) {
                     case 'add':
                         broader = this.concepts[e.broader_id];
@@ -397,55 +435,61 @@
                             broader.children_count++;
                             break;
                         }
-                        let siblings = e.broader_id ? broader.children : this.tree;
+                        siblings = e.broader_id ? broader.children : this.tree;
                         siblings.push(narrower);
                         break;
                     case 'remove':
                         broader = this.concepts[e.broader_id];
                         narrower = this.concepts[e.narrower_id];
-                        broader.children_count--;
-                        if(broader.childrenLoaded) {
-                            const childIndex = broader.children.findIndex(c => {
-                                return c.id == narrower.id;
-                            });
-                            if(childIndex > -1) {
-                                broader.children.splice(childIndex, 1);
-                            }
+                        if(e.broader_id && !broader.childrenLoaded) {
+                            broader.children_count--;
+                            break;
+                        }
+                        siblings = e.broader_id ? broader.children : this.tree;
+                        const childIndex = siblings.findIndex(c => {
+                            return c.id == narrower.id;
+                        });
+                        if(childIndex > -1) {
+                            siblings.splice(childIndex, 1);
                         }
                         break;
                 }
             },
             isDropAllowed(dropData) {
-                //TODO check if it works with tree-vue-component
-                const item = dropData.sourceData;
-                const target = dropData.targetData;
-                const vm = this;
-                const dragEntityType = vm.$getEntityType(item.entity_type_id);
+                const srcNode = dropData.sourceData;
+                const tgtNode = dropData.targetData;
 
-                if(target.parentIds.indexOf(item.id) != -1 ||
-                   (target.state.dropPosition == DropPosition.inside && target.id == item.root_entity_id)) {
-                    return false;
-                }
-                let dropEntityType;
-                if(dropData.targetPath.length == 1) {
-                    dropEntityType = {
-                        sub_entity_types: Object.values(vm.$getEntityTypes()).filter(f => f.is_root)
-                    }
+                let parentNode;
+                if(tgtNode.state.dropPosition == DropPosition.inside) {
+                    parentNode = tgtNode;
                 } else {
-                    dropEntityType = vm.$getEntityType(target.entity_type_id);
+                    parentNode = treeUtility.getNodeFromPath(this.tree, dropData.targetPath.slice(0, dropData.targetPath.length-1));
                 }
-                // If currently dragged element is not allowed as root
-                // and dragged on element is a root element (no parent)
-                // do not allow drop
-                if(!dragEntityType.is_root && dropData.targetPath.length == 1) {
-                    return false;
-                }
+                const nid = srcNode.id;
+                const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
 
-                // Check if currently dragged entity type is allowed
-                // as subtype of current drop target
-                const index = dropEntityType.sub_entity_types.findIndex(ct => ct.id == dragEntityType.id);
-                if(index == -1) {
-                    return false;
+                // Cancel drop if from same tree and ...
+                if(!isFromOtherTree) {
+                    // ... target is same node or ...
+                    if(nid == tgtNode.id) return false;
+                    // ... source is a parent of target (would result in circle) or ...
+                    if(dropData.targetPath.length > dropData.sourcePath.length) {
+                        let srcIsParent = true;
+                        for(let i=0; i<dropData.sourcePath.length; i++) {
+                            const p = dropData.sourcePath[i];
+                            const pt = dropData.targetPath[i];
+                            if(p !== pt) {
+                                srcIsParent = false;
+                                break;
+                            }
+                        }
+                        if(srcIsParent) return false;
+                    }
+                    // ... source is added on same level (as child of parent/target)
+                    const srcParentNode = treeUtility.getNodeFromPath(this.tree, dropData.sourcePath.slice(0, dropData.sourcePath.length-1));
+                    if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
+                        return false;
+                    }
                 }
                 // In any other cases allow drop
                 return true;

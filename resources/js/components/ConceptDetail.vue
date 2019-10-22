@@ -15,12 +15,12 @@
         <hr class="w-100" />
         <div class="row h-100">
             <div class="col-md-6 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.broader.title') }}
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <concept-search
                                 :concept="concept"
                                 :tree-name="treeName"
@@ -43,12 +43,12 @@
                         {{ $t('detail.broader.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.narrower.title') }}
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <concept-search
                                 :add-new="true"
                                 :concept="concept"
@@ -74,7 +74,7 @@
                 </div>
             </div>
             <div class="col-md-6 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.label.title') }}
                         <span v-show="prefLabelCount < languages.length" data-toggle="popover" :data-content="$t('detail.label.info-label-missing')" data-trigger="hover" data-placement="bottom">
@@ -105,7 +105,7 @@
                             </div>
                             <input type="text" class="form-control" v-model="newLabel.value">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary btn-success" type="submit">
+                                <button class="btn btn-success" type="submit">
                                     <i class="fas fa-fw fa-plus"></i>
                                 </button>
                             </div>
@@ -146,7 +146,7 @@
                         {{ $t('detail.label.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2">
+                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ $t('detail.note.title') }}
                     </h5>
@@ -174,7 +174,7 @@
                             </div>
                             <input type="text" class="form-control" v-model="newNote.value">
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="submit">
+                                <button class="btn btn-success" type="submit">
                                     <i class="fas fa-fw fa-plus"></i>
                                 </button>
                             </div>
@@ -434,7 +434,7 @@
                 if(!e.concept) return;
                 const bid = e.concept.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.put(`/tree/concept/${id}/broader/${bid}/?t=${this.treeName}`).then(response => {
+                $httpQueue.add(() => $http.put(`tree/concept/${id}/broader/${bid}?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'add',
                         concept: e.concept,
@@ -447,7 +447,7 @@
                 const broader = this.concept.broaders[index];
                 const bid = broader.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}/?t=${this.treeName}`).then(response => {
+                $httpQueue.add(() => $http.delete(`tree/concept/${id}/broader/${bid}?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: bid,
@@ -466,7 +466,7 @@
                 } else {
                     const bid = e.concept.id;
                     const id = this.concept.id;
-                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}/?t=${this.treeName}`).then(response => {
+                    $httpQueue.add(() => $http.put(`/tree/concept/${bid}/broader/${id}?t=${this.treeName}`).then(response => {
                         this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                             type: 'add',
                             concept: e.concept,
@@ -480,7 +480,7 @@
                 const broader = this.concept.narrowers[index];
                 const bid = broader.id;
                 const id = this.concept.id;
-                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}/?t=${this.treeName}`).then(response => {
+                $httpQueue.add(() => $http.delete(`/tree/concept/${bid}/broader/${id}?t=${this.treeName}`).then(response => {
                     this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                         type: 'remove',
                         broader_id: id,

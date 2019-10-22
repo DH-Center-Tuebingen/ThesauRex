@@ -26,6 +26,7 @@ import MainView from './components/MainView.vue';
 import Login from './components/Login.vue';
 import ConceptDetail from './components/ConceptDetail.vue';
 import ErrorModal from './components/ErrorModal.vue';
+import ImportingInfoModal from './components/modals/ImportingInfoModal.vue';
 import AboutDialog from './components/About.vue';
 // Settings
 import Users from './components/Users.vue';
@@ -44,8 +45,8 @@ dom.watch(); // search for <i> tags to replace with <svg>
  * includes Vue and other libraries. It is a great starting point when
  * building robust, powerful web applications using Vue and Laravel.
  */
-
-const PQueue = require('p-queue');
+ 
+const {default: PQueue} = require('p-queue');
 let VueScrollTo = require('vue-scrollto');
 require('typeface-raleway');
 require('typeface-source-code-pro');
@@ -71,7 +72,9 @@ Vue.use(VueRouter);
 Vue.use(VueI18n);
 Vue.use(VeeValidate);
 Vue.use(Notifications);
-Vue.use(VModal, {dynamic: true});
+Vue.use(VModal, {
+    dynamic: true,
+});
 Vue.use(VueScrollTo);
 
 const router = new VueRouter({
@@ -221,6 +224,7 @@ Vue.use(require('@websanova/vue-auth'), {
 // Imported Components
 Vue.component('multiselect', Multiselect);
 // Pages
+Vue.component('importing-info-modal', ImportingInfoModal);
 Vue.component('error-modal', ErrorModal);
 Vue.component('about-dialog', AboutDialog);
 

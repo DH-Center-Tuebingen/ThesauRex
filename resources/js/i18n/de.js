@@ -138,13 +138,18 @@ const de = {
             ).`,
             delete: '<span class="font-weight-medium">{name}</span> löschen',
             'delete-recursive': 'Rekursiv löschen'
+        },
+        import_info: {
+            title: 'Importiere…',
+            info: 'Bitte warte während ThesauRex die Datei importiert. Das Fenster schließt sich automatisch.'
         }
     },
     menus: {
         'tree-node': {
             'add-concept': 'Konzept hinzufügen',
             'export-concept': 'Sub-Baum exportieren',
-            'delete-concept': 'Konzept löschen'
+            'delete-concept': 'Konzept löschen',
+            'remove-concept-relation': 'Verbindung aufheben'
         }
     },
     settings: {

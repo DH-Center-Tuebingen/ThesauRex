@@ -1,3 +1,12 @@
+<p>
+    <a href='https://david-dm.org/eScienceCenter/ThesauRex'>
+        <img src='https://david-dm.org/eScienceCenter/ThesauRex.svg' alt='Dependency Status' />
+    </a>
+    <a href='https://opensource.org/licenses/MIT'>
+        <img src='https://img.shields.io/badge/License-MIT-yellow.svg' alt='License: MIT' />
+    </a>
+</p>
+
 # ThesauRex
 ThesauRex is a leightweight, easy to use [SKOS](https://www.w3.org/2004/02/skos/) editor.
 

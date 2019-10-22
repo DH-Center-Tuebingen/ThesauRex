@@ -15,6 +15,10 @@
             <i class="fas fa-fw fa-trash text-danger"></i>
             {{ $t('menus.tree-node.delete-concept') }}
         </a>
+        <a href="#" class="dropdown-item" @click.stop.prevent="onRemoveRelation" @dblclick.stop.prevent>
+            <i class="fas fa-fw fa-times text-danger"></i>
+            {{ $t('menus.tree-node.remove-concept-relation') }}
+        </a>
     </div>
 </template>
 
@@ -26,9 +30,7 @@ export default {
             type: Object
         }
     },
-    mounted() {
-        console.log(this.data);
-    },
+    mounted() {},
     methods: {
         onAddItem() {
             this.data.data.eventBus.$emit(`cm-item-add-${this.data.data.treeName}`, {
@@ -43,6 +45,12 @@ export default {
         onDeleteItem() {
             this.data.data.eventBus.$emit(`cm-item-delete-${this.data.data.treeName}`, {
                 element: this.data.data
+            });
+        },
+        onRemoveRelation() {
+            this.data.data.eventBus.$emit(`cm-item-remove-relation-${this.data.data.treeName}`, {
+                element: this.data.data,
+                path: this.data.path
             });
         }
     }
