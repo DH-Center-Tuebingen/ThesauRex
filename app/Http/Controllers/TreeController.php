@@ -6,8 +6,9 @@ use Illuminate\Http\Request;
 use Easyrdf\Easyrdf\Lib\EasyRdf;
 use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
 use \DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Helpers;
 use App\Preference;
 use App\ThBroader;
@@ -282,8 +283,8 @@ class TreeController extends Controller
             $thConceptLabel = new ThConceptLabel();
         }
 
-        $slugLabel = str_slug($label);
-        $slugProjectName = str_slug($projectName);
+        $slugLabel = Str::slug($label);
+        $slugProjectName = Str::slug($projectName);
         $scheme = 'no scheme';
         $ts = date("YmdHis");
 
