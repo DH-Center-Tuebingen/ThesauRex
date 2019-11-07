@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.6.3
+### Fixed
+- Error on adding new concepts
+- Missing dropdown items in header bar
+
 ## 0.6.2
 ### Changed
 - Switched (unmaintained) permission package to match Spacialist
