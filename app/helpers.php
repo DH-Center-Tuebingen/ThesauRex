@@ -33,14 +33,14 @@ if(!function_exists('th_tree_builder')) {
         } else {
             $labelWith = [
                 'labels.language' => function($query) use($langCode) {
-                    $query->orderByRaw("short_name = '$langCode' desc");
+                    $query->orderByRaw("short_name != '$langCode'");
                 }
             ];
             $detailedWith = [];
             if($detailLevel == 2) {
                 $detailedWith = [
                     'notes.language' => function($query) use($langCode) {
-                        $query->orderByRaw("short_name = '$langCode' desc");
+                        $query->orderByRaw("short_name != '$langCode'");
                     },
                     'narrowers',
                     'broaders'
@@ -64,7 +64,7 @@ if(!function_exists('th_broader_builder')) {
             return $builder;
         } else {
             return $builder->with(['language' => function($query) use($langCode) {
-                    $query->orderByRaw("short_name = '$langCode' desc");
+                    $query->orderByRaw("short_name != '$langCode'");
                 }]);
         }
     }
@@ -82,7 +82,7 @@ if(!function_exists('th_label_builder')) {
             return $builder;
         } else {
             return $builder->with(['language' => function($query) use($langCode) {
-                    $query->orderByRaw("short_name = '$langCode' desc");
+                    $query->orderByRaw("short_name != '$langCode'");
                 }]);
         }
     }
@@ -100,7 +100,7 @@ if(!function_exists('th_note_builder')) {
             return $builder;
         } else {
             return $builder->with(['language' => function($query) use($langCode) {
-                    $query->orderByRaw("short_name = '$langCode' desc");
+                    $query->orderByRaw("short_name != '$langCode'");
                 }]);
         }
     }

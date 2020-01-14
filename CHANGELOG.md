@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file.
 
 ## 0.6.3
+### Added
+- Sorting of concepts in tree
 ### Fixed
 - Error on adding new concepts
 - Missing dropdown items in header bar

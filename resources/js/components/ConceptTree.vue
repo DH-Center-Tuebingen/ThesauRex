@@ -234,6 +234,27 @@
 
                 return;
             },
+            sortTree(level = this.tree, dir = 'asc') {
+                const order = dir == 'asc' ? 1 : -1;
+                const sortFn = (a, b) => {
+                    if(!a.labels || a.labels.length == 0) {
+                        return 1 * order;
+                    } else if(!b.labels || b.labels.length == 0) {
+                        return -1 * order;
+                    }
+                    return this.$getLabel(a).localeCompare(this.$getLabel(b)) * order;
+                };
+                this.sortTreeLevel(level, sortFn);
+            },
+            sortTreeLevel(level, sortFn) {
+                if(!level) return;
+                level.sort(sortFn);
+                level.forEach(n => {
+                    if(n.childrenLoaded) {
+                        this.sortTreeLevel(n.children, sortFn);
+                    }
+                });
+            },
             requestConcept(parent, text = '') {
                 this.$emit('request-concept', {
                     parent: parent,
@@ -254,6 +275,7 @@
                         }
                         return n;
                     });
+                    this.sortTree(newNodes);
                     return newNodes;
                 }));
             },
@@ -313,6 +335,7 @@
                     this.concepts[n.id] = n;
                     this.tree.push(n);
                 });
+                this.sortTree(this.tree);
             },
             triggerFileUpload(type) {
                 this.importType = type;
@@ -411,6 +434,9 @@
                 const n = new Node(e.concept, this);
                 n.selectedLabel = this.$getLabel(n);
                 this.concepts[n.id] = n;
+                if(parent.childrenLoaded) {
+                    this.sortTree(parent.children);
+                }
 
                 this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                     type: 'add',
@@ -422,6 +448,9 @@
             handleLabelUpdate(e) {
                 let concept = this.concepts[e.concept_id];
                 concept.labels = e.labels;
+                if(concept.childrenLoaded) {
+                    this.sortTree(concept.children);
+                }
             },
             handleRelationUpdate(e) {
                 let broader;
@@ -437,6 +466,7 @@
                         }
                         siblings = e.broader_id ? broader.children : this.tree;
                         siblings.push(narrower);
+                        this.sortTree(siblings);
                         break;
                     case 'remove':
                         broader = this.concepts[e.broader_id];
