@@ -14,7 +14,7 @@
             <tbody>
                 <tr v-for="user in userList">
                     <td>
-                        {{ user.name }}
+                        {{ user.name }} ({{ user.nickname }})
                     </td>
                     <td>
                         <input type="email" class="form-control" :class="$getValidClass(error, `email_${user.id}`)" v-model="user.email" v-validate="" :name="`email_${user.id}`" />
@@ -97,6 +97,21 @@
 
                                 <div class="invalid-feedback">
                                     <span v-for="msg in error.name">
+                                        {{ msg }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-form-label col-md-3" for="nickname">
+                                {{ $t('global.nickname') }}
+                                <span class="text-danger">*</span>:
+                            </label>
+                            <div class="col-md-9">
+                                <input class="form-control" :class="$getValidClass(error, 'nickname')" type="text" id="nickname" v-model="newUser.nickname" required />
+
+                                <div class="invalid-feedback">
+                                    <span v-for="msg in error.nickname">
                                         {{ msg }}
                                     </span>
                                 </div>

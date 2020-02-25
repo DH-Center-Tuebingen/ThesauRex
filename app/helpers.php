@@ -8,11 +8,23 @@ use App\ThConceptLabel;
 use App\ThConceptLabelSandbox;
 use App\ThConceptNote;
 use App\ThConceptNoteSandbox;
+use Illuminate\Support\Facades\Schema;
 
 if(!function_exists('sp_parse_boolean')) {
     function sp_parse_boolean($str) {
         $acceptable = [true, 1, '1', 'true', 'TRUE'];
         return in_array($str, $acceptable, true);
+    }
+}
+
+if(!function_exists('is_part_of_spacialist')) {
+    function is_part_of_spacialist() {
+        if(!Schema::hasTable('migrations')) {
+            return false;
+        }
+        return \DB::table('migrations')
+            ->where('migration', '2018_09_06_092028_setup_tables')
+            ->exists();
     }
 }
 
