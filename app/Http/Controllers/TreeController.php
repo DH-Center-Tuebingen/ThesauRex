@@ -686,6 +686,7 @@ class TreeController extends Controller
             ->delete();
         } else {
             $concept->is_top_concept = false;
+            $concept->save();
         }
 
         // if narrower is not a top concept
