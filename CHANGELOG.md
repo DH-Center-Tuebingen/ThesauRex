@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - Error on adding new concepts
 - Missing dropdown items in header bar
 - Ignore uppercase/lowercase letters in login form user names
+- Several problems with removing concepts
+- Adding new top level concept not visible
 
 ## 0.6.2
 ### Changed
