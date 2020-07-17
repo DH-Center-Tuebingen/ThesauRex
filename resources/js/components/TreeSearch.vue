@@ -42,7 +42,6 @@
 
 <script>
     import VueTypeahead from 'vue-typeahead';
-    import debounce from 'debounce';
 
     export default {
         extends: VueTypeahead,
@@ -144,7 +143,7 @@
         },
         computed: {
             debounce () {
-                return debounce(this.update, 250)
+                return _debounce(this.update, 250)
             },
             data() {
                 return {

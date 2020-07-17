@@ -58,7 +58,7 @@ require('popper.js');
 require('./bootstrap');
 
 window.Vue = require('vue');
-window._ = require('lodash');
+window._debounce = require('lodash/debounce');
 $ = jQuery  = window.$ = window.jQuery = require('jquery');
 
 require('./global-functions.js');

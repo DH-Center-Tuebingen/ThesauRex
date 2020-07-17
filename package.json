@@ -50,7 +50,6 @@
     },
     "dependencies": {
         "country-emoji": "^1.5.3",
-        "debounce": "^1.2.0",
         "moment": "^2.27.0",
         "p-queue": "^6.5.0",
         "transliteration": "2.1.11",
