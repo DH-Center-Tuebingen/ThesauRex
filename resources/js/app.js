@@ -6,6 +6,10 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
 import VueRouter from 'vue-router';
 import moment from 'moment';
+import auth from '@websanova/vue-auth';
+import authBearer from '@websanova/vue-auth/drivers/auth/bearer.js';
+import authHttp from './queued-axios-1.x-driver.js';
+import authRouter  from '@websanova/vue-auth/drivers/router/vue-router.2.x.js';
 
 // Components
 import VeeValidate from 'vee-validate';
@@ -45,7 +49,7 @@ dom.watch(); // search for <i> tags to replace with <svg>
  * includes Vue and other libraries. It is a great starting point when
  * building robust, powerful web applications using Vue and Laravel.
  */
- 
+
 const {default: PQueue} = require('p-queue');
 let VueScrollTo = require('vue-scrollto');
 require('typeface-raleway');
@@ -200,10 +204,10 @@ Vue.i18n = i18n;
  * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
  */
 
-Vue.use(require('@websanova/vue-auth'), {
-   auth: require('@websanova/vue-auth/drivers/auth/bearer.js'),
-   http: require('./queued-axios-1.x-driver.js'),
-   router: require('@websanova/vue-auth/drivers/router/vue-router.2.x.js'),
+Vue.use(auth, {
+   auth: authBearer,
+   http: authHttp,
+   router: authRouter,
    forbiddenRedirect: {
        name: 'home'
    },
@@ -276,7 +280,7 @@ const app = new Vue({
             Vue.prototype.$httpQueue.add(() =>
             Axios.get('pre').then(response =>  {
                 this.preferences = response.data.preferences;
-                app.$auth.ready(_ => {
+                app.$auth.load().then(_ => {
                     // Check if user is logged in and set preferred language
                     // instead of browser default
                     if(app.$auth.check()) {

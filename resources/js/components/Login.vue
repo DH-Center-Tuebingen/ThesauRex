@@ -118,18 +118,16 @@
                 }
                 vm.$auth.login({
                     data: data,
-                    rememberMe: vm.user.remember,
+                    staySignedIn: vm.user.remember,
                     redirect: vm.redirect,
-                    success: _ => {
-                        vm.error = {};
-                        if(vm.onLogin) {
-                            vm.onLogin();
-                        }
-                    },
-                    error: e => {
-                        vm.$getErrorMessages(e, vm.error);
-                    },
                     fetchUser: true
+                }).then(_ => {
+                    vm.error = {};
+                    if(vm.onLogin) {
+                        vm.onLogin();
+                    }
+                }, e => {
+                    vm.$getErrorMessages(e, vm.error);
                 });
             }
         },
