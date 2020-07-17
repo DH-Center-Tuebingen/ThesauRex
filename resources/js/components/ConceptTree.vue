@@ -125,10 +125,6 @@
                 required: true,
                 type: Object
             },
-            selectedEntity: {
-                required: false,
-                type: Object
-            },
             dragDelay: {
                 required: false,
                 type: Number,
@@ -279,56 +275,6 @@
                     return newNodes;
                 }));
             },
-            requestDeleteEntity(entity, path) {
-                const vm = this;
-                if(!vm.$can('delete_move_concepts')) return;
-                vm.$modal.show(DeleteEntityModal, {
-                    entity: entity,
-                    onDelete: e => vm.onDelete(e, path)
-                })
-            },
-            onDelete(entity, path) {
-                const vm = this;
-                if(!vm.$can('delete_move_concepts')) return;
-                const id = entity.id;
-                $httpQueue.add(() => $http.delete(`/entity/${id}`).then(response => {
-                    // if deleted entity is currently selected entity...
-                    if(id == vm.selectedEntity.id) {
-                        // ...unset it
-                        this.$router.push({
-                            append: true,
-                            name: 'home',
-                            query: vm.$route.query
-                        });
-                    }
-                    vm.$showToast(
-                        this.$t('main.entity.toasts.deleted.title'),
-                        this.$t('main.entity.toasts.deleted.msg', {
-                            name: entity.name
-                        }),
-                        'success'
-                    );
-                    vm.removeFromTree(entity, path);
-                }));
-            },
-            removeFromTree(entity, path) {
-                const vm = this;
-                const index = path.pop();
-                const parent = treeUtility.getNodeFromPath(vm.tree, path);
-                const siblings = parent ? parent.children : vm.tree;
-                siblings.splice(index, 1);
-                siblings.map(s => {
-                    if(s.rank > entity.rank) {
-                        s.rank--;
-                    }
-                });
-
-                if (parent) {
-                    parent.children_count--;
-                    parent.state.openable = parent.children_count > 0;
-                }
-                delete vm.entities[entity.id];
-            },
             init() {
                 this.treeData.forEach(e => {
                     const n = new Node(e, this);
@@ -404,11 +350,30 @@
                 const props = Object.assign({}, e, opts);
                 this.$modal.show(DeleteConceptModal, props);
             },
+            removeFromTree(concept, path) {
+                const index = path.pop();
+                const parent = treeUtility.getNodeFromPath(this.tree, path);
+                const siblings = parent ? parent.children : this.tree;
+                siblings.splice(index, 1);
+
+                if (parent) {
+                    parent.children_count--;
+                    parent.state.openable = parent.children_count > 0;
+                }
+                delete this.concepts[concept.id];
+            },
             handleDeleteAll(e) {
+                if(!this.$can('delete_move_concepts')) return;
                 const id = e.element.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}?t=${this.treeName}`).then(response => {
+                    if(id == this.$route.params.id && this.treeName === this.$route.query.t) {
+                        this.$router.push({
+                            name: 'home'
+                        });
+                    }
                     // TODO handle update (sub-tree deleted)
-                    this.concepts[id] = null;
+                    const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
+                    this.removeFromTree(e.element, path);
                 }));
             },
             handleDeleteOneUp(e) {
@@ -577,12 +542,6 @@
                     this.selectedConceptId = -1;
                 }
             },
-            handleEntityDelete(e) {
-                const id = e.entity.id;
-                if(!id) return;
-                const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
-                this.requestDeleteEntity(e.entity, path);
-            }
         },
         data() {
             return {
