@@ -434,7 +434,7 @@
                 const n = new Node(e.concept, this);
                 n.selectedLabel = this.$getLabel(n);
                 this.concepts[n.id] = n;
-                if(parent.childrenLoaded) {
+                if(!!parent && parent.childrenLoaded) {
                     this.sortTree(parent.children);
                 }
 
