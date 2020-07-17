@@ -793,6 +793,7 @@ class TreeController extends Controller
                     }
                     $broaderEntry->broader_id = $b->broader_id;
                     $broaderEntry->narrower_id = $n->narrower_id;
+                    $broaderEntry->save();
                 }
             }
         }

@@ -377,9 +377,33 @@
                 }));
             },
             handleDeleteOneUp(e) {
-                const id = e.element.id;
+                const el = e.element;
+                const id = el.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move?t=${this.treeName}`).then(response => {
                     // TODO handle update (concept deleted, descs one level up)
+                    let newParent;
+                    if(!el.parents.length) {
+                        this.tree.children_count += el.children.length;
+                        newParent = this.tree;
+                    } else {
+                        const parent = el.parents[el.parents.length - 1];
+                        const parentNode = this.concepts[parent.id];
+                        parentNode.children_count += el.children.length;
+                        newParent = parentNode.children;
+                    }
+                    el.children.forEach(c => {
+                        c.parents.pop();
+                        c.path.splice(c.path.length-2, 1);
+                        newParent.push(c);
+                    });
+                    const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
+                    this.removeFromTree(el, path);
+                    this.sortTree(newParent);
+                    if(id == this.$route.params.id && this.treeName === this.$route.query.t) {
+                        this.$router.push({
+                            name: 'home'
+                        });
+                    }
                 }));
             },
             handleConceptRemoveRelation(e) {
