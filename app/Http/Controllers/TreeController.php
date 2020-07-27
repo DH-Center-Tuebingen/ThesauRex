@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Easyrdf\Easyrdf\Lib\EasyRdf;
-use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
+use EasyRdf\Graph;
+use EasyRdf\Serialiser\RdfXml;
 use \DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
@@ -172,7 +172,7 @@ class TreeController extends Controller
             $concepts = $conceptTable->get();
         }
 
-        $graph = new \EasyRdf_Graph();
+        $graph = new Graph();
 
         foreach($concepts as $concept) {
             $concept_id = $concept->id;
@@ -221,7 +221,7 @@ class TreeController extends Controller
             $curr->addType('skos:Concept');
         }
         if($format === 'rdf') {
-            $arc = new \EasyRdf_Serialiser_RdfXml();
+            $arc = new RdfXml();
             $data = $arc->serialise($graph, 'rdfxml');
         } else if($format === 'js') {
             $data = $graph->serialise('json');
@@ -853,7 +853,7 @@ class TreeController extends Controller
 
         $languages = ThLanguage::all()->keyBy('short_name');
 
-        $graph = new \EasyRdf_Graph();
+        $graph = new Graph();
         $graph->parseFile($file->getRealPath());
         $resources = $graph->resources();
         $relations = [];
