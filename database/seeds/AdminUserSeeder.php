@@ -18,7 +18,8 @@ class AdminUserSeeder extends Seeder
         if($admin === null) {
             $admin = new User();
             $admin->name = 'Admin';
-            $admin->email = 'admin@admin.com';
+            $admin->nickname = 'admin';
+            $admin->email = 'admin@localhost';
             $admin->password = Hash::make('admin');
             $admin->save();
         }

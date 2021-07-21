@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Easyrdf\Easyrdf\Lib\EasyRdf;
-use Easyrdf\Easyrdf\Lib\EasyRdf\Serialiser;
+use EasyRdf\Graph;
+use EasyRdf\Serialiser\RdfXml;
 use \DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use App\Helpers;
 use App\Preference;
 use App\ThBroader;
@@ -171,7 +172,7 @@ class TreeController extends Controller
             $concepts = $conceptTable->get();
         }
 
-        $graph = new \EasyRdf_Graph();
+        $graph = new Graph();
 
         foreach($concepts as $concept) {
             $concept_id = $concept->id;
@@ -220,7 +221,7 @@ class TreeController extends Controller
             $curr->addType('skos:Concept');
         }
         if($format === 'rdf') {
-            $arc = new \EasyRdf_Serialiser_RdfXml();
+            $arc = new RdfXml();
             $data = $arc->serialise($graph, 'rdfxml');
         } else if($format === 'js') {
             $data = $graph->serialise('json');
@@ -282,8 +283,8 @@ class TreeController extends Controller
             $thConceptLabel = new ThConceptLabel();
         }
 
-        $slugLabel = str_slug($label);
-        $slugProjectName = str_slug($projectName);
+        $slugLabel = Str::slug($label);
+        $slugProjectName = Str::slug($projectName);
         $scheme = 'no scheme';
         $ts = date("YmdHis");
 
@@ -292,7 +293,7 @@ class TreeController extends Controller
         $thConcept->concept_url = $url;
         $thConcept->concept_scheme = $scheme;
         $thConcept->is_top_concept = $isTop;
-        $thConcept->lasteditor = $user->name;
+        $thConcept->user_id = $user->id;
         $thConcept->save();
 
         if(!$isTop) {
@@ -304,7 +305,7 @@ class TreeController extends Controller
         $thConceptLabel->label = $label;
         $thConceptLabel->concept_id = $thConcept->id;
         $thConceptLabel->language_id = $labelLangId;
-        $thConceptLabel->lasteditor = $user->name;
+        $thConceptLabel->user_id = $user->id;
         $thConceptLabel->save();
 
         $thConcept->loadMissing('labels.language');
@@ -500,7 +501,7 @@ class TreeController extends Controller
         $thLabel->concept_id = $cid;
         $thLabel->language_id = $langId;
         $thLabel->concept_label_type = $type;
-        $thLabel->lasteditor = $user->name;
+        $thLabel->user_id = $user->id;
         $thLabel->save();
 
         $thLabel->language;
@@ -685,6 +686,7 @@ class TreeController extends Controller
             ->delete();
         } else {
             $concept->is_top_concept = false;
+            $concept->save();
         }
 
         // if narrower is not a top concept
@@ -791,6 +793,7 @@ class TreeController extends Controller
                     }
                     $broaderEntry->broader_id = $b->broader_id;
                     $broaderEntry->narrower_id = $n->narrower_id;
+                    $broaderEntry->save();
                 }
             }
         }
@@ -850,7 +853,7 @@ class TreeController extends Controller
 
         $languages = ThLanguage::all()->keyBy('short_name');
 
-        $graph = new \EasyRdf_Graph();
+        $graph = new Graph();
         $graph->parseFile($file->getRealPath());
         $resources = $graph->resources();
         $relations = [];
@@ -873,7 +876,7 @@ class TreeController extends Controller
                     count($r->allResources('skos:broaderTransitive')) === 0;
             }
             $scheme = '';
-            $lasteditor = $user->name;
+            $user_id = $user->id;
 
             $needsUpdate = $type == 'update-extend' && $conceptExists;
             if($needsUpdate) {
@@ -881,10 +884,10 @@ class TreeController extends Controller
             } else {
                 $cid = DB::table($thConcept)
                     ->insertGetId([
-                        'concept_url' => $url,
-                        'concept_scheme' => $scheme,
-                        'is_top_concept' => $isTopConcept,
-                        'lasteditor' => $lasteditor
+                    'concept_url' => $url,
+                    'concept_scheme' => $scheme,
+                    'is_top_concept' => $isTopConcept,
+                    'user_id' => $user_id
                 ]);
             }
 
@@ -911,12 +914,12 @@ class TreeController extends Controller
                             ->where($where)
                             ->update([
                                 'label' => $label,
-                                'lasteditor' => $lasteditor
+                                'user_id' => $user_id
                             ]);
                     } else {
                         DB::table($thLabel)
                             ->insert([
-                                'lasteditor' => $lasteditor,
+                                'user_id' => $user_id,
                                 'label' => $label,
                                 'concept_id' => $cid,
                                 'language_id' => $lid,
@@ -926,7 +929,7 @@ class TreeController extends Controller
                 } else {
                     DB::table($thLabel)
                         ->insert([
-                            'lasteditor' => $lasteditor,
+                            'user_id' => $user_id,
                             'label' => $label,
                             'concept_id' => $cid,
                             'language_id' => $lid,
@@ -956,7 +959,7 @@ class TreeController extends Controller
                     if($cnt === 0) {
                         DB::table($thLabel)
                             ->insert([
-                                'lasteditor' => $lasteditor,
+                                'user_id' => $user_id,
                                 'label' => $label,
                                 'concept_id' => $cid,
                                 'language_id' => $lid,
@@ -966,7 +969,7 @@ class TreeController extends Controller
                 } else {
                     DB::table($thLabel)
                         ->insert([
-                            'lasteditor' => $lasteditor,
+                            'user_id' => $user_id,
                             'label' => $label,
                             'concept_id' => $cid,
                             'language_id' => $lid,
@@ -1138,7 +1141,7 @@ class TreeController extends Controller
 
         $rows = DB::select("
         WITH RECURSIVE
-        q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, broader_id, lvl) AS
+        q(id, concept_url, concept_scheme, user_id, is_top_concept, created_at, updated_at, broader_id, lvl) AS
             (
                 SELECT  conc.*, -1, 0
                 FROM    $thConceptSrc conc
@@ -1171,7 +1174,7 @@ class TreeController extends Controller
                 else $currentConcept = new ThConceptProject();
                 $currentConcept->concept_url = $row->concept_url;
                 $currentConcept->concept_scheme = $row->concept_scheme;
-                $currentConcept->lasteditor = 'postgres';
+                $currentConcept->user_id = $user->id;
                 $currentConcept->is_top_concept = $row->is_top_concept;
                 $currentConcept->save();
             } else {
@@ -1210,7 +1213,7 @@ class TreeController extends Controller
                 if($conceptAlreadyExists) $l->concept_label_type = 2;
                 if($src == 'project') $currentLabel = new ThConceptLabel();
                 else $currentLabel = new ThConceptLabelSandbox();
-                $currentLabel->lasteditor = 'postgres';
+                $currentLabel->user_id = $user->id;
                 $currentLabel->label = $l->label;
                 $currentLabel->concept_id = $l->concept_id;
                 $currentLabel->language_id = $l->language_id;
@@ -1247,7 +1250,7 @@ class TreeController extends Controller
         //get new elements
         $elements = DB::select("
             WITH RECURSIVE
-            q(id, concept_url, concept_scheme, lasteditor, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
+            q(id, concept_url, concept_scheme, user_id, is_top_concept, created_at, updated_at, label, broader_id, reclevel) AS
                 (
                     SELECT  conc.*, f.label, $newBroader, 0
                     FROM    $thConcept conc
@@ -1409,7 +1412,7 @@ class TreeController extends Controller
                 'language_id' => $label->language_id
             ];
             $newAttrs = [
-                'lasteditor' => $user->name
+                'user_id' => $user->id
             ];
             if($srcTree === 'sandbox') {
                 ThConceptLabel::firstOrCreate($attrs, $newAttrs);

@@ -125,10 +125,6 @@
                 required: true,
                 type: Object
             },
-            selectedEntity: {
-                required: false,
-                type: Object
-            },
             dragDelay: {
                 required: false,
                 type: Number,
@@ -234,6 +230,27 @@
 
                 return;
             },
+            sortTree(level = this.tree, dir = 'asc') {
+                const order = dir == 'asc' ? 1 : -1;
+                const sortFn = (a, b) => {
+                    if(!a.labels || a.labels.length == 0) {
+                        return 1 * order;
+                    } else if(!b.labels || b.labels.length == 0) {
+                        return -1 * order;
+                    }
+                    return this.$getLabel(a).localeCompare(this.$getLabel(b)) * order;
+                };
+                this.sortTreeLevel(level, sortFn);
+            },
+            sortTreeLevel(level, sortFn) {
+                if(!level) return;
+                level.sort(sortFn);
+                level.forEach(n => {
+                    if(n.childrenLoaded) {
+                        this.sortTreeLevel(n.children, sortFn);
+                    }
+                });
+            },
             requestConcept(parent, text = '') {
                 this.$emit('request-concept', {
                     parent: parent,
@@ -254,58 +271,9 @@
                         }
                         return n;
                     });
+                    this.sortTree(newNodes);
                     return newNodes;
                 }));
-            },
-            requestDeleteEntity(entity, path) {
-                const vm = this;
-                if(!vm.$can('delete_move_concepts')) return;
-                vm.$modal.show(DeleteEntityModal, {
-                    entity: entity,
-                    onDelete: e => vm.onDelete(e, path)
-                })
-            },
-            onDelete(entity, path) {
-                const vm = this;
-                if(!vm.$can('delete_move_concepts')) return;
-                const id = entity.id;
-                $httpQueue.add(() => $http.delete(`/entity/${id}`).then(response => {
-                    // if deleted entity is currently selected entity...
-                    if(id == vm.selectedEntity.id) {
-                        // ...unset it
-                        this.$router.push({
-                            append: true,
-                            name: 'home',
-                            query: vm.$route.query
-                        });
-                    }
-                    vm.$showToast(
-                        this.$t('main.entity.toasts.deleted.title'),
-                        this.$t('main.entity.toasts.deleted.msg', {
-                            name: entity.name
-                        }),
-                        'success'
-                    );
-                    vm.removeFromTree(entity, path);
-                }));
-            },
-            removeFromTree(entity, path) {
-                const vm = this;
-                const index = path.pop();
-                const parent = treeUtility.getNodeFromPath(vm.tree, path);
-                const siblings = parent ? parent.children : vm.tree;
-                siblings.splice(index, 1);
-                siblings.map(s => {
-                    if(s.rank > entity.rank) {
-                        s.rank--;
-                    }
-                });
-
-                if (parent) {
-                    parent.children_count--;
-                    parent.state.openable = parent.children_count > 0;
-                }
-                delete vm.entities[entity.id];
             },
             init() {
                 this.treeData.forEach(e => {
@@ -313,6 +281,7 @@
                     this.concepts[n.id] = n;
                     this.tree.push(n);
                 });
+                this.sortTree(this.tree);
             },
             triggerFileUpload(type) {
                 this.importType = type;
@@ -381,17 +350,60 @@
                 const props = Object.assign({}, e, opts);
                 this.$modal.show(DeleteConceptModal, props);
             },
+            removeFromTree(concept, path) {
+                const index = path.pop();
+                const parent = treeUtility.getNodeFromPath(this.tree, path);
+                const siblings = parent ? parent.children : this.tree;
+                siblings.splice(index, 1);
+
+                if (parent) {
+                    parent.children_count--;
+                    parent.state.openable = parent.children_count > 0;
+                }
+                delete this.concepts[concept.id];
+            },
             handleDeleteAll(e) {
+                if(!this.$can('delete_move_concepts')) return;
                 const id = e.element.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}?t=${this.treeName}`).then(response => {
+                    if(id == this.$route.params.id && this.treeName === this.$route.query.t) {
+                        this.$router.push({
+                            name: 'home'
+                        });
+                    }
                     // TODO handle update (sub-tree deleted)
-                    this.concepts[id] = null;
+                    const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
+                    this.removeFromTree(e.element, path);
                 }));
             },
             handleDeleteOneUp(e) {
-                const id = e.element.id;
+                const el = e.element;
+                const id = el.id;
                 $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move?t=${this.treeName}`).then(response => {
                     // TODO handle update (concept deleted, descs one level up)
+                    let newParent;
+                    if(!el.parents.length) {
+                        this.tree.children_count += el.children.length;
+                        newParent = this.tree;
+                    } else {
+                        const parent = el.parents[el.parents.length - 1];
+                        const parentNode = this.concepts[parent.id];
+                        parentNode.children_count += el.children.length;
+                        newParent = parentNode.children;
+                    }
+                    el.children.forEach(c => {
+                        c.parents.pop();
+                        c.path.splice(c.path.length-2, 1);
+                        newParent.push(c);
+                    });
+                    const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
+                    this.removeFromTree(el, path);
+                    this.sortTree(newParent);
+                    if(id == this.$route.params.id && this.treeName === this.$route.query.t) {
+                        this.$router.push({
+                            name: 'home'
+                        });
+                    }
                 }));
             },
             handleConceptRemoveRelation(e) {
@@ -411,6 +423,9 @@
                 const n = new Node(e.concept, this);
                 n.selectedLabel = this.$getLabel(n);
                 this.concepts[n.id] = n;
+                if(!!parent && parent.childrenLoaded) {
+                    this.sortTree(parent.children);
+                }
 
                 this.eventBus.$emit(`relation-updated-${this.treeName}`, {
                     type: 'add',
@@ -422,6 +437,9 @@
             handleLabelUpdate(e) {
                 let concept = this.concepts[e.concept_id];
                 concept.labels = e.labels;
+                if(concept.childrenLoaded) {
+                    this.sortTree(concept.children);
+                }
             },
             handleRelationUpdate(e) {
                 let broader;
@@ -437,6 +455,7 @@
                         }
                         siblings = e.broader_id ? broader.children : this.tree;
                         siblings.push(narrower);
+                        this.sortTree(siblings);
                         break;
                     case 'remove':
                         broader = this.concepts[e.broader_id];
@@ -547,12 +566,6 @@
                     this.selectedConceptId = -1;
                 }
             },
-            handleEntityDelete(e) {
-                const id = e.entity.id;
-                if(!id) return;
-                const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
-                this.requestDeleteEntity(e.entity, path);
-            }
         },
         data() {
             return {

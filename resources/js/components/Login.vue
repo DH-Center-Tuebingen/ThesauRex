@@ -16,18 +16,21 @@
                     <form @submit.prevent="login">
                         <div class="form-group">
                             <label for="email" class="col-md-4 col-form-label">
-                                {{ $t('global.email') }}
-                                <i class="fas fa-fw fa-envelope"></i>
+                                {{ $t('global.email_or_nick') }}
+                                <i class="fas fa-fw fa-user"></i>
                             </label>
 
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control" v-model="user.email" name="email" required autofocus>
+                                <input id="email" type="text" class="form-control" :class="$getValidClass(error, 'email|nickname')"  v-model="user.email" name="email" required autofocus>
 
-                                <!-- @if ($errors->has('email'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('email') }}</strong>
+                                <div class="invalid-feedback">
+                                    <span v-for="msg in error.email">
+                                        {{ msg }}
                                     </span>
-                                @endif -->
+                                    <span v-for="msg in error.nickname">
+                                        {{ msg }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
@@ -38,13 +41,13 @@
                             </label>
 
                             <div class="col-md-6">
-                                <input id="password" type="password" class="form-control" v-model="user.password" name="password" required>
+                                <input id="password" type="password" class="form-control" :class="$getValidClass(error, 'password')" v-model="user.password" name="password" required>
 
-                                <!-- @if ($errors->has('password'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('password') }}</strong>
+                                <div class="invalid-feedback">
+                                    <span v-for="msg in error.password">
+                                        {{ msg }}
                                     </span>
-                                @endif -->
+                                </div>
                             </div>
                         </div>
 
@@ -103,19 +106,28 @@
         methods: {
             login() {
                 const vm = this;
+                let data = {
+                    password: vm.user.password
+                };
+                // dirty check if email field should be treated
+                // as actual email address or nickname
+                if(vm.user.email.includes('@')) {
+                    data.email = vm.user.email;
+                } else {
+                    data.nickname = vm.user.email;
+                }
                 vm.$auth.login({
-                    data: {
-                        email: vm.user.email,
-                        password: vm.user.password
-                    },
-                    rememberMe: vm.user.remember,
+                    data: data,
+                    staySignedIn: vm.user.remember,
                     redirect: vm.redirect,
-                    success: _ => {
-                        if(vm.onLogin) {
-                            vm.onLogin();
-                        }
-                    },
                     fetchUser: true
+                }).then(_ => {
+                    vm.error = {};
+                    if(vm.onLogin) {
+                        vm.onLogin();
+                    }
+                }, e => {
+                    vm.$getErrorMessages(e, vm.error);
                 });
             }
         },
@@ -124,7 +136,8 @@
                 user: {},
                 redirect: {
                     name: 'home'
-                }
+                },
+                error: {}
             }
         }
     }

@@ -16,7 +16,7 @@ class ThConceptSandbox extends Model
     protected $fillable = [
         'concept_url',
         'concept_scheme',
-        'lasteditor',
+        'user_id',
     ];
 
     // protected $appends = ['parents', 'path'];
@@ -135,7 +135,7 @@ class ThConceptSandbox extends Model
         $parents = [];
         foreach($this->parentIds() as $pid) {
             $parent = ThConceptSandbox::with(['labels.language' => function($query) use($langCode) {
-                $query->orderByRaw("short_name = '$langCode' desc");
+                $query->orderByRaw("short_name != '$langCode'");
             }])
             ->where('id', $pid)
             ->first();

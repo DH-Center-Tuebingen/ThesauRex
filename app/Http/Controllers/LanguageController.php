@@ -43,7 +43,7 @@ class LanguageController extends Controller {
         $language = new ThLanguage();
         $language->display_name = $request->get('display_name');
         $language->short_name = $request->get('short_name');
-        $language->lasteditor = $user->name;
+        $language->user_id = $user->id;
         $language->save();
 
         return response()->json($language);
@@ -81,7 +81,7 @@ class LanguageController extends Controller {
         if($request->has('short_name')) {
             $language->short_name = $request->get('short_name');
         }
-        $language->lasteditor = $user->name;
+        $language->user_id = $user->id;
         $language->save();
 
         return response()->json($language);

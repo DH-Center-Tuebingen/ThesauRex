@@ -5,8 +5,6 @@
 </template>
 
 <script>
-    import debounce from 'debounce';
-
     export default {
         props: {
             data: {
@@ -34,7 +32,7 @@
         },
         computed: {
             asyncToggle() {
-                return debounce(this.doToggle, this.data.dragDelay || 500);
+                return _debounce(this.doToggle, this.data.dragDelay || 500);
             },
             label() {
                 return this.$getLabel(this.data);

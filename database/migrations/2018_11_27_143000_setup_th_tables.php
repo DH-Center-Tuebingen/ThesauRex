@@ -30,15 +30,6 @@ class SetupThTables extends Migration
             ->exists();
     }
 
-    private function isPartOfSpacialist() {
-        if(!Schema::hasTable('migrations')) {
-            return false;
-        }
-        return \DB::table('migrations')
-            ->where('migration', '2018_09_06_092028_setup_tables')
-            ->exists();
-    }
-
     private function migrateFromScratch() {
         $this->createUsers();
         $this->createSkosTables();
@@ -64,7 +55,7 @@ class SetupThTables extends Migration
     }
 
     private function createUsers() {
-        if($this->isPartOfSpacialist()) return;
+        if(is_part_of_spacialist()) return;
         // Create Users
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
@@ -83,7 +74,7 @@ class SetupThTables extends Migration
     }
 
     private function createSkosTables() {
-        if(!$this->isPartOfSpacialist()) {
+        if(!is_part_of_spacialist()) {
             // Create ThConcept
             Schema::create('th_concept', function (Blueprint $table) {
                 $table->increments('id');
@@ -183,7 +174,7 @@ class SetupThTables extends Migration
     }
 
     private function createEntrustTables() {
-        if($this->isPartOfSpacialist())  return;
+        if(is_part_of_spacialist())  return;
         // Setup Entrust Roles/Permissions
         // Create table for storing roles
         Schema::create('roles', function (Blueprint $table) {
@@ -228,7 +219,7 @@ class SetupThTables extends Migration
     }
 
     private function createPreferences() {
-        if($this->isPartOfSpacialist()) return;
+        if(is_part_of_spacialist()) return;
         // Create Preferences
         Schema::create('preferences', function (Blueprint $table) {
             $table->increments('id');
@@ -269,14 +260,14 @@ class SetupThTables extends Migration
     }
 
     private function dropUsers() {
-        if($this->isPartOfSpacialist()) return;
+        if(is_part_of_spacialist()) return;
         Schema::dropIfExists('password_resets');
         Schema::dropIfExists('users');
     }
 
     private function dropSkosTables() {
         Schema::dropIfExists('th_concept_notes');
-        if(!$this->isPartOfSpacialist()) {
+        if(!is_part_of_spacialist()) {
             Schema::dropIfExists('th_concept_label');
             Schema::dropIfExists('th_broaders');
             Schema::dropIfExists('th_language');
@@ -292,7 +283,7 @@ class SetupThTables extends Migration
     }
 
     private function dropEntrustTables() {
-        if($this->isPartOfSpacialist()) return;
+        if(is_part_of_spacialist()) return;
         Schema::dropIfExists('permission_role');
         Schema::dropIfExists('permissions');
         Schema::dropIfExists('role_user');
@@ -300,7 +291,7 @@ class SetupThTables extends Migration
     }
 
     private function dropPreferences() {
-        if($this->isPartOfSpacialist()) return;
+        if(is_part_of_spacialist()) return;
         Schema::dropIfExists('user_preferences');
         Schema::dropIfExists('preferences');
     }

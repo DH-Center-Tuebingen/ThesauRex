@@ -1,6 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.6.3
+### Added
+- Sorting of concepts in tree
+- Login using a nickname instead of e-mail address
+- Re-add dependency lock-files
+### Fixed
+- Error on adding new concepts
+- Missing dropdown items in header bar
+- Ignore uppercase/lowercase letters in login form user names
+- Several problems with removing concepts
+- Adding new top level concept not visible
+
 ## 0.6.2
 ### Changed
 - Switched (unmaintained) permission package to match Spacialist
