@@ -9,12 +9,13 @@
     "license": "MIT",
     "require": {
         "php": ">=7.2.0",
-        "easyrdf/easyrdf": "^1.0.0",
+        "doctrine/dbal": "2.*",
+        "easyrdf/easyrdf": "^1.1.1",
         "fideloper/proxy": "^4.0",
-        "laravel/framework": "^6.18.20",
+        "laravel/framework": "^6.20.30",
         "laravel/tinker": "^1.0",
-        "spatie/laravel-permission": "^3.13.0",
-        "tymon/jwt-auth": "1.0.0"
+        "spatie/laravel-permission": "^3.18.0",
+        "tymon/jwt-auth": "1.0.2"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
