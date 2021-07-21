@@ -16,7 +16,7 @@ class ThConcept extends Model
     protected $fillable = [
         'concept_url',
         'concept_scheme',
-        'lasteditor',
+        'user_id',
     ];
 
     // protected $appends = ['parents', 'path'];

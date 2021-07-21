@@ -11,8 +11,8 @@ class StandaloneSeeder extends Seeder
      */
     public function run()
     {
+        $this->call('AdminUserSeeder');
         $this->call('LanguageTableSeeder');
         $this->call('RolesPermissionsSeeder');
-        $this->call('AdminUserSeeder');
     }
 }

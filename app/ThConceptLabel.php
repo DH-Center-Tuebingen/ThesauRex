@@ -15,7 +15,7 @@ class ThConceptLabel extends Model
     protected $fillable = [
         'concept_id',
         'language_id',
-        'lasteditor',
+        'user_id',
         'label',
         'concept_label_type',
     ];
