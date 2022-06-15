@@ -1,0 +1,257 @@
+{
+    "global": {
+        "save": "Save",
+        "delete": "Delete",
+        "remove": "Remove",
+        "cancel": "Cancel",
+        "close": "Close",
+        "add": "Add",
+        "edit": "Edit",
+        "update": "Update",
+        "replace": "Replace",
+        "clear": "Clear",
+        "confirm": "OK",
+        "create": "Create",
+        "delete_name": {
+            "title": "Delete {name}",
+            "desc": "Do you really want to delete <span class=\"font-weight-medium\">{name}</span>?"
+        },
+        "discard": {
+            "title": "Unsaved Changes",
+            "msg": "Unsaved changes in <span class=\"font-weight-medium\">{name}</span>. Do you really want to continue and discard changes?",
+            "confirm": "Yes, discard changes",
+            "confirmpos": "No, save and continue"
+        },
+        "error": {
+            "alert_title": "Error Message:",
+            "info_issue": "If you think this is a bug, please have a look at our <a href=\"https://github.com/eScienceCenter/ThesauRex/issues\" target=\"_blank\">issue tracker</a> on github to see if this has been already reported or <a href=\"https://github.com/eScienceCenter/ThesauRex/issues?q=is:issue+is:closed\" target=\"_blank\">closed</a> in a later version (Your current version can be found in Settings > <i class=\"fas fa-fw fa-info-circle\"></i> About Dialog). If it is neither reported nor closed, feel free to <a href=\"https://github.com/eScienceCenter/ThesauRex/issues/new\" target=\"_blank\">open a new issue</a>.",
+            "occur": "Error occured",
+            "headers": "Headers",
+            "request_failed": "<code class=\"normal\">{method}</code>-Request to endpoint <code class=\"bg-light-dark rounded px-2 normal text-dark\">{url}</code> failed with status code <span class=\"fw-medium\">{status}</span>."
+        },
+        "search": "Search...",
+        "login": "Login",
+        "login_title": "Log In",
+        "login_subtitle": "Welcome to ThesauRex",
+        "download": "Download",
+        "download_name": "Download {name}",
+        "upload": "Upload",
+        "settings": {
+            "title": "Settings",
+            "users": "User Management",
+            "roles": "Role Management",
+            "languages": "Languages",
+            "system": "System Preferences",
+            "about": "About"
+        },
+        "user": {
+            "settings": "Preferences",
+            "logout": "Logout"
+        },
+        "select": {
+            "placehoder": "Select option",
+            "select": "Press enter to select",
+            "deselect": "Press enter to remove"
+        },
+        "version": "Version",
+        "label": "Label",
+        "url": "URL",
+        "name": "Name",
+        "nickname": "Nickname",
+        "display_name": "Display Name",
+        "short_name": "Short Name",
+        "email": "E-Mail Address",
+        "email_or_nick": "E-Mail Address or Nickname",
+        "password": "Password",
+        "confirm_password": "Repeat password",
+        "remember_me": "Remember me",
+        "description": "Description",
+        "roles": "Roles",
+        "permissions": "Permissions",
+        "added_at": "Added",
+        "created_at": "Created",
+        "updated_at": "Updated",
+        "deactivated_at": "Deactivated",
+        "options": "Options",
+        "type": "Type",
+        "content": "Content",
+        "preference": "Preference | Preferences",
+        "value": "Value",
+        "allow_override": "Allow Override?",
+        "set": "Set"
+    },
+    "tree": {
+        "import": {
+            "label": "Import RDF",
+            "extend": "Only import new concepts",
+            "update_extend": "Update existing concepts & add new ones",
+            "replace": "Delete existing concepts  & add new ones"
+        },
+        "export": {
+            "label": "Export RDF"
+        },
+        "project": {
+            "title": "Project Tree"
+        },
+        "sandbox": {
+            "title": "Sandbox Tree"
+        },
+        "new_top_concept": "Create new Top-Level Concept"
+
+    },
+    "detail": {
+        "title": "Concept Properties",
+        "copy_url": {
+            "title": "Copied URL to Clipboard",
+            "message": "<span class=\"font-weight-medium\">{url}</span> successfully copied to the Clipboard."
+        },
+        "broader": {
+            "title": "Broader Concepts",
+            "empty": "No broader concepts available"
+        },
+        "narrower": {
+            "title": "Narrower Concepts",
+            "empty": "No narrower concepts available"
+        },
+        "label": {
+            "title": "Labels",
+            "empty": "No labels available",
+            "info_label_missing": "Concept not translated in all languages.",
+            "toasts": {
+                "deleted": {
+                    "title": "Label deleted",
+                    "message": "Label <span class=\"font-weight-medium\">{label}</span> successfully deleted."
+                }
+            }
+        },
+        "note": {
+            "title": "Notes",
+            "empty": "No notes available",
+            "toasts": {
+                "deleted": {
+                    "title": "Note deleted",
+                    "message": "Note <span class=\"font-weight-medium\">{note}</span> successfully deleted."
+                }
+            }
+        }
+    },
+    "modals": {
+        "new_concept": {
+            "title": "Create new Top-Level Concept",
+            "title_parent": "Create new concept under {name}"
+        },
+        "delete_concept": {
+            "title": "Delete {name}",
+            "info": "You can either delete <span class=\"font-weight-medium\">{name}</span> and all narrowers (<i class=\"fas fa-fw fa-trash\"></i>) or only delete <span class=\"font-weight-medium\">{name}</span> and move all narrowers one level up (<span class=\"fa-stack d-inline\" style=\"margin-right: -0.35rem;\"><i class=\"fas fa-trash\"></i><i class=\"fas fa-arrow-up\" data-fa-transform=\"shrink-2 left-4 up-5\"></i></span>).",
+            "delete": "Delete <span class=\"font-weight-medium\">{name}</span>",
+            "delete_recursive": "Delete recursive"
+        },
+        "import_info": {
+            "title": "Importing…",
+            "info": "Please wait while ThesauRex is importing your file. This window closes after the import is finished."
+        }
+    },
+    "menus": {
+        "tree_node": {
+            "add_concept": "Add concept",
+            "export_concept": "Export Sub-Tree",
+            "delete_concept": "Delete concept",
+            "remove_concept_relation": "Remove relation"
+        }
+    },
+    "settings": {
+        "user": {
+            "add_button": "Add new User",
+            "toasts": {
+                "updated": {
+                    "title": "User updated",
+                    "msg": "{name} successfully updated."
+                }
+            },
+            "modal": {
+                "new": {
+                    "title": "New User"
+                }
+            },
+            "add_role_placeholder": "Add roles"
+        },
+        "role": {
+            "add_button": "Add new Role",
+            "toasts": {
+                "updated": {
+                    "title": "Role updated",
+                    "msg": "{name} successfully updated."
+                }
+            },
+            "modal": {
+                "new": {
+                    "title": "New Role"
+                }
+            },
+            "add_permission-placeholder": "Add permissions"
+        },
+        "language": {
+            "add_button": "Add new Language",
+            "title": "Languages",
+            "toasts": {
+                "updated": {
+                    "title": "Language updated",
+                    "msg": "{name} successfully updated."
+                }
+            },
+            "modal": {
+                "new": {
+                    "title": "New Language"
+                }
+            },
+            "set_short_placeholder": "Select Short Name"
+        },
+        "preference": {
+            "toasts": {
+                "updated": {
+                    "title": "Preference updated",
+                    "msg": "{name} successfully updated."
+                }
+            },
+            "key": {
+                "language": "Language",
+                "tooltips": "Show Tooltips",
+                "link_thesaurex": "Show link to ThesauRex",
+                "project": {
+                    "name": "Projectname",
+                    "maintainer": "Maintainer",
+                    "public": "Public accessible"
+                }
+            },
+            "labels": {
+                "prefs": {
+                    "gui-language": "@:settings.preference.key.language",
+                    "show-tooltips": "@:settings.preference.key.tooltips",
+                    "link-to-thesaurex": "@:settings.preference.key.link-thesaurex",
+                    "project-name": "@:settings.preference.key.project.name",
+                    "project-maintainer": "@:settings.preference.key.project.maintainer"
+                }
+            }
+        },
+        "about": {
+            "title": "About ThesauRex",
+            "desc": "Development of ThesauRex was co-funded by the Ministry of Science, Research and the Arts Baden-Württemberg in the \"E-Science\" funding programme.",
+            "release": {
+                "name": "Release Name",
+                "time": "Release Date",
+                "full_name": "Full Name"
+            },
+            "build_info": "Built with <i class=\"fab fa-fw fa-laravel\"></i> & <i class=\"fab fa-fw fa-vuejs\"></i>!",
+            "contributor": "Contributor | Contributors",
+            "roles": {
+                "development": "Development",
+                "development_lead": "Development Lead",
+                "support_development": "Development Support",
+                "support_database": "Database Support",
+                "support_archaeology": "Archaeological Support",
+                "project_lead": "Project Lead",
+                "project_lead_former": "Former Project Lead"
+            }
+        }
+    }
+}

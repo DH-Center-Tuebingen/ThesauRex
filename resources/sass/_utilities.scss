@@ -22,6 +22,48 @@
     color: $yellow !important;
 }
 
+.p-2-5 {
+    padding: 0.75rem;
+}
+
+.ps-2-5 {
+    padding-left: 0.75rem;
+}
+
+.pe-2-5 {
+    padding-right: 0.75rem;
+}
+
+.pt-2-5 {
+    padding-top: 0.75rem;
+}
+
+.pb-2-5 {
+    padding-bottom: 0.75rem;
+}
+
+.px-2-5 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.py-2-5 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.ms--4 {
+    margin-left: -1.5rem;
+}
+
+.ms--4-5 {
+    margin-left: -2rem;
+}
+
+.is-invalid + .ms--4-5 {
+    margin-left: -3.25rem;
+}
+
 .text-wrap {
     white-space: pre-wrap;
 }
@@ -90,6 +132,24 @@
     overflow-y: scroll;
 }
 
+.border-dashed {
+    border-style: dashed !important;
+}
+
 .bg-none {
     background: none !important;
+}
+
+.numbered-list-wrapper {
+    counter-reset: css-counter 0;
+}
+
+.numbered-list-wrapper > .numbered-list {
+    counter-increment: css-counter 1;
+}
+
+.numbered-list-wrapper > .numbered-list:before {
+    font-size: $small-font-size;
+    color: $text-muted;
+    content: counter(css-counter);
 }

@@ -1,0 +1,19 @@
+.breadcrumb {
+    background-color: $gray-200;
+    border-radius: $border-radius;
+}
+
+.dropdown-menu {
+    z-index: $zindex-sticky + 1;
+}
+
+.submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: -7px;
+}
+
+.dropdown-item:hover>.submenu {
+    display: block;
+}

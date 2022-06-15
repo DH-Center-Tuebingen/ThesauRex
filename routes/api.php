@@ -32,23 +32,28 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 });
 
 // USER
-Route::get('/v1/auth/refresh', 'UserController@refreshToken');
 Route::post('/v1/auth/login', 'UserController@login');
 
 Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1')->group(function() {
+    Route::get('/auth/refresh', 'UserController@refreshToken');
     Route::get('/auth/user', 'UserController@getUser');
     Route::get('/user', 'UserController@getUsers');
     Route::get('/role', 'UserController@getRoles');
+    Route::get('/access/groups', 'UserController@getAccessGroups');
 
     Route::post('/user', 'UserController@addUser');
+    Route::post('/user/avatar', 'UserController@addAvatar')->where('id', '[0-9]+');
+    Route::post('/user/reset/password', 'Auth\\ForgotPasswordController@sendResetLinkEmail');
     Route::post('/role', 'UserController@addRole');
     Route::post('/auth/logout', 'UserController@logout');
 
     Route::patch('/user/{id}', 'UserController@patchUser');
+    Route::patch('/user/restore/{id}', 'UserController@restoreUser');
     Route::patch('/role/{id}', 'UserController@patchRole');
 
     Route::delete('/user/{id}', 'UserController@deleteUser')->where('id', '[0-9]+');
     Route::delete('/role/{id}', 'UserController@deleteRole')->where('id', '[0-9]+');
+    Route::delete('/user/avatar', 'UserController@deleteAvatar')->where('id', '[0-9]+');
 });
 
 // TREE
@@ -56,12 +61,14 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::get('/', 'TreeController@getTree');
     Route::get('/byParent/{id}', 'TreeController@getDescendants')->where('id', '[0-9]+');
     Route::get('/{id}', 'TreeController@getConcept')->where('id', '[0-9]+');
-    Route::get('/{id}/export', 'TreeController@export')->where('id', '[0-9]+');
+    Route::get('/{id}/parentIds', 'TreeController@getParentIds')->where('id', '[0-9]+');
     Route::get('/export', 'TreeController@export');
+    Route::get('/export/{id}', 'TreeController@export')->where('id', '[0-9]+');
 
-    Route::post('/file', 'TreeController@import');
+    Route::post('/', 'TreeController@import');
 
     Route::patch('/label/{id}', 'TreeController@patchLabel')->where('id', '[0-9]+');
+    Route::patch('/note/{id}', 'TreeController@patchNote')->where('id', '[0-9]+');
 
     Route::put('/concept', 'TreeController@addConcept');
     Route::put('/concept/clone/{id}/to/{bid}', 'TreeController@cloneConceptFromTree')->where('id', '[0-9]+')->where('bid', '-?[0-9]+');
@@ -82,8 +89,6 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 
     Route::post('', 'LanguageController@addLanguage');
 
-    Route::patch('/{id}', 'LanguageController@patchLanguage')->where('id', '[0-9]+');
-
     Route::delete('/{id}', 'LanguageController@deleteLanguage')->where('id', '[0-9]+');
 });
 
@@ -92,7 +97,8 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
     Route::get('', 'PreferenceController@getPreferences');
     Route::get('/{id}', 'PreferenceController@getUserPreferences')->where('id', '[0-9]+');
 
-    Route::patch('/{id}', 'PreferenceController@patchPreference')->where('id', '[0-9]+');
+    Route::patch('/', 'PreferenceController@patchPreferences');
+    Route::patch('/{uid}', 'PreferenceController@patchPreferences')->where('uid', '[0-9]+');
 });
 
 // SEARCH

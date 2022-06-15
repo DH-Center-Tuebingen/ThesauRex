@@ -25,3 +25,32 @@
     border-radius: 3px;
     padding: 0 0.5rem;
 }
+
+ul.grtvn-children > .grtvn {
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABhmlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AYht+mlqpUHCwo4pChOogFURFHrUIRKoRaoVUHk0v/oElD0uLiKLgWHPxZrDq4OOvq4CoIgj8gjk5Oii5S4ndJoUWMB3f38N73vtx9Bwj1EtOsjnFA0ytmMh4T05lVMfiKAPrRReuozCxjTpIS8Bxf9/Dx/S7Ks7zr/hw9atZigE8knmWGWSHeIJ7erBic94nDrCCrxOfEYyZdkPiR64rLb5zzDgs8M2ymkvPEYWIx38ZKG7OCqRFPEUdUTad8Ie2yynmLs1aqsuY9+QtDWX1lmes0hxDHIpYgQYSCKooooYIo7TopFpJ0HvPwDzp+iVwKuYpg5FhAGRpkxw/+B797a+UmJ9ykUAwIvNj2xzAQ3AUaNdv+Prbtxgngfwau9Ja/XAdmPkmvtbTIEdC7DVxctzRlD7jcAQaeDNmUHclPU8jlgPcz+qYM0HcLdK+5fWue4/QBSFGvEjfAwSEwkqfsdY93d7b37d+aZv9+AEERcpNCmxaIAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5gUXCQYT1NJvvgAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAkSURBVFjD7cUxEQAACAQge3jfP6aGcHGAhSoAgIOk5zIA8MIC8r8KocFthW0AAAAASUVORK5CYII=);
+    background-repeat: no-repeat;
+    background-position-x: -20px;
+    background-position-y: -4px;
+}
+
+.grtvn-children-wrapper {
+    margin-left: 0.4rem !important;
+    padding-left: 0.5rem !important;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABhmlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AYht+mlqpUHCwo4pChOogFURFHrUIRKoRaoVUHk0v/oElD0uLiKLgWHPxZrDq4OOvq4CoIgj8gjk5Oii5S4ndJoUWMB3f38N73vtx9Bwj1EtOsjnFA0ytmMh4T05lVMfiKAPrRReuozCxjTpIS8Bxf9/Dx/S7Ks7zr/hw9atZigE8knmWGWSHeIJ7erBic94nDrCCrxOfEYyZdkPiR64rLb5zzDgs8M2ymkvPEYWIx38ZKG7OCqRFPEUdUTad8Ie2yynmLs1aqsuY9+QtDWX1lmes0hxDHIpYgQYSCKooooYIo7TopFpJ0HvPwDzp+iVwKuYpg5FhAGRpkxw/+B797a+UmJ9ykUAwIvNj2xzAQ3AUaNdv+Prbtxgngfwau9Ja/XAdmPkmvtbTIEdC7DVxctzRlD7jcAQaeDNmUHclPU8jlgPcz+qYM0HcLdK+5fWue4/QBSFGvEjfAwSEwkqfsdY93d7b37d+aZv9+AEERcpNCmxaIAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAAB3RJTUUH5gUXCQcFOR3rrgAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAySURBVFjD7dBBEQAgDAOw+uDqX+Ymgh8kEpJcaM/kawYMGDBgwIABAwYMGDBgwMATAwvecBVBVATbOQAAAABJRU5ErkJggg==);
+    background-repeat: repeat-y;
+    background-position-x: -15px;
+}
+
+.grtvn-self-expander {
+    background-color: $gray-100 !important;
+}
+
+.grtvn-self-expander > .grtvn-self-expanded-indicator::before {
+    content: "🢒" !important;
+}
+
+.grtvn-self-expander.grtvn-self-expanded > .grtvn-self-expanded-indicator::before {
+    content: "🢒" !important;
+    display: inline-block;
+    transform: rotate(90deg);
+}

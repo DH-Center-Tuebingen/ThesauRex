@@ -1,47 +1,11 @@
-.multiselect-sm {
-    min-height: inherit !important;
-    font-size: $font-size-sm !important;
+.multiselect-clear {
+    margin-right: auto !important;
 }
 
-.multiselect-sm > .multiselect__tags {
-    padding: 0.25rem 0.5rem !important;
-    min-height: inherit !important;
+.multiselect-clear-reset {
+    margin-right: initial !important;
 }
 
-.multiselect-sm .multiselect__single {
-    display: inline !important;
-    min-height: inherit !important;
-    line-height: normal !important;
-    padding: 0 !important;
-    padding-left: 5px !important;
-    font-size: $font-size-sm !important;
-    vertical-align: middle !important;
-}
-
-.multiselect-sm > .multiselect__select {
-    height: inherit !important;
-    top: 15px;
-    z-index: 1;
-}
-
-.multiselect__tags {
-    border-color: $input-border-color !important;
-    border-radius: $input-border-radius !important;
-}
-
-.multiselect--active:not(.multiselect--above) .multiselect__current,
-.multiselect--active:not(.multiselect--above) .multiselect__input,
-.multiselect--active:not(.multiselect--above) .multiselect__tags {
-    border-radius: $input-border-radius !important;
-}
-
-.multiselect--above.multiselect--active .multiselect__current,
-.multiselect--above.multiselect--active .multiselect__input,
-.multiselect--above.multiselect--active .multiselect__tags {
-    border-radius: $input-border-radius !important;
-}
-
-.input-group-append > .input-group-text.multiselect-search {
-    border-top-right-radius: $input-border-radius !important;
-    border-bottom-right-radius: $input-border-radius !important;
+.multiselect-search {
+    position: relative !important;
 }

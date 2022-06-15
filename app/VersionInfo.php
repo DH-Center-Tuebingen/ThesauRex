@@ -2,8 +2,9 @@
 
 namespace App;
 
+use Illuminate\Support\Str;
+
 class VersionInfo {
-    private static $file = '.VERSION';
     // Semantic versioning
     private $major;
     private $minor;
@@ -27,22 +28,19 @@ class VersionInfo {
             $this->releaseName = ucfirst($parts[1]);
             if(count($parts) >= 4) $this->releaseHash = $parts[3];
             // cut off 'v' for semantic versioning
-            // $semVer = explode('.', substr($this->release, 1));
-            // $this->major = $semVer[0];
-            // $this->minor = $semVer[1];
-            // $this->patch = $semVer[2];
-            $this->major = 0;
-            $this->minor = 6;
-            $this->patch = 0;
+            $semVer = explode('.', substr($this->release, 1));
+            $this->major = $semVer[0];
+            $this->minor = $semVer[1];
+            $this->patch = $semVer[2];
 
             $this->time = $content[1];
         } else {
-            $this->major = 'x';
-            $this->minor = 'y';
-            $this->patch = 'z';
-            $this->release = 'vx.y.z';
+            $this->major = '0';
+            $this->minor = '0';
+            $this->patch = '0';
+            $this->release = 'v0.0.0';
             $this->releaseName = 'Unreleased';
-            $this->releaseHash = 'NO HASH';
+            $this->releaseHash = null;
             $this->time = time();
             return;
         }
@@ -65,7 +63,7 @@ class VersionInfo {
     }
 
     public function getFullRelease() {
-        $releaseName = strtolower($this->releaseName);
+        $releaseName = Str::lower($this->releaseName);
         $release = "$this->release-$releaseName";
         if(isset($this->releaseHash)) {
             $release .= "-$this->releaseHash";

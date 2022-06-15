@@ -1,0 +1,83 @@
+{
+    "users_roles": [
+        {
+            "name": "read",
+            "display_name": "Read Users & Roles",
+            "description": "Ability to read users and roles"
+        },
+        {
+            "name": "write",
+            "display_name": "Write Users & Roles",
+            "description": "Ability to write users and roles"
+        },
+        {
+            "name": "create",
+            "display_name": "Create Users & Roles",
+            "description": "Ability to create users and roles"
+        },
+        {
+            "name": "delete",
+            "display_name": "Delete Users & Roles",
+            "description": "Ability to delete and deactivate users and roles"
+        },
+        {
+            "name": "share",
+            "display_name": "Share Users & Roles",
+            "description": "Ability to share users and roles"
+        }
+    ],
+    "preferences": [
+        {
+            "name": "read",
+            "display_name": "Read Preferences",
+            "description": "Ability to read system preferences"
+        },
+        {
+            "name": "write",
+            "display_name": "Write Preferences",
+            "description": "Ability to write system preferences"
+        },
+        {
+            "name": "create",
+            "display_name": "Create Preferences",
+            "description": "Ability to create system preferences (currently unused)"
+        },
+        {
+            "name": "delete",
+            "display_name": "Delete Preferences",
+            "description": "Ability to delete system preferences (currently unused)"
+        },
+        {
+            "name": "share",
+            "display_name": "Share Preferences",
+            "description": "Ability to share system preferences (currently unused)"
+        }
+    ],
+    "thesaurus": [
+        {
+            "name": "read",
+            "display_name": "Read Thesaurus Concepts",
+            "description": "Ability to read thesaurus concepts"
+        },
+        {
+            "name": "write",
+            "display_name": "Write Thesaurus Concepts",
+            "description": "Ability to write and move thesaurus concepts"
+        },
+        {
+            "name": "create",
+            "display_name": "Create Thesaurus Concepts",
+            "description": "Ability to create and duplicate thesaurus concepts"
+        },
+        {
+            "name": "delete",
+            "display_name": "Delete Thesaurus Concepts",
+            "description": "Ability to delete thesaurus concepts"
+        },
+        {
+            "name": "share",
+            "display_name": "Share Thesaurus Concepts",
+            "description": "Ability to share and export thesaurus concepts"
+        }
+    ]
+}

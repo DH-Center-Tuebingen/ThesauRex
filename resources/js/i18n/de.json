@@ -1,0 +1,353 @@
+{
+    "global": {
+        "save": "Speichern",
+        "delete": "Löschen",
+        "restore": "Wiederherstellen",
+        "deactivate": "Deaktivieren",
+        "reactivate": "Reaktivieren",
+        "remove": "Entfernen",
+        "reset": "Zurücksetzen",
+        "send_reset_mail": "E-Mail zum Zurücksetzen des Passworts senden",
+        "cancel": "Abbrechen",
+        "close": "Schließen",
+        "add": "Hinzufügen",
+        "edit": "Editieren",
+        "update": "Aktualisieren",
+        "replace": "Ersetzen",
+        "clear": "Leeren",
+        "confirm": "Ok",
+        "create": "Anlegen",
+        "select_all": "Alle auswählen",
+        "select_none": "Alle abwählen",
+        "delete_name": {
+            "title": "{name} löschen",
+            "desc": "Willst du <span class=\"font-weight-medium\">{name}</span> wirklich löschen?"
+        },
+        "discard": {
+            "title": "Ungespeicherte Änderungen",
+            "msg": "Es gibt ungespeicherte Änderungen auf der aktuellen Seite. Willst du wirklich fortfahren und die Änderungen verwerfen?",
+            "confirm": "Ja, Änderungen verwerfen",
+            "confirm_and_save": "Nein, Speichern und fortfahren"
+        },
+        "page_access_denied": "Du hast nicht die nötigen Berechtigungen um diese Seite zu sehen.",
+        "error": {
+            "alert_title": "Fehlermeldung:",
+            "info_issue": "Wenn du denkst, dass diese Fehlermeldung ein Bug ist, schaue in unserem <a href=\"https://github.com/eScienceCenter/ThesauRex/issues\" target=\"_blank\">Bugtracker</a> auf Github nach, ob der Fehler schon gemeldet wurde oder sogar bereits in einer aktuelleren Version <a href=\"https://github.com/eScienceCenter/ThesauRex/issues?q=is:issue+is:closed\" target=\"_blank\">geschlossen</a> wurde (Deine aktuelle Version findest du über Einstellungen > <i class=\"fas fa-fw fa-info-circle\"></i> Über). Wenn es weder gemeldet, noch geschlossen ist, kannst du gerne einen <a href=\"https://github.com/eScienceCenter/ThesauRex/issues/new\" target=\"_blank\">neuen Bug</a> melden.",
+            "occur": "Fehler aufgetreten",
+            "headers": "Kopfzeilen",
+            "request_failed": "<code class=\"normal\">{method}</code>-Anfrage an den Endpunkt <code class=\"bg-light-dark rounded px-2 normal text-dark\">{url}</code> ist mit Statuscode <span class=\"fw-medium\">{status}</span> fehlgeschlagen."
+        },
+        "search": "Suche...",
+        "login": "Einloggen",
+        "login_title": "Anmelden",
+        "login_subtitle": "Willkommen bei ThesauRex",
+        "download": "Herunterladen",
+        "download_with_name": "{name} herunterladen",
+        "upload": "Hochladen",
+        "settings": {
+            "title": "Einstellungen",
+            "users": "Benutzerverwaltung",
+            "roles": "Rollenverwaltung",
+            "languages": "Sprachen",
+            "system": "System-Einstellungen",
+            "about": "Über"
+        },
+        "user": {
+            "settings": "Einstellungen",
+            "profile": "Profil",
+            "logout": "Ausloggen",
+            "info_title": "Benutzerinformationen",
+            "personal_info_title": "Persönliche Informationen",
+            "member_since": "Mitglied seit",
+            "deactivated_since": "<span class=\"fw-bold\">Deaktiviert</span> seit {dt}",
+            "contact": "Kontakt",
+            "avatar": "Avatar"
+        },
+        "select": {
+            "placehoder": "Option auswählen",
+            "select": "Drücke Enter zum hinzufügen",
+            "deselect": "Drücke Enter zum entfernen"
+        },
+        "version": "Version",
+        "label": "Beschriftung",
+        "url": "URL",
+        "name": "Name",
+        "nickname": "Spitzname",
+        "display_name": "Anzeigename",
+        "short_name": "Kürzel",
+        "email": "E-Mail-Adresse",
+        "email_or_nick": "E-Mail-Adresse oder Name",
+        "phonenumber": "Telefonnummer",
+        "password": "Passwort",
+        "confirm_password": "Passwort wiederholen",
+        "remember_me": "Eingeloggt bleiben",
+        "description": "Beschreibung",
+        "roles": "Rollen",
+        "permissions": "Berechtigungen",
+        "added_at": "Hinzugefügt",
+        "created_at": "Erstellt",
+        "updated_at": "Aktualisert",
+        "deactivated_at": "Deaktiviert",
+        "options": "Optionen",
+        "type": "Typ",
+        "content": "Inhalt",
+        "preference": "Einstellung | Einstellungen",
+        "value": "Wert",
+        "allow_override": "Überschreibbar?",
+        "set": "Setzen"
+    },
+    "tree": {
+        "search": {
+            "placeholder": "Baum nach Konzept durchsuchen",
+            "empty_term_info": "Gib einen Suchbegriff ein um den Baum zu durchsuchen",
+            "no_results": "Keine Suchergebnisse für den Begriff <span class=\"fst-italic fw-bold\">{term}</span>",
+            "is_top_level": "Top-Level Concept"
+        },
+        "import": {
+            "label": "RDF importieren",
+            "extend": "Nur neue Konzepte importieren",
+            "update_extend": "Vorhandene Konzepte aktualisieren & neue hinzufügen",
+            "replace": "Vorhandene Konzepte durch neue ersetzen",
+            "toast": {
+                "finish": {
+                    "title": "Import erfolgreich abgeschlossen",
+                    "message": "<span class=\"fw-bold\">Übersprungene Konzepte</span>: {lbl_skip}<br/><span class=\"fw-bold\">Ohne Beschriftung hinzugefügte Konzepte</span>: {lbl_ign}<br/><span class=\"fw-bold\">Mit fehlender Sprache übersprungene Beschriftungen</span>: {lang_ign}<br/><span class=\"fw-bold\">Übersprungene Verbindungen</span>: {rel_ign}"
+                }
+            }
+        },
+        "export": {
+            "label": "RDF exportieren"
+        },
+        "project": {
+            "title": "Projekt-Baum"
+        },
+        "sandbox": {
+            "title": "Sandkasten-Baum"
+        },
+        "contextmenu": {
+            "add": "Konzept hinzufügen",
+            "export": "Sub-Baum exportieren",
+            "delete": "Konzept löschen",
+            "remove_relation": "Verbindung aufheben"
+        },
+        "detail": {
+            "none_selected": "Kein Konzept ausgewählt. Wähle eines aus einem Bau aus um die Metadaten zu sehen."
+        },
+        "new_top_concept": "Neues Top-Level-Konzept anlegen",
+        "is_empty": "Keine Konzepte in diesem Baum vorhanden",
+        "empty_info": "Entweder importiere Konzepte aus einer <code>RDF</code>-Datei, ziehe sie von einem anderen Baum hier her oder erstelle neue."
+    },
+    "detail": {
+        "title": "Konzept-Eigenschaften",
+        "copy_url": {
+            "title": "URL in Zwischenablage kopiert",
+            "message": "<span class=\"font-weight-medium\">{url}</span> erfolgreich in die Zwischenablage kopiert."
+        },
+        "broader": {
+            "title": "Übergeordnete Konzepte",
+            "empty": "Keine übergeordneten Konzepte vorhanden"
+        },
+        "narrower": {
+            "title": "Untergeordnete Konzepte",
+            "empty": "Keine untergeordneten Konzepte vorhanden"
+        },
+        "label": {
+            "title": "Beschriftungen",
+            "empty": "Keine Beschriftungen vorhanden",
+            "info_label_missing": "Konzept nicht in alle Sprachen übersetzt.",
+            "toasts": {
+                "deleted": {
+                    "title": "Beschriftung gelöscht",
+                    "message": "Beschriftung <span class=\"font-weight-medium\">{label}</span> erfolgreich gelöscht."
+                }
+            }
+        },
+        "note": {
+            "title": "Notizen",
+            "empty": "Keine Notizen vorhanden",
+            "toasts": {
+                "deleted": {
+                    "title": "Notiz gelöscht",
+                    "message": "Notiz <span class=\"font-weight-medium\">{note}</span> erfolgreich gelöscht."
+                }
+            }
+        }
+    },
+    "modals": {
+        "language": {
+            "add": {
+                "title": "Neue Sprache hinzufügen",
+                "placeholder": "Wähle eine Sprache aus der Liste aus"
+            },
+            "delete": {
+                "title": "{flag} {name} löschen",
+                "message": "Willst du die Sprache {flag} <span class=\"font-weight-medium\">{name}</span> wirklich löschen?"
+            }
+        },
+        "new_concept": {
+            "title": "Neues Top-Level-Konzept anlegen",
+            "title_parent": "Neues Konzept unter {name} anlegen"
+        },
+        "delete_concept": {
+            "title": "{name} löschen",
+            "info": "Du kannst entweder <span class=\"font-weight-medium\">{name}</span> und alle Unterkonzepte (<i class=\"fas fa-fw fa-trash\"></i>) löschen oder nur <span class=\"font-weight-medium\">{name}</span> löschen und alle Unterkonzepte eine Ebene nach oben verschieben (<span class=\"fa-stack d-inline\" style=\"margin-right: -0.35rem;\"><i class=\"fas fa-trash\"></i><i class=\"fas fa-arrow-up\" data-fa-transform=\"shrink-2 left-4 up-5\"></i></span>).",
+            "delete": "<span class=\"font-weight-medium\">{name}</span> löschen",
+            "delete_recursive": "Rekursiv löschen"
+        },
+        "import_info": {
+            "title": "Importiere…",
+            "info": "Bitte warte während ThesauRex die Datei importiert. Das Fenster schließt sich automatisch."
+        }
+    },
+    "menus": {
+        "tree_node": {
+            "add_concept": "Konzept hinzufügen",
+            "export_concept": "Sub-Baum exportieren",
+            "delete_concept": "Konzept löschen",
+            "remove_concept_relation": "Verbindung aufheben"
+        }
+    },
+    "app": {
+        "loading_screen_msg": "<span class=\"fw-light\">Lade</span> {appname}<span class=\"fw-light\">&hellip;</span>"
+    },
+    "settings": {
+        "user": {
+            "add_button": "Neuen Benutzer hinzufügen",
+            "active_users": "Aktive Benutzer",
+            "deactivated_users": "Deaktivierte Benutzer",
+            "empty_list": "Benutzerliste ist leer",
+            "toasts": {
+                "updated": {
+                    "title": "Benutzer aktualisiert",
+                    "msg": "{name} wurde erfolgreich aktualisiert."
+                }
+            },
+            "modal": {
+                "add": {
+                    "title": "Neuer Benutzer"
+                },
+                "deactivate": {
+                    "title": "<span class=\"fst-italic\">{name}</span> deaktivieren",
+                    "desc": "Willst du <span class=\"fst-italic\">{name}</span> wirklich deaktivieren?",
+                    "info": "Gewisse Einträge können nur/erst deaktiviert werden, da es sonst zu unvorhergesehenem Datenverlust kommen kann."
+                }
+            },
+            "add_role_placeholder": "Rollen hinzufügen"
+        },
+        "role": {
+            "add_button": "Neue Rolle hinzufügen",
+            "permissions": {
+                "access_control_title": "Berechtigungssteuerung",
+                "types": {
+                    "read": "Lesen",
+                    "write": "Schreiben",
+                    "create": "Erstellen",
+                    "delete": "Löschen",
+                    "share": "Teilen",
+                    "write_info": "beinhaltet auch ähnliche Operationen wie Verschieben",
+                    "create_info": "beinhaltet auch ähnliche Operationen wie Duplizieren",
+                    "share_info": "beinhaltet auch ähnliche Operationen wie Exportieren"
+                },
+                "groups": {
+                    "entity": "Entitäten",
+                    "entity_data": "Formulardaten",
+                    "attribute": "Attribute",
+                    "entity_type": "Entitätstypen",
+                    "bibliography": "Literatur",
+                    "comments": "Kommentare",
+                    "users_roles": "Benutzer & Rollen",
+                    "preferences": "Einstellungen",
+                    "thesaurus": "Thesaurus",
+                    "is_plugin": "Erweiterung"
+                }
+            },
+            "preset": {
+                "derive_from_preset": "Berechtigungen aus Vorlage übernehmen",
+                "derived_from": "Basiert auf:",
+                "administrator": "Administrator",
+                "guest": "Gast"
+            },
+            "toasts": {
+                "updated": {
+                    "title": "Rolle aktualisiert",
+                    "msg": "{name} wurde erfolgreich aktualisiert."
+                }
+            },
+            "modal": {
+                "add": {
+                    "title": "Neue Rolle"
+                },
+                "delete": {
+                    "alert": "Wenn du <span class=\"fw-bold\">{name}</span> löschst, wird die Zugehörigkeit von einem Benutzer entfernt. | Wenn du <span class=\"fw-bold\">{name}</span> löschst, wird die Zugehörigkeit von {cnt} Benutzern entfernt."
+                }
+            },
+            "add_permission_placeholder": "Berechtigungen hinzufügen"
+        },
+        "language": {
+            "add_button": "Neue Sprache hinzufügen",
+            "title": "Sprachen",
+            "toasts": {
+                "updated": {
+                    "title": "Sprache aktualisiert",
+                    "msg": "{name} wurde erfolgreich aktualisiert."
+                }
+            },
+            "modal": {
+                "new": {
+                    "title": "Neue Sprache"
+                }
+            },
+            "set_short_placeholder": "Sprach-Kürzel auswählen"
+        },
+        "preference": {
+            "toasts": {
+                "updated": {
+                    "msg": "Einstellungen wurden erfolgreich aktualisiert."
+                }
+            },
+            "key": {
+                "language": "Sprache",
+                "password_reset_link": "Passwort per Link zurücksetzen",
+                "project_name": "Projektname",
+                "link_spacialist": "Link zu Spacialist anzeigen",
+                "import_config": "Import-Einstellungen",
+                "import_keys": {
+                    "ignore_missing_labels": "Ignoriere fehlende Beschriftungen",
+                    "skip_missing_labels": "Überspringe fehlende Beschriftungen",
+                    "ignore_missing_languages": "Ignoriere fehlende Sprachen",
+                    "ignore_missing_relations": "Ignoriere fehlende Verbindungen"
+                }
+            },
+            "info": {
+                "set_to_language": "Auf <span class=\"fw-bold\">{lang}</span> stellen",
+                "password_reset_link": "Damit diese Funktion genutzt werden kann, müssen die <code>MAIL_*</code>-Werte in der <code>.env</code>-Datei gesetzt sein. <a href=\"https://github.com/eScienceCenter/ThesauRex/blob/master/INSTALL.md#send-mails\" target=\"_blank\">Weitere Informationen</a>."
+            },
+            "tooltip": {
+                "missing_labels": "Konzepte, die keine Beschriftungen besitzen, werden ohne hinzugefügt.",
+                "skip_labels": "Konzepte, die keine Beschriftungen besitzen, werden ignoriert und übersprungen.",
+                "missing_languages": "Konzept-Beschriftungen, die in einer nicht in den Spracheinstellungen hinterlegten Sprache angegeben sind, werden ignoriert.",
+                "missing_relations": "Konzept-Verbindungen, bei der mindestens eines der Konzepte nicht vorhandenen ist, werden ignoriert."
+            }
+        },
+        "about": {
+            "title": "Über ThesauRex",
+            "desc": "ThesauRex wurde vom Ministerium für Wissenschaft, Forschung und Kunst, Baden-Württemberg im Rahmen des \"E-Science\"-Programms gefördert.",
+            "release": {
+                "name": "Name der Veröffentlichung",
+                "time": "Datum der Veröffentlichung",
+                "full_name": "Vollständiger Name"
+            },
+            "build_info": "Mit <i class=\"fab fa-fw fa-laravel\"></i> & <i class=\"fab fa-fw fa-vuejs\"></i> erstellt!",
+            "contributor": "Mitwirkender | Mitwirkende",
+            "roles": {
+                "development": "Entwicklung",
+                "development_lead": "Entwicklungsleiter",
+                "support_development": "Entwicklungsunterstützung",
+                "support_database": "Datenbankunterstützung",
+                "support_archaeology": "Archäologische Unterstützung",
+                "project_lead": "Projektleitung",
+                "project_lead_former": "Ehemalige Projektleitung"
+            }
+        }
+    }
+}

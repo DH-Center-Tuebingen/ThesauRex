@@ -28,10 +28,7 @@ class Preference extends Model
             ->get();
         $systemPrefs = self::whereNotIn('id', $userPrefs->pluck('pref_id')->toArray())
             ->get();
-        $prefs = $systemPrefs;
-        foreach($userPrefs as $p) {
-            $prefs[] = $p;
-        }
+        $prefs = $systemPrefs->merge($userPrefs);
         $prefObj = self::decodePreferences($prefs);
         return $prefObj;
     }
@@ -50,38 +47,40 @@ class Preference extends Model
         return $pref;
     }
 
-    public static function hasPublicAccess() {
-        $value = self::where('label', 'prefs.project-maintainer')->value('default_value');
-        $decodedValue = json_decode($value);
-        return sp_parse_boolean($decodedValue->public);
-    }
-
     public static function decodePreference($label, $value) {
         switch($label) {
             case 'prefs.gui-language':
                 return $value->language_key;
-            case 'prefs.columns':
-                return $value;
-            case 'prefs.show-tooltips':
-                return $value->show;
-            case 'prefs.tag-root':
-                return $value->uri;
-            case 'prefs.load-extensions':
-                return $value;
-            case 'prefs.link-to-thesaurex':
-                return $value->url;
+            case 'prefs.enable-password-reset-link':
+                return $value->use;
             case 'prefs.project-name':
                 return $value->name;
-            case 'prefs.project-maintainer':
+            case 'prefs.link-to-spacialist':
+                return $value->url;
+            case 'prefs.import-config':
                 return $value;
-            case 'prefs.map-projection':
-                $proj4 = \DB::table('spatial_ref_sys')
-                    ->where('auth_srid', $value->epsg)
-                    ->value('proj4text');
-                return [
-                    'epsg' => $value->epsg,
-                    'proj4' => $proj4
-                ];
+        }
+        return $value;
+    }
+
+    public static function encodePreference($label, $decodedValue) {
+        $value;
+        switch($label) {
+            case 'prefs.gui-language':
+                $value = json_encode(['language_key' => $decodedValue]);
+                break;
+            case 'prefs.enable-password-reset-link':
+                $value = json_encode(['use' => $decodedValue]);
+                break;
+            case 'prefs.project-name':
+                $value = json_encode(['name' => $decodedValue]);
+                break;
+            case 'prefs.link-to-spacialist':
+                $value = json_encode(['url' => $decodedValue]);
+                break;
+            case 'prefs.import-config':
+                $value = $decodedValue;
+                break;
         }
         return $value;
     }

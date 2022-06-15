@@ -2,8 +2,8 @@
 
 namespace App;
 
-use \DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ThConcept extends Model
 {
@@ -23,7 +23,7 @@ class ThConcept extends Model
 
     public static function getMap() {
         $lang = 'de'; // TODO
-        $concepts = \DB::select(\DB::raw("
+        $concepts = DB::select(DB::raw("
             WITH summary AS
             (
                 SELECT th_concept.id, concept_url, is_top_concept, label, language_id, th_language.short_name,
@@ -95,36 +95,24 @@ class ThConcept extends Model
     }
 
     public function parentIds() {
-        $where = "WHERE narrower_id = $this->id";
+        $parents = [];
+
+        // add empty path for root concepts
+        if($this->is_top_concept) {
+            $parents[] = [];
+        }
+
         $broaders = ThBroader::select('broader_id')
             ->where('narrower_id', $this->id)
             ->get();
 
-        $parents = [];
-
         foreach($broaders as $broader) {
-            $currentWhere = $where . " AND broader_id = " . $broader->broader_id;
-            $parents = DB::select("
-                WITH RECURSIVE
-                    q (broader_id, narrower_id, lvl) AS
-                    (
-                        SELECT b1.broader_id, b1.narrower_id, 0
-                        FROM th_broaders b1
-                        $currentWhere
-                        UNION ALL
-                        SELECT b2.broader_id, b2.narrower_id, lvl + 1
-                        FROM th_broaders b2
-                        JOIN q ON q.broader_id = b2.narrower_id
-                    )
-                SELECT q.*
-                FROM q
-                ORDER BY lvl DESC
-            ");
+            $parentBroaders = ThConcept::find($broader->broader_id)->parentIds();
+            foreach($parentBroaders as $pB) {
+                $parents[] = array_merge($pB, [$broader->broader_id]);
+            }
         }
 
-        $parents = array_map(function($p) {
-            return $p->broader_id;
-        }, $parents);
         return $parents;
     }
 
@@ -133,22 +121,29 @@ class ThConcept extends Model
         $langCode = $user->getLanguage();
 
         $parents = [];
-        foreach($this->parentIds() as $pid) {
-            $parent = ThConcept::with(['labels.language' => function($query) use($langCode) {
-                $query->orderByRaw("short_name != '$langCode'");
-            }])
-            ->where('id', $pid)
-            ->first();
-            $parents[] = $parent;
+        foreach($this->parentIds() as $paths) {
+            $path = [];
+            foreach($paths as $pid) {
+                $parent = ThConcept::with(['labels.language' => function($query) use($langCode) {
+                    $query->orderByRaw("short_name != '$langCode'");
+                }])
+                ->where('id', $pid)
+                ->first();
+                $path[] = $parent;
+            }
+            $parents[] = $path;
         }
 
         return $parents;
     }
 
     public function getPathAttribute() {
-        $parents = $this->parentIds();
-        $parents[] = $this->id;
+        $paths = [];
+        foreach($this->parentIds() as $idPath) {
+            $idPath[] = $this->id;
+            $paths[] = array_reverse($idPath);
+        }
 
-        return array_reverse($parents);
+        return $paths;
     }
 }
