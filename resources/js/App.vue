@@ -20,7 +20,7 @@
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" target="_blank" href="https://github.com/eScienceCenter/Spacialist/wiki/User-manual">
+                            <a class="nav-link" target="_blank" href="https://github.com/DH-Center-Tuebingen/Spacialist/wiki/User-manual">
                                 <i class="far fa-fw fa-question-circle"></i>
                             </a>
                         </li>

@@ -34,7 +34,7 @@ You should also check for changes in [Proxy Setup](INSTALL.md#proxy-setup) and [
 2. Clone This Repository
 
    ```bash
-    git clone https://github.com/eScienceCenter/ThesauRex
+    git clone https://github.com/DH-Center-Tuebingen/ThesauRex
    ```
 
 3. Download Dependencies
@@ -166,7 +166,7 @@ If you have just migrated into an empty database, you need to run the following 
 php artisan db:seed
 ```
 
-When you want to run ThesauRex as standalone software without [Spacialist](https://github.com/eScienceCenter/Spacialist) you have to run the `StandaloneSeeder`.
+When you want to run ThesauRex as standalone software without [Spacialist](https://github.com/DH-Center-Tuebingen/Spacialist) you have to run the `StandaloneSeeder`.
 ```bash
 php artisan db:seed --class=StandaloneSeeder
 ```
@@ -177,14 +177,14 @@ Example:
 Laravel (5.5.33)
 ```
 
-## Installing ThesauRex as part of [Spacialist](https://github.com/eScienceCenter/Spacialist)
+## Installing ThesauRex as part of [Spacialist](https://github.com/DH-Center-Tuebingen/Spacialist)
 
-As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCenter/Spacialist) platform, it can be installed directly within the Spacialist environment as well. This part only contains changes that must be made when installing ThesauRex as part of Spacialist against a standalone installation.
+As ThesauRex is a crutial part of the [Spacialist](https://github.com/DH-Center-Tuebingen/Spacialist) platform, it can be installed directly within the Spacialist environment as well. This part only contains changes that must be made when installing ThesauRex as part of Spacialist against a standalone installation.
 
 2. `cd` into your Spacialist Repository and clone the ThesauRex Repository into it
 
    ```bash
-   git clone https://github.com/eScienceCenter/ThesauRex thesaurex
+   git clone https://github.com/DH-Center-Tuebingen/ThesauRex thesaurex
    ```
 
 ### Proxy Setup
@@ -198,7 +198,7 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
     127.0.0.1 project.thesaurex # or anything you want
    ```
 
-3. Append an additional configuration to the `spacialist-laravel.conf` file of  your apache that you created while installing Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)). The `DocumentRoot` and `<Directory ... >` must point to the location of your `public` folder and might be adjusted if needed.
+3. Append an additional configuration to the `spacialist-laravel.conf` file of  your apache that you created while installing Spacialist (see [Spacialist/INSTALL.md](https://github.com/DH-Center-Tuebingen/Spacialist/blob/master/INSTALL.md)). The `DocumentRoot` and `<Directory ... >` must point to the location of your `public` folder and might be adjusted if needed.
 
    ```bash
     sudo nano /etc/apache2/sites-available/spacialist-laravel.conf
@@ -243,7 +243,7 @@ As ThesauRex is a crutial part of the [Spacialist](https://github.com/eScienceCe
 
 ### Configure Laravel
 
-As you have configured your `.env` file with your DB connection during the installation of Spacialist (see [Spacialist/INSTALL.md](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md)) its sufficient to just set a soft link to the `.env` file of Spacialist
+As you have configured your `.env` file with your DB connection during the installation of Spacialist (see [Spacialist/INSTALL.md](https://github.com/DH-Center-Tuebingen/Spacialist/blob/master/INSTALL.md)) its sufficient to just set a soft link to the `.env` file of Spacialist
 
 ```bash
 ln -s /var/www/html/spacialist/.env /var/www/html/spacialist/thesaurex/.env

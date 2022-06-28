@@ -32,7 +32,7 @@
         "page_access_denied": "Du hast nicht die nötigen Berechtigungen um diese Seite zu sehen.",
         "error": {
             "alert_title": "Fehlermeldung:",
-            "info_issue": "Wenn du denkst, dass diese Fehlermeldung ein Bug ist, schaue in unserem <a href=\"https://github.com/eScienceCenter/ThesauRex/issues\" target=\"_blank\">Bugtracker</a> auf Github nach, ob der Fehler schon gemeldet wurde oder sogar bereits in einer aktuelleren Version <a href=\"https://github.com/eScienceCenter/ThesauRex/issues?q=is:issue+is:closed\" target=\"_blank\">geschlossen</a> wurde (Deine aktuelle Version findest du über Einstellungen > <i class=\"fas fa-fw fa-info-circle\"></i> Über). Wenn es weder gemeldet, noch geschlossen ist, kannst du gerne einen <a href=\"https://github.com/eScienceCenter/ThesauRex/issues/new\" target=\"_blank\">neuen Bug</a> melden.",
+            "info_issue": "Wenn du denkst, dass diese Fehlermeldung ein Bug ist, schaue in unserem <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/issues\" target=\"_blank\">Bugtracker</a> auf Github nach, ob der Fehler schon gemeldet wurde oder sogar bereits in einer aktuelleren Version <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/issues?q=is:issue+is:closed\" target=\"_blank\">geschlossen</a> wurde (Deine aktuelle Version findest du über Einstellungen > <i class=\"fas fa-fw fa-info-circle\"></i> Über). Wenn es weder gemeldet, noch geschlossen ist, kannst du gerne einen <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/issues/new\" target=\"_blank\">neuen Bug</a> melden.",
             "occur": "Fehler aufgetreten",
             "headers": "Kopfzeilen",
             "request_failed": "<code class=\"normal\">{method}</code>-Anfrage an den Endpunkt <code class=\"bg-light-dark rounded px-2 normal text-dark\">{url}</code> ist mit Statuscode <span class=\"fw-medium\">{status}</span> fehlgeschlagen."
@@ -320,7 +320,7 @@
             },
             "info": {
                 "set_to_language": "Auf <span class=\"fw-bold\">{lang}</span> stellen",
-                "password_reset_link": "Damit diese Funktion genutzt werden kann, müssen die <code>MAIL_*</code>-Werte in der <code>.env</code>-Datei gesetzt sein. <a href=\"https://github.com/eScienceCenter/ThesauRex/blob/master/INSTALL.md#send-mails\" target=\"_blank\">Weitere Informationen</a>."
+                "password_reset_link": "Damit diese Funktion genutzt werden kann, müssen die <code>MAIL_*</code>-Werte in der <code>.env</code>-Datei gesetzt sein. <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/blob/master/INSTALL.md#send-mails\" target=\"_blank\">Weitere Informationen</a>."
             },
             "tooltip": {
                 "missing_labels": "Konzepte, die keine Beschriftungen besitzen, werden ohne hinzugefügt.",

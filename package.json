@@ -5,14 +5,14 @@
     "description": "Web based editor for SKOS based ontologies",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/eScienceCenter/ThesauRex.git"
+        "url": "git+https://github.com/DH-Center-Tuebingen/ThesauRex.git"
     },
     "author": "Vinzenz Rosenkranz <vinzenz.rosenkranz@uni-tuebingen.de>",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/eScienceCenter/ThesauRex/issues"
+        "url": "https://github.com/DH-Center-Tuebingen/ThesauRex/issues"
     },
-    "homepage": "https://github.com/eScienceCenter/ThesauRex#readme",
+    "homepage": "https://github.com/DH-Center-Tuebingen/ThesauRex#readme",
     "scripts": {
         "dev": "npm run development",
         "development": "npx mix",

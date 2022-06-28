@@ -60,7 +60,7 @@
                     <a href="https://www.facebook.com/esciencecenter" target="_blank">
                         <i class="fab fa-facebook-square fa-2x text-primary"></i>
                     </a>
-                    <a href="https://github.com/eScienceCenter/Spacialist" target="_blank" class="ms-2">
+                    <a href="https://github.com/DH-Center-Tuebingen/Spacialist" target="_blank" class="ms-2">
                         <i class="fab fa-github fa-2x text-dark"></i>
                     </a>
                 </div>

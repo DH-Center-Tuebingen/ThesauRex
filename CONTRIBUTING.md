@@ -13,7 +13,7 @@ If you have questions about how to install or use ThesauRex, please send us an [
 
 Help us to maximize the effort we can spend fixing issues and adding new features, by not reporting duplicate issues.
 
-[template]: https://raw.githubusercontent.com/eScienceCenter/ThesauRex/master/issue_template.md
+[template]: https://raw.githubusercontent.com/DH-Center-Tuebingen/ThesauRex/master/issue_template.md
 
 Use your real name (sorry, no pseudonyms or anonymous contributions).
 If you set your `user.name` and `user.email` git configs, you can sign your
