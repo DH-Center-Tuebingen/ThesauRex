@@ -50,7 +50,7 @@
     },
     "dependencies": {
         "country-emoji": "^1.5.6",
-        "moment": "^2.29.1",
+        "moment": "^2.29.4",
         "p-queue": "^6.6.2",
         "transliteration": "2.1.11",
         "tree-vue-component": "^5.9.0",
