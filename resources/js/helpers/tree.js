@@ -46,8 +46,8 @@ export function sortParents(parents) {
 export function sortTree(tree, dir = 'asc') {
     const sortFn = (a, b) => {
         let value = 0;
-        const first = getLabel(a, true);
-        const second = getLabel(b, true);
+        const first = getLabel(a, true).toLowerCase();
+        const second = getLabel(b, true).toLowerCase();
         if(first < second) value = -1;
         if(first > second) value = 1;
         if(dir == 'desc') {
@@ -127,7 +127,7 @@ export async function openPath(ids, tree = 'project') {
         elem.childrenLoaded = true;
         // Have to get current elemen from tree (not entities array) as well
         // otherwise children and childrenLoaded props are not correctly set
-        const htmlElem = document.getElementById(`tree-node-${elem.id}`).parentElement;
+        const htmlElem = document.getElementById(`${tree}-tree-node-${elem.id}`).parentElement;
         const node = getNodeFromPath(store.getters.conceptsFromTree(tree), htmlElem.getAttribute('data-path').split(','));
         node.children = children;
         node.childrenLoaded = true;
@@ -180,6 +180,8 @@ export function getLabel(node, displayForeign = false) {
 };
 
 export function unnode(node) {
+    if(!node) return {};
+
     if(node.nid) {
         node.id = node.nid;
     }

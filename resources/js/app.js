@@ -9,6 +9,7 @@ import PQueue from 'p-queue';
 import ConceptTree from './components/tree/Concept.vue';
 import UserAvatar from './components/UserAvatar.vue';
 import Alert from './components/Alert.vue';
+import ConceptSearch from '@/components/tree/Search.vue';
 
 // TODO Start
 // Views
@@ -94,6 +95,7 @@ app.directive('dcan', {
 app.component('concept-tree', ConceptTree);
 app.component('user-avatar', UserAvatar);
 app.component('alert', Alert);
+app.component('concept-search', ConceptSearch);
 // Third-Party components
 app.component('multiselect', Multiselect);
 app.component('file-upload', VueUploadComponent);

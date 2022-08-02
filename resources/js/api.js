@@ -129,6 +129,7 @@ export async function exportTree(tree, rootId) {
     } else {
         endpoint = `tree/export`;
     }
+    endpoint += `?t=${tree}`;
 
     return $httpQueue.add(
         () => http.get(endpoint)
@@ -176,6 +177,22 @@ export async function addLanguage(languageData) {
 };
 
 // PATCH
+
+export async function toggleTopLevelState(tree, id) {
+    return await $httpQueue.add(
+        () => http.patch(`/tree/state/tlc/${id}?t=${tree}`, {}).then(response => {
+            const action = response.data.is_top_concept ? 'addRelation' : 'removeRelation';
+            const actionData = {
+                tree: tree,
+                broader: -1,
+                narrower: response.data.id,
+            };
+
+            store.dispatch(action, actionData);
+            return response.data;
+        })
+    );
+};
 
 export async function patchLabel(id, content, concept_id, tree) {
     const data = {
@@ -278,7 +295,7 @@ export async function deleteLanguage(languageId) {
 
 export async function deleteLabel(id, tree, concept_id) {
     await $httpQueue.add(
-        () => http.delete(`/tree/label/${id}`).then(response => {
+        () => http.delete(`/tree/label/${id}?t=${tree}`).then(response => {
             store.dispatch('deleteLabel', {
                 id: id,
                 concept_id: concept_id,
@@ -292,12 +309,30 @@ export async function deleteLabel(id, tree, concept_id) {
 
 export async function deleteNote(id, tree, concept_id) {
     await $httpQueue.add(
-        () => http.delete(`/tree/note/${id}`).then(_ => {
+        () => http.delete(`/tree/note/${id}?t=${tree}`).then(_ => {
             store.dispatch('deleteNote', {
                 id: id,
                 concept_id: concept_id,
                 tree: tree,
             });
+        })
+    );
+};
+
+export async function deleteConcept(id, tree, action, actionParams) {
+    let urlParams = `a=${action}`;
+    if(!!actionParams) {
+        for(let k in actionParams) {
+            urlParams += `&${k}=${actionParams[k]}`;
+        }
+    }
+    await $httpQueue.add(
+        () => http.delete(`/tree/concept/${id}?${urlParams}`).then(_ => {
+            // store.dispatch('deleteNote', {
+            //     id: id,
+            //     concept_id: concept_id,
+            //     tree: tree,
+            // });
         })
     );
 };
@@ -334,9 +369,14 @@ export async function cloneAcrossTree(narrower_id, broader_id, srcNodeTree, tgtN
 };
 
 export async function addRelation(narrower_id, broader_id, tree) {
-    await $httpQueue.add(
-        () => http.put(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
-    );
+    try {
+        await $httpQueue.add(
+            () => http.put(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
+        );
+    } catch(e) {
+        throwError(e);
+        return;
+    }
     if(!store.getters.conceptsFromMap(tree)[broader_id]) {
         await $httpQueue.add(
             () => http.get(`/tree/${broader_id}?t=${tree}`).then(response => {

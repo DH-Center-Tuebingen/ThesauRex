@@ -92,6 +92,10 @@
     cursor: not-allowed;
 }
 
+.help-handle {
+    cursor: help;
+}
+
 .of-visible, .visible-overflow .v--modal {
     overflow: visible !important;
 }

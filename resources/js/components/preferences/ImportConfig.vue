@@ -5,7 +5,7 @@
         </label>
         <div class="col-md-10">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" v-model="state.ignoreLabels" :readonly="readonly" :disabled="readonly" @input="onChange" >
+                <input class="form-check-input" type="checkbox" v-model="state.ignoreLabels" :readonly="readonly" :disabled="readonly || state.skipLabels" @input="onChange" >
             </div>
         </div>
     </div>

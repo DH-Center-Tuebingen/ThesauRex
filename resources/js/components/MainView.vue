@@ -31,7 +31,7 @@
                 @added="addConceptTo('selection')"
             ></router-view>
             <div v-if="!state.conceptSelected" class="alert alert-info">
-                {{ t('tree.detail.none_selected') }}
+                {{ t('detail.none_selected') }}
             </div>
         </div>
     </div>

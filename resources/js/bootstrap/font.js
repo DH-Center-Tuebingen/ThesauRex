@@ -19,12 +19,15 @@ import {
 import {
 } from '@fortawesome/free-regular-svg-icons';
 import {
+    faArrowTurnUp,
+    faArrowUp,
     faBan,
     faCaretDown,
     faCaretRight,
     faCaretUp,
     faCheck,
     faCircle,
+    faCodePullRequest,
     faCog,
     faCopy,
     faEdit,
@@ -45,6 +48,7 @@ import {
     faSignOutAlt,
     faSlidersH,
     faSpinner,
+    faStairs,
     faStar,
     faSyncAlt,
     faTimes,
@@ -60,12 +64,15 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
+    faArrowTurnUp,
+    faArrowUp,
     faBan,
     faCaretDown,
     faCaretRight,
     faCaretUp,
     faCheck,
     faCircle,
+    faCodePullRequest,
     faCog,
     faCopy,
     faEdit,
@@ -89,6 +96,7 @@ library.add(
     faSignOutAlt,
     faSlidersH,
     faSpinner,
+    faStairs,
     faStar,
     faSyncAlt,
     faTimes,

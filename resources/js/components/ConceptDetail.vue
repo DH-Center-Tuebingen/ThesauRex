@@ -17,6 +17,20 @@
                 <i class="fas fa-fw fa-copy"></i>
             </a>
         </div>
+        <div class="form-check form-switch mx-2 pt-2">
+            <span v-show="state.updatingTopLevelState">
+                <i class="fas fa-fw fa-spinner fa-spin"></i>
+            </span>
+            <input class="form-check-input" type="checkbox" role="switch" id="concept-detail-tlc-switch"
+                :disabled="state.updatingTopLevelState || (!state.canDeleteBroader && state.isTopConcept)"
+                v-model="state.concept.is_top_concept" @click.prevent="updateTopLevelState()">
+            <label class="form-check-label" for="concept-detail-tlc-switch">
+                {{ t('detail.is_top_concept') }}
+            </label>
+            <span class="text-danger help-handle ms-2" v-if="(!state.canDeleteBroader && state.isTopConcept)" :title="t('detail.broader.remove_not_possible')">
+                <i class="fas fa-fw fa-info-circle"></i>
+            </span>
+        </div>
         <hr class="w-100" />
         <div class="row flex-grow-1 of-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
@@ -26,8 +40,12 @@
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
                         <div class="form-group mb-0">
-                            <concept-search :add-option="false" :exclude="[state.concept.id]" :tree-name="state.tree"
-                                @select="handleAddBroader" />
+                            <concept-search
+                                :add-option="false"
+                                :exclude="[state.concept.id]"
+                                :tree-name="state.tree"
+                                @select="handleAddBroader"
+                            />
                         </div>
                     </form>
                     <ul class="list-group list-group-xs scroll-y-auto" v-if="state.hasBroaders">
@@ -39,6 +57,9 @@
                             <a href="" @click.prevent="gotoConcept(broader.id)">
                                 {{ getLabel(broader) }}
                             </a>
+                            <span class="text-danger help-handle" v-if="!state.canDeleteBroader" :title="t('detail.broader.remove_not_possible')">
+                                <i class="fas fa-fw fa-info-circle"></i>
+                            </span>
                             <span v-show="state.hoverStates.broaders[i] && state.canDeleteBroader"
                                 @click="removeBroader(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
@@ -275,11 +296,14 @@
 
     import {
         putAddLabel,
+        toggleTopLevelState,
         patchLabel,
         deleteLabel as deleteLabelApi,
         putAddNote,
         patchNote,
         deleteNote as deleteNoteApi,
+        addRelation,
+        removeRelation,
     } from '@/api.js';
 
     import {
@@ -295,17 +319,7 @@
         getLabel,
     } from '@/helpers/tree.js';
 
-    import {
-        addRelation,
-        removeRelation,
-    } from '@/api.js';
-
-    import ConceptSearch from '@/components/tree/Search.vue';
-
     export default {
-        components: {
-            'concept-search': ConceptSearch,
-        },
         setup(props, context) {
             const { t } = useI18n();
             const route = useRoute();
@@ -342,6 +356,14 @@
             };
             const handleAddNewConcept = e => {
                 showCreateConcept(state.tree, state.concept.id, e.content);
+            };
+            const updateTopLevelState = _ => {
+                if(!state.canDeleteBroader && state.isTopConcept) return;
+
+                state.updatingTopLevelState = true;
+                toggleTopLevelState(state.tree, state.concept.id).then(_ => {
+                    state.updatingTopLevelState = false;
+                });
             };
             const removeBroader = idx => {
                 const broader = state.concept.broaders[idx];
@@ -523,12 +545,14 @@
                     broaders: {},
                     narrowers: {},
                 },
+                updatingTopLevelState: false,
                 addLabelValidated: computed(_ => state.addLabel.language.short_name && state.addLabel.value && state.addLabel.value.length),
                 addNoteValidated: computed(_ => state.addNote.language.short_name && state.addNote.value && state.addNote.value.length),
                 concept: computed(_ => store.getters.selectedConcept.data),
                 tree: computed(_ => store.getters.selectedConcept.from),
+                isTopConcept: computed(_ => state.concept.is_top_concept),
                 hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
-                canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.concept.is_top_concept)),
+                canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
                 hasNarrowers: computed(_ => state.concept.narrowers && state.concept.narrowers.length > 0),
                 hasLabels: computed(_ => state.concept.labels && state.concept.labels.length > 0),
                 hasNotes: computed(_ => state.concept.notes && state.concept.notes.length > 0),
@@ -587,6 +611,7 @@
                 handleAddBroader,
                 handleAddNarrower,
                 handleAddNewConcept,
+                updateTopLevelState,
                 removeBroader,
                 removeNarrower,
                 setLanguageFor,

@@ -30,6 +30,7 @@ import AccessControl from '@/components/modals/role/AccessControl.vue';
 import AddRole from '@/components/modals/role/Add.vue';
 import DeleteRole from '@/components/modals/role/Delete.vue';
 import CreateConcept from '@/components/modals/concept/Create.vue';
+import DeleteConcept from '@/components/modals/concept/Delete.vue';
 import AddLanguage from '@/components/modals/lang/Create.vue';
 import DeleteLanguage from '@/components/modals/lang/Delete.vue';
 
@@ -273,6 +274,31 @@ export function showCreateConcept(tree, pid, initValue = '') {
                 addConcept(concept, tree, pid).then(_ => {
                     store.getters.vfm.hide(uid);
                 });
+            },
+            cancel(e) {
+                store.getters.vfm.hide(uid);
+            }
+        }
+    });
+}
+
+export function showDeleteConcept(tree, conceptId) {
+    const uid = `DeleteConcept-${getTs()}`;
+    store.getters.vfm.show({
+        component: DeleteConcept,
+        bind: {
+            name: uid,
+            tree: tree,
+            conceptId: conceptId,
+        },
+        on: {
+            confirm(_) {
+                // if(!can('thesaurus_create')) return;
+
+                // addConcept(concept, tree, pid).then(_ => {
+                //     store.getters.vfm.hide(uid);
+                // });
+                store.getters.vfm.hide(uid);
             },
             cancel(e) {
                 store.getters.vfm.hide(uid);

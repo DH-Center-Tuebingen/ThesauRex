@@ -1,11 +1,14 @@
 <template>
-    <div @dragenter="onDragEnter" @dragleave="onDragLeave" :id="`tree-node-${data.id}`" v-show="!data.is_placeholder">
-        <a href="" :id="`tree-node-cm-toggle-${data.id}`" @contextmenu.stop.prevent="togglePopup()" class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false" :data-path="join(data.path)">
+    <div :ref="el => nodeRef = el" @dragenter="onDragEnter" @dragleave="onDragLeave"
+        :id="`${data.tree}-tree-node-${data.id}`" v-show="!data.is_placeholder">
+        <a href="" :id="`${data.tree}-tree-node-cm-toggle-${data.id}`" @contextmenu.stop.prevent="togglePopup()"
+            class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" data-bs-auto-close="true"
+            aria-expanded="false" :data-path="join(data.path)">
             <span :class="{'fw-bold': state.isSelected}">
                 {{ state.label }}
             </span>
         </a>
-        <ul class="dropdown-menu" :id="`tree-node-${data.id}-contextmenu`" v-if="state.ddVisible">
+        <ul class="dropdown-menu" :id="`${data.tree}-tree-node-${data.id}-contextmenu`" v-if="state.ddVisible">
             <li>
                 <h6 class="dropdown-header" @click.stop.prevent="" @dblclick.stop.prevent="">
                     {{ state.label }}
@@ -36,11 +39,11 @@
                 </a>
             </li>
             <li v-if="can('thesaurus_write')">
-                <a class="dropdown-item py-2" href="#" @click.stop.prevent="onRemove()" @dblclick.stop.prevent="">
+                <a class="dropdown-item py-2" :class="state.disabledAnchorClasses" href="#" @click.stop.prevent="onRemoveRelation()"
+                    @dblclick.stop.prevent="">
                     <i class="fas fa-fw fa-times text-danger"></i>
-                    <span class="ms-2">
-                        {{ t('tree.contextmenu.remove_relation') }}
-                    </span>
+                    <span class="ms-2" v-if="state.hasParent" v-html="t('tree.contextmenu.remove_relation_to', {parent: state.parentLabel})" />
+                    <span class="ms-2" v-else v-html="t('tree.contextmenu.remove_relation_as_tlc')" />
                 </a>
             </li>
         </ul>
@@ -53,6 +56,7 @@
         nextTick,
         onMounted,
         reactive,
+        ref,
         toRefs,
     } from 'vue';
 
@@ -62,10 +66,17 @@
 
     import { useI18n } from 'vue-i18n';
 
+    import { getNodeFromPath } from 'tree-component';
+
     import store from '@/bootstrap/store.js';
 
     import {
+        removeRelation,
+    } from '@/api.js';
+
+    import {
         showCreateConcept,
+        showDeleteConcept,
     } from '@/helpers/modal.js';
 
     import {
@@ -149,28 +160,56 @@
             const onDelete = _ => {
                 if(!can('thesaurus_delete')) return;
 
-
+                showDeleteConcept(data.value.tree, data.value.id);
             };
             const onRemoveRelation = _ => {
-                if(!can('thesaurus_write')) return;
+                if(!can('thesaurus_write') || !state.canDeleteBroader) return;
 
-
+                const narrower_id = data.value.nid || data.value.id;
+                const broader_id = state.parent.nid || parent.id;
+                removeRelation(narrower_id, broader_id, data.value.tree);
             };
 
             // DATA
+            const nodeRef = ref({});
             const state = reactive({
                 ddDomElem: null,
                 bsElem: null,
                 ddVisible: false,
                 label: computed(_ => getLabel(data.value)),
                 concept: computed(_ => store.getters.selectedConcept.data),
+                isTopConcept: computed(_ => state.concept.is_top_concept),
+                hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
+                canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
+                hasParent: computed(_ => !!state.parent),
+                parent: computed(_ => {
+                    if(!nodeRef) return;
+
+                    const path = nodeRef.value.parentElement.getAttribute('data-path').split(',');
+                // pop element itself, because we want parent node
+                    path.pop();
+                    if(path.length == 0) return;
+                    return getNodeFromPath(store.getters.conceptsFromTree(data.value.tree), path);
+                }),
+                parentLabel: computed(_ => getLabel(state.parent)),
                 isSelected: computed(_ => state.concept && state.concept.id === data.value.nid),
                 asyncToggle: computed(_ => _debounce(doToggle, 500)),
+                disabledAnchorClasses: computed(_ => {
+                    if(state.canDeleteBroader) {
+                        return [];
+                    } else {
+                        return [
+                            'not-allowed-handle',
+                            'text-muted',
+                            'bg-transparent',
+                        ];
+                    }
+                }),
             });
 
             // ON MOUNTED
             onMounted(_ => {
-                state.ddDomElem = document.getElementById(`tree-node-cm-toggle-${data.value.id}`);
+                state.ddDomElem = document.getElementById(`${data.value.tree}-tree-node-cm-toggle-${data.value.id}`);
                 state.ddDomElem.addEventListener('hidden.bs.dropdown', _ => {
                     hidePopup();
                 });
@@ -193,6 +232,7 @@
                 // PROPS
                 data,
                 // STATE
+                nodeRef,
                 state,
             };
         },

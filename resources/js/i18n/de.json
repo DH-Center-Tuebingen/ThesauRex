@@ -126,12 +126,10 @@
         },
         "contextmenu": {
             "add": "Konzept hinzufügen",
-            "export": "Sub-Baum exportieren",
+            "export": "Teilbaum exportieren",
             "delete": "Konzept löschen",
-            "remove_relation": "Verbindung aufheben"
-        },
-        "detail": {
-            "none_selected": "Kein Konzept ausgewählt. Wähle eines aus einem Bau aus um die Metadaten zu sehen."
+            "remove_relation_to": "Verbindung zu <span class=\"font-weight-medium\">{parent}</span> aufheben",
+            "remove_relation_as_tlc": "Verbindung als <span class=\"font-weight-medium\">Top-Level-Konzept</span> aufheben"
         },
         "new_top_concept": "Neues Top-Level-Konzept anlegen",
         "is_empty": "Keine Konzepte in diesem Baum vorhanden",
@@ -139,13 +137,16 @@
     },
     "detail": {
         "title": "Konzept-Eigenschaften",
+        "none_selected": "Kein Konzept ausgewählt. Wähle eines aus einem Baum aus um die Metadaten zu sehen.",
+        "is_top_concept": "Konzept ist ein Top-Level-Konzept",
         "copy_url": {
             "title": "URL in Zwischenablage kopiert",
             "message": "<span class=\"font-weight-medium\">{url}</span> erfolgreich in die Zwischenablage kopiert."
         },
         "broader": {
             "title": "Übergeordnete Konzepte",
-            "empty": "Keine übergeordneten Konzepte vorhanden"
+            "empty": "Keine übergeordneten Konzepte vorhanden",
+            "remove_not_possible": "Diese Verbindung kann nicht aufgehoben werden, da dies die letzte Verbindung für das ausgewählte Konzept ist."
         },
         "narrower": {
             "title": "Untergeordnete Konzepte",
@@ -190,9 +191,26 @@
         },
         "delete_concept": {
             "title": "{name} löschen",
-            "info": "Du kannst entweder <span class=\"font-weight-medium\">{name}</span> und alle Unterkonzepte (<i class=\"fas fa-fw fa-trash\"></i>) löschen oder nur <span class=\"font-weight-medium\">{name}</span> löschen und alle Unterkonzepte eine Ebene nach oben verschieben (<span class=\"fa-stack d-inline\" style=\"margin-right: -0.35rem;\"><i class=\"fas fa-trash\"></i><i class=\"fas fa-arrow-up\" data-fa-transform=\"shrink-2 left-4 up-5\"></i></span>).",
-            "delete": "<span class=\"font-weight-medium\">{name}</span> löschen",
-            "delete_recursive": "Rekursiv löschen"
+            "actions": {
+                "cascade": {
+                    "title": "Kaskadiertes Löschen",
+                    "description": "Dieses Auswahl löscht auch alle untergeordneten Konzepte, die keine anderen Verbindungen mehr haben."
+                },
+                "level": {
+                    "title": "Löschen & Ebene nach oben",
+                    "description": "Diese Auswahl löscht die untergeordneten Konzepte nicht, sondern verbindet sie mit <span class=\"fw-bold\">allen</span> übergeordneten Konzepten des zu löschenden Konzepts."
+                },
+                "top": {
+                    "title": "Löschen & Top-Level-Konzepte",
+                    "description": "Diese Auswahl ist ähnlich zu <span class=\"fst-italic\">Löschen & Ebene nach oben</span>, aber anstatt die untergeordneten Konzepte mit den übergeordneten Konzepten des zu löschenden Konzepts zu verbinden, werden sie <span class=\"fw-bold\">alle</span> zu <span class=\"fst-italic\">Top-Level-Konzepten</span>."
+                },
+                "rerelate": {
+                    "title": "Löschen & neu verbinden",
+                    "description": "Diese Auswahl funktioniert ähnlich wie <span class=\"fst-italic\">Löschen & Ebene nach oben</span> und <span class=\"fst-italic\">Löschen & Top-Level-Konzepte</span>, aber stattdessen kann über ein Suchfeld ein Konzept ausgewählt werden, womit die untergeordneten Konzepte des zu löschenden Konzepts verbunden werden sollen.",
+                    "search": "Konzept auswählen",
+                    "selection": "Verbinde untergeordnete Konzepte mit:"
+                }
+            }
         },
         "import_info": {
             "title": "Importiere…",

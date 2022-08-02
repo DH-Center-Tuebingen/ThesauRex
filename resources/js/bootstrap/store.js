@@ -281,31 +281,48 @@ export const store = createStore({
                     const narrower = unnode(state.conceptMap[data.tree][data.narrower]);
                     const broaderList = state.conceptReferences[data.tree][data.broader] || [];
                     const narrowerList = state.conceptReferences[data.tree][data.narrower] || [];
-                    for(let i=0; i<broaderList.length; i++) {
-                        const broaderConcept = state.conceptMap[data.tree][broaderList[i]];
-                        if(broaderConcept) {
-                            if(broaderConcept.children) {
-                                const node = new Node({
-                                    ...narrower,
-                                    tree: data.tree,
-                                });
-                                broaderConcept.children.push(node);
-                                sortTree(broaderConcept.children);
+                    const broaderIsTlc = data.broader == -1;
+                    if(broaderIsTlc) {
+                        const node = new Node({
+                            ...narrower,
+                            tree: data.tree,
+                        });
+                        state.concepts[data.tree].push(node);
+                        sortTree(state.concepts[data.tree]);
+
+                        for(let i=0; i<narrowerList.length; i++) {
+                            const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
+                            if(narrowerConcept) {
+                                narrowerConcept.is_top_concept = true;
                             }
-                            if(broaderConcept.narrowers) {
-                                broaderConcept.narrowers.push(narrower);
-                                sortTree(broaderConcept.narrowers);
-                            }
-                            broaderConcept.children_count++;
-                            broaderConcept.state.openable = true;
                         }
-                    }
-                    for(let i=0; i<narrowerList.length; i++) {
-                        const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
-                        if(narrowerConcept) {
-                            if(narrowerConcept.broaders) {
-                                narrowerConcept.broaders.push(broader);
-                                sortTree(narrowerConcept.broaders);
+                    } else {
+                        for(let i=0; i<broaderList.length; i++) {
+                            const broaderConcept = state.conceptMap[data.tree][broaderList[i]];
+                            if(broaderConcept) {
+                                if(broaderConcept.children) {
+                                    const node = new Node({
+                                        ...narrower,
+                                        tree: data.tree,
+                                    });
+                                    broaderConcept.children.push(node);
+                                    sortTree(broaderConcept.children);
+                                }
+                                if(broaderConcept.narrowers) {
+                                    broaderConcept.narrowers.push(narrower);
+                                    sortTree(broaderConcept.narrowers);
+                                }
+                                broaderConcept.children_count++;
+                                broaderConcept.state.openable = true;
+                            }
+                        }
+                        for(let i=0; i<narrowerList.length; i++) {
+                            const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
+                            if(narrowerConcept) {
+                                if(narrowerConcept.broaders) {
+                                    narrowerConcept.broaders.push(broader);
+                                    sortTree(narrowerConcept.broaders);
+                                }
                             }
                         }
                     }
@@ -313,32 +330,47 @@ export const store = createStore({
                 removeRelation(state, data) {
                     const broaderList = state.conceptReferences[data.tree][data.broader] || [];
                     const narrowerList = state.conceptReferences[data.tree][data.narrower] || [];
-                    for(let i=0; i<broaderList.length; i++) {
-                        const broaderConcept = state.conceptMap[data.tree][broaderList[i]];
-                        if(broaderConcept) {
-                            if(broaderConcept.children) {
-                                const idx = broaderConcept.children.findIndex(c => c.nid == data.narrower || c.id == data.narrower);
-                                if(idx > -1) {
-                                    broaderConcept.children.splice(idx, 1);
-                                }
-                            }
-                            if(broaderConcept.narrowers) {
-                                const idx = broaderConcept.narrowers.findIndex(n => n.id == data.narrower);
-                                if(idx > -1) {
-                                    broaderConcept.narrowers.splice(idx, 1);
-                                }
-                            }
-                            broaderConcept.children_count--;
-                            broaderConcept.state.openable = broaderConcept.children_count != 0;
+                    const broaderIsTlc = data.broader == -1;
+                    if(broaderIsTlc) {
+                        const idx = state.concepts[data.tree].findIndex(c => c.nid == data.narrower);
+                        if(idx > -1) {
+                            state.concepts[data.tree].splice(idx, 1);
                         }
-                    }
-                    for(let i=0; i<narrowerList.length; i++) {
-                        const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
-                        if(narrowerConcept) {
-                            if(narrowerConcept.broaders) {
-                                const idx = narrowerConcept.broaders.findIndex(c => c.nid == data.broader || c.id == data.broader);
-                                if(idx > -1) {
-                                    narrowerConcept.broaders.splice(idx, 1);
+
+                        for(let i=0; i<narrowerList.length; i++) {
+                            const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
+                            if(narrowerConcept) {
+                                narrowerConcept.is_top_concept = false;
+                            }
+                        }
+                    } else {
+                        for(let i=0; i<broaderList.length; i++) {
+                            const broaderConcept = state.conceptMap[data.tree][broaderList[i]];
+                            if(broaderConcept) {
+                                if(broaderConcept.children) {
+                                    const idx = broaderConcept.children.findIndex(c => c.nid == data.narrower || c.id == data.narrower);
+                                    if(idx > -1) {
+                                        broaderConcept.children.splice(idx, 1);
+                                    }
+                                }
+                                if(broaderConcept.narrowers) {
+                                    const idx = broaderConcept.narrowers.findIndex(n => n.id == data.narrower);
+                                    if(idx > -1) {
+                                        broaderConcept.narrowers.splice(idx, 1);
+                                    }
+                                }
+                                broaderConcept.children_count--;
+                                broaderConcept.state.openable = broaderConcept.children_count != 0;
+                            }
+                        }
+                        for(let i=0; i<narrowerList.length; i++) {
+                            const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
+                            if(narrowerConcept) {
+                                if(narrowerConcept.broaders) {
+                                    const idx = narrowerConcept.broaders.findIndex(c => c.nid == data.broader || c.id == data.broader);
+                                    if(idx > -1) {
+                                        narrowerConcept.broaders.splice(idx, 1);
+                                    }
                                 }
                             }
                         }
