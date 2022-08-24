@@ -28,7 +28,6 @@ import Multiselect from '@vueform/multiselect';
 import VueUploadComponent from 'vue-upload-component';
 import draggable from 'vuedraggable';
 import { Tree, Node, } from "tree-vue-component";
-import TreeView from "@grapoza/vue-tree"
 import VueFinalModal from 'vue-final-modal';
 
 // Init required libs
@@ -102,7 +101,6 @@ app.component('file-upload', VueUploadComponent);
 app.component('draggable', draggable);
 app.component('node', Node);
 app.component('tree', Tree);
-app.component('tree-view', TreeView);
 
 // Mount Vue
 app.mount('#app');

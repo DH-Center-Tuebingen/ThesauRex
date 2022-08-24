@@ -1,6 +1,6 @@
 <template>
     <vue-final-modal
-        classes="modal-container"
+        classes="modal-container modal"
         content-class="sp-modal-content sp-modal-content-sm"
         v-model="state.show"
         name="delete-entity-modal">

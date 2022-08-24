@@ -15,7 +15,7 @@
         "laravel/framework": "^9.0",
         "laravel/tinker": "~2.0",
         "laravel/ui": "^3.0",
-        "spatie/laravel-permission": "^5.5.2",
+        "spatie/laravel-permission": "^5.5.5",
         "php-open-source-saver/jwt-auth": "^1.4.2"
     },
     "require-dev": {

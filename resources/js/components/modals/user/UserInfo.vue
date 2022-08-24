@@ -1,6 +1,6 @@
 <template>
   <vue-final-modal
-    classes="modal-container"
+    classes="modal-container modal"
     content-class="sp-modal-content sp-modal-content-xs"
     v-model="state.show"
     name="user-info-modal">

@@ -1,5 +1,5 @@
 <template>
-    <vue-final-modal classes="modal-container" content-class="sp-modal-content" v-model="state.show"
+    <vue-final-modal classes="modal-container modal" content-class="sp-modal-content" v-model="state.show"
         name="add-role-modal">
         <div class="modal-header">
             <h5 class="modal-title">
