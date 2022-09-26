@@ -101,7 +101,7 @@
             "placeholder": "Baum nach Konzept durchsuchen",
             "empty_term_info": "Gib einen Suchbegriff ein um den Baum zu durchsuchen",
             "no_results": "Keine Suchergebnisse für den Begriff <span class=\"fst-italic fw-bold\">{term}</span>",
-            "is_top_level": "Top-Level Concept"
+            "is_top_level": "Top-Level-Konzept"
         },
         "import": {
             "label": "RDF importieren",
