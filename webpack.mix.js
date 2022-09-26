@@ -1,4 +1,5 @@
 const mix = require('laravel-mix');
+const path = require('path');
 
 /*
  |--------------------------------------------------------------------------
@@ -31,28 +32,33 @@ const appPath = process.env.MIX_APP_PATH;
  |
  */
 
-mix.js('resources/js/app.js', 'public/js')
+mix.js('resources/js/app.js', 'public/js').vue()
    .sass('resources/sass/app.scss', 'public/css')
-   .copy(
-       'node_modules/vue-multiselect/dist/vue-multiselect.min.css',
-       'public/css'
-   )
+//    .copy(
+//        'node_modules/vue-multiselect/dist/vue-multiselect.min.css',
+//        'public/css'
+//    )
    .options({
        fileLoaderDirs: {
            fonts: appPath + 'fonts'
        }
    })
-   .webpackConfig({
-      output: {
-         publicPath: '/' + appPath
-      }
+   .webpackConfig(webpack => {
+       return {
+            output: {
+                publicPath: '/' + appPath
+            },
+            stats: {
+                children: true
+            },
+       }
    })
-   .autoload({
-       jquery: ['$'],
-       axios: ['$http']
-   });
-   // TODO wait for webpack 5, since css extraction does not work with v4 and extract()
-   // .extract();
-if(appPath) {
-    mix.copyDirectory('public/' + appPath + 'fonts', 'public/fonts');
+   .sourceMaps()
+   .extract();
+
+if(`public/${appPath}fonts` !== 'public/fonts') {
+    mix.copyDirectory(`public/${appPath}fonts`, 'public/fonts');
 }
+mix.alias({
+    '@': path.join(__dirname, 'resources/js')
+});

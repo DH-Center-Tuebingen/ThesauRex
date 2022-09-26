@@ -18,7 +18,7 @@ class LanguageController extends Controller {
     // GET
     public function getLanguages() {
         $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
+        if(!$user->can('thesaurus_read')) {
             return response([
                 'error' => 'You do not have the permission to call this method'
             ], 403);
@@ -29,7 +29,7 @@ class LanguageController extends Controller {
     // POST
     public function addLanguage(Request $request) {
         $user = \Auth::user();
-        if(!$user->can('edit_concepts_th')) {
+        if(!$user->can('thesaurus_create')) {
             return response([
                 'error' => 'You do not have the permission to call this method'
             ], 403);
@@ -50,42 +50,6 @@ class LanguageController extends Controller {
     }
 
     // PATCH
-    public function patchLanguage(Request $request, $id) {
-        $user = \Auth::user();
-        if(!$user->can('edit_concepts_th')) {
-            return response([
-                'error' => 'You do not have the permission to call this method'
-            ], 403);
-        }
-
-        $this->validate($request, [
-            'display_name' => 'string',
-            'short_name' => 'string|size:2'
-        ]);
-
-        if(!$this->hasInput($request)) {
-            return response()->json(null, 204);
-        }
-
-        try {
-            $language = ThLanguage::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'This language does not exist'
-            ], 400);
-        }
-
-        if($request->has('display_name')) {
-            $language->display_name = $request->get('display_name');
-        }
-        if($request->has('short_name')) {
-            $language->short_name = $request->get('short_name');
-        }
-        $language->user_id = $user->id;
-        $language->save();
-
-        return response()->json($language);
-    }
 
     // PUT
 
@@ -93,7 +57,7 @@ class LanguageController extends Controller {
     public function deleteLanguage(Request $request, $id) {
         $user = \Auth::user();
 
-        if(!$user->can('edit_concepts_th')) {
+        if(!$user->can('thesaurus_delete')) {
             return response([
                 'error' => 'You do not have the permission to call this method'
             ], 403);

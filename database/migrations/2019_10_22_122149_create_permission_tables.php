@@ -1,24 +1,16 @@
 <?php
 
+use App\Permission;
+use App\Role;
+use App\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 class CreatePermissionTables extends Migration
 {
 
-    private function isPartOfSpacialist() {
-        if(!Schema::hasTable('migrations')) {
-            return false;
-        }
-        return \DB::table('migrations')
-            ->where('migration', '2018_09_06_092028_setup_tables')
-            ->exists()
-            &&
-            \DB::table('migrations')
-            ->where('migration', '2019_10_15_100721_create_permission_tables')
-            ->exists();
-    }
     /**
      * Run the migrations.
      *
@@ -27,12 +19,12 @@ class CreatePermissionTables extends Migration
     public function up()
     {
         // Nothing todo if spacialist is already updated
-        if($this->isPartOfSpacialist()) return;
+        if(th_is_part_of_spacialist()) return;
 
-        $old_roles = \DB::table('roles')->get();
-        $old_perms = \DB::table('permissions')->get();
-        $old_role_perms = \DB::table('permission_role')->get();
-        $old_user_roles = \DB::table('role_user')->get();
+        $old_roles = DB::table('roles')->get();
+        $old_perms = DB::table('permissions')->get();
+        $old_role_perms = DB::table('permission_role')->get();
+        $old_user_roles = DB::table('role_user')->get();
 
         $role_map = [];
         $perm_map = [];

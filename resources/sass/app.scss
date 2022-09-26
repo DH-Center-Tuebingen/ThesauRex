@@ -3,12 +3,18 @@
 
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+@import "bootstrap";
 
 // tree component
 @import "~tree-component/dist/tree.min.css";
 @import "tree";
 
+// vue-upload-component
+@import "upload";
+
+
 // multiselect
+@import "~@vueform/multiselect/themes/default";
 @import "multiselect";
 
 // v-modal

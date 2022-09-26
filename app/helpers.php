@@ -8,12 +8,53 @@ use App\ThConceptLabel;
 use App\ThConceptLabelSandbox;
 use App\ThConceptNote;
 use App\ThConceptNoteSandbox;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+
+if(!function_exists('th_is_part_of_spacialist')) {
+    function th_is_part_of_spacialist() {
+        if(!Schema::hasTable('migrations')) {
+            return false;
+        }
+
+        return DB::table('migrations')
+            ->where('migration', '2018_09_06_092028_setup_tables')
+            ->exists()
+            &&
+            DB::table('migrations')
+            ->where('migration', '2019_10_15_100721_create_permission_tables')
+            ->exists();
+    }
+}
+
+if(!function_exists('th_get_permission_groups')) {
+    function th_get_permission_groups($onlyGroups = false) {
+        $corePermissionPath = base_path("storage/framework/App/core-permissions.json");
+        if(!File::isFile($corePermissionPath)) {
+            return [];
+        }
+        $permissionSets = json_decode(file_get_contents($corePermissionPath), true);
+
+        if($onlyGroups) {
+            return array_keys($permissionSets);
+        } else {
+            return $permissionSets;
+        }
+    }
+}
 
 if(!function_exists('sp_parse_boolean')) {
     function sp_parse_boolean($str) {
         $acceptable = [true, 1, '1', 'true', 'TRUE'];
         return in_array($str, $acceptable, true);
+    }
+}
+
+if(!function_exists('sp_get_public_url')) {
+    function sp_get_public_url($filename) {
+        return Storage::url($filename);
     }
 }
 
@@ -54,8 +95,8 @@ if(!function_exists('th_tree_builder')) {
                     'notes.language' => function($query) use($langCode) {
                         $query->orderByRaw("short_name != '$langCode'");
                     },
-                    'narrowers',
-                    'broaders'
+                    'narrowers.labels',
+                    'broaders.labels'
                 ];
             }
             $withs = array_merge($labelWith, $detailedWith);

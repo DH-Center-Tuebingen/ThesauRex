@@ -1,6 +1,6 @@
 <p>
-    <a href='https://david-dm.org/eScienceCenter/ThesauRex'>
-        <img src='https://david-dm.org/eScienceCenter/ThesauRex.svg' alt='Dependency Status' />
+    <a href='https://david-dm.org/DH-Center-Tuebingen/ThesauRex'>
+        <img src='https://david-dm.org/DH-Center-Tuebingen/ThesauRex.svg' alt='Dependency Status' />
     </a>
     <a href='https://opensource.org/licenses/MIT'>
         <img src='https://img.shields.io/badge/License-MIT-yellow.svg' alt='License: MIT' />

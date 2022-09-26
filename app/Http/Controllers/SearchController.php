@@ -12,7 +12,7 @@ class SearchController extends Controller
 {
     public function searchConcepts(Request $request) {
         $user = \Auth::user();
-        if(!$user->can('view_concepts_th')) {
+        if(!$user->can('thesaurus_read')) {
             return response([
                 'error' => 'You do not have the permission to call this method'
             ], 403);
@@ -20,6 +20,7 @@ class SearchController extends Controller
 
         $q = $request->query('q');
         $tree = $request->query('t');
+        $excludeList = json_decode($request->query('exc'));
 
         $langCode = Preference::getUserPreference($user->id, 'prefs.gui-language')->value;
 
@@ -37,18 +38,23 @@ class SearchController extends Controller
             $query->where('language_id', $language->id)
                 ->where('label', 'ilike', "%$q%");
         })
+            ->whereNotIn('id', $excludeList)
             ->get();
 
         $foreignConcepts = th_tree_builder($tree, $langCode)
-            ->whereDoesntHave('labels', function($query) use ($language) {
-                $query->where('language_id', $language->id);
+            // ->whereDoesntHave('labels', function($query) use ($language) {
+            //     $query->where('language_id', $language->id);
+            // })
+            ->whereHas('labels', function($query) use ($language, $q) {
+                $query->whereNot('language_id', $language->id)
+                    ->where('label', 'ilike', "%$q%");
             })
-            ->whereHas('labels', function($query) use ($q) {
-                $query->where('label', 'ilike', "%$q%");
-            })
+            ->whereNotIn('id', $excludeList)
             ->get();
+        // info($concepts);
+        // info($foreignConcepts);
 
-        $concepts = $concepts->union($foreignConcepts);
+        $concepts = $concepts->concat($foreignConcepts);
 
         $concepts->each->setAppends(['parents', 'path']);
 

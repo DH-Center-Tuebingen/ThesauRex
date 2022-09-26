@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Preference;
+use App\User;
 use App\UserPreference;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,17 +19,33 @@ class PreferenceController extends Controller {
 
     // GET
     public function getPreferences() {
+        $user = auth()->user();
+        if(!$user->can('preferences_read')) {
+            return response()->json([
+                'error' => __('You are not allowed to read preferences')
+            ], 403);
+        }
+
         $preferences = Preference::getPreferences();
         return response()->json($preferences);
     }
 
     public function getUserPreferences($id) {
         $user = auth()->user();
-        if(!isset($user) || $user->id != $id) {
+        if(!isset($user) || ($user->id != $id && !$user->can('preferences_write'))) {
             return response()->json([
                 'error' => __('You are not allowed to access preferences of another user')
             ], 403);
         }
+
+        try {
+            User::findOrFail($id);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => __('This user does not exist')
+            ], 400);
+        }
+
         $preferences = Preference::getUserPreferences($id);
         return response()->json($preferences);
     }
@@ -36,98 +53,82 @@ class PreferenceController extends Controller {
     // POST
 
     // PATCH
-    public function patchPreference(Request $request, $id) {
-        $this->validate($request, [
-            'label' => 'required|string|exists:preferences,label',
-            'value' => 'nullable',
-            'user_id' => 'nullable|integer|exists:users,id',
-            'allow_override' => 'nullable|boolean_string'
-        ]);
-
+    public function patchPreferences(Request $request, $uid = -1) {
         $user = auth()->user();
-        $uid = $request->get('user_id');
-        if(!$user->can('edit_preferences') && !isset($uid)) {
+        $isUserPref = $uid > 0;
+
+        // If user who tries to set preferences is not supplied uid,
+        // check if they are allowed to set preferences of other users
+        if($isUserPref && $user->id !== $uid && !$user->can('preferences_write')) {
             return response()->json([
-                'error' => __('You do not have the permission to edit preferences')
+                'error' => __('You do not have the permission to edit preferences of another user')
+            ], 403);
+        } else if(!$isUserPref && !$user->can('preferences_write')) {
+            return response()->json([
+                'error' => __('You do not have the permission to edit system preferences')
             ], 403);
         }
-
-        $label = $request->get('label');
-        $value = $request->get('value');
-        $allowOverride = $request->get('allow_override');
-
-        try {
-            $pref = Preference::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
-            return response()->json([
-                'error' => __('This preference does not exist')
-            ], 400);
+        // When try to set preferences of user, check for existence first
+        if($isUserPref) {
+            try {
+                User::findOrFail($uid);
+            } catch (ModelNotFoundException $e) {
+                return response()->json([
+                    'error' => __('This user does not exist')
+                ], 400);
+            }
         }
 
-        $encodedValue = $this->encodePreference($label, $value);
+        $this->validate($request, [
+            'changes' => 'required|array',
+        ]);
 
-        if(isset($uid)) {
-            $userPref = UserPreference::where('pref_id', $id)->where('user_id', $uid)->first();
-            // if this preference doesn't exist for the desired user: create it
-            if($userPref == null) {
-                $userPref = new UserPreference();
-                $userPref->pref_id = $id;
-                $userPref->user_id = $uid;
+        $changes = $request->get('changes');
+
+        foreach($changes as $c) {
+            $label = $c['label'];
+            $value = $c['value'];
+
+            try {
+                $pref = Preference::where('label', $label)->firstOrFail();
+            } catch(ModelNotFoundException $e) {
+                return response()->json([
+                    'error' => __('This preference does not exist')
+                ], 400);
             }
-            $userPref->value = $encodedValue;
-            $userPref->save();
-        } else {
-            $pref->default_value = $encodedValue;
-            if(isset($allowOverride)) {
-                $allowOverride = sp_parse_boolean($allowOverride);
-                $removeUserPrefs = $pref->allow_override && !$allowOverride;
-                $pref->allow_override = $allowOverride;
-                // remove stored user prefs, if pref is no longer overridable
-                if($removeUserPrefs) {
-                    UserPreference::where('pref_id', $id)->delete();
+            $encodedValue = Preference::encodePreference($label, $value);
+
+            if($isUserPref) {
+                $userPref = UserPreference::where('pref_id', $pref->id)
+                    ->where('user_id', $uid)
+                    ->first();
+                // if this preference doesn't exist for the desired user: create it
+                if(!isset($userPref)) {
+                    $userPref = new UserPreference();
+                    $userPref->pref_id = $pref->id;
+                    $userPref->user_id = $uid;
                 }
+                $userPref->value = $encodedValue;
+                $userPref->save();
+            } else {
+                $pref->default_value = $encodedValue;
+                $allowOverride = $c['allow_override'];
+                if($allowOverride === true || $allowOverride === false) {
+                    $removeUserPrefs = $pref->allow_override && !$allowOverride;
+                    $pref->allow_override = $allowOverride;
+                    // remove stored user prefs, if pref is no longer overridable
+                    if($removeUserPrefs) {
+                        UserPreference::where('pref_id', $pref->id)->delete();
+                    }
+                }
+                $pref->save();
             }
-            $pref->save();
-            return response()->json(null, 204);
         }
+
+        return response()->json(null, 204);
     }
 
     // PUT
 
     // DELETE
-
-    // OTHER FUNCTIONS
-    private function encodePreference($label, $decodedValue) {
-        $value;
-        switch($label) {
-            case 'prefs.gui-language':
-                $value = json_encode(['language_key' => $decodedValue]);
-                break;
-            case 'prefs.columns':
-                $value = $decodedValue;
-                break;
-            case 'prefs.show-tooltips':
-                $value = json_encode(['show' => $decodedValue]);
-                break;
-            case 'prefs.tag-root':
-                $value = json_encode(['uri' => $decodedValue]);
-                break;
-            case 'prefs.load-extensions':
-                $value = $decodedValue;
-                break;
-            case 'prefs.link-to-thesaurex':
-                $value = json_encode(['url' => $decodedValue]);
-                break;
-            case 'prefs.project-name':
-                $value = json_encode(['name' => $decodedValue]);
-                break;
-            case 'prefs.project-maintainer':
-                $value = $decodedValue;
-                break;
-            case 'prefs.map-projection':
-                $value = $decodedValue;
-                break;
-        }
-        return $value;
-    }
 }

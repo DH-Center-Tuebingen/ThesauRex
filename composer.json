@@ -8,22 +8,24 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=7.2.0",
-        "doctrine/dbal": "2.*",
+        "php": ">=8.0.2",
+        "spatie/laravel-ignition": "^1.0",
+        "doctrine/dbal": "^3.3",
         "easyrdf/easyrdf": "^1.1.1",
-        "fideloper/proxy": "^4.0",
-        "laravel/framework": "^6.20.30",
-        "laravel/tinker": "^1.0",
-        "spatie/laravel-permission": "^3.18.0",
-        "tymon/jwt-auth": "1.0.2"
+        "laravel/framework": "^9.0",
+        "laravel/tinker": "~2.0",
+        "laravel/ui": "^3.0",
+        "spatie/laravel-permission": "^5.5.5",
+        "php-open-source-saver/jwt-auth": "^1.4.2"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
-        "filp/whoops": "^2.0",
-        "fzaninotto/faker": "^1.4",
-        "mockery/mockery": "^1.0",
-        "nunomaduro/collision": "^2.0",
-        "phpunit/phpunit": "^7.0"
+        "dms/phpunit-arraysubset-asserts": "^0.2.1",
+        "filp/whoops": "~2.0",
+        "fzaninotto/faker": "~1.4",
+        "mockery/mockery": "~1.0",
+        "nunomaduro/collision": "^6.1",
+        "phpunit/phpunit": "~9.0"
     },
     "config": {
         "optimize-autoloader": true,
@@ -40,12 +42,10 @@
             "app/helpers.php"
         ],
         "psr-4": {
-            "App\\": "app/"
-        },
-        "classmap": [
-            "database/seeds",
-            "database/factories"
-        ]
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
     },
     "autoload-dev": {
         "psr-4": {

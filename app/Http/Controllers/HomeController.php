@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Preference;
 use App\ThConcept;
+use App\User;
+use Illuminate\Support\Facades\App;
 
 class HomeController extends Controller
 {
@@ -27,18 +29,15 @@ class HomeController extends Controller
                 $preferenceValues[$k] = $p->value;
             }
         } else {
-            $preferences = Preference::all();
             $preferenceValues = [];
-            foreach($preferences as $p) {
-                $preferenceValues[$p->label] = Preference::decodePreference($p->label, json_decode($p->default_value));
-            }
         }
 
-        $concepts = ThConcept::getMap();
+        $sysPrefs = Preference::getPreferences();
 
         return response()->json([
+            'standalone' => !th_is_part_of_spacialist(),
+            'system_preferences' => $sysPrefs,
             'preferences' => $preferenceValues,
-            'concepts' => $concepts
         ]);
     }
 

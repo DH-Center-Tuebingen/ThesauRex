@@ -1,187 +1,205 @@
 <template>
-    <table class="table table-striped table-hover" v-if="initFinished">
-        <thead class="thead-light">
-            <tr>
-                <th>{{ $t('global.preference') }}</th>
-                <th>{{ $t('global.value') }}</th>
-                <th>{{ $t('global.save') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <strong>{{ $t('settings.preference.key.language') }}</strong>
-                </td>
-                <td>
-                    <form class="form-mb-0">
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label py-0">
-                                <button type="button" class="btn btn-outline-primary" @click="preferences['prefs.gui-language'].value = browserLanguage" :disabled="!preferences['prefs.gui-language'].allow_override">
-                                    Set to {{ browserLanguage }}
-                                </button>
-                            </label>
-                            <div class="col-md-10">
-                                <input type="text" :readonly="!preferences['prefs.gui-language'].allow_override" :class="[preferences['prefs.gui-language'].allow_override ? 'form-control' : 'form-control-plaintext']" v-model="preferences['prefs.gui-language'].value" />
-                            </div>
-                        </div>
-                    </form>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-success" @click.prevent="savePreference(preferences['prefs.gui-language'])" :disabled="!preferences['prefs.gui-language'].allow_override">
-                        <i class="fas fa-fw fa-check"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <strong>{{ $t('settings.preference.key.tooltips') }}</strong>
-                </td>
-                <td>
-                    <form class="form-mb-0">
-                        <div class="form-group row">
-                            <div class="col-md-2"></div>
-                            <div class="col-md-10">
-                                <div class="form-check">
-                                    <input class="form-check-input" id="show-tooltips" type="checkbox" :disabled="!preferences['prefs.show-tooltips'].allow_override" v-model="preferences['prefs.show-tooltips'].value" />
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-success" @click.prevent="savePreference(preferences['prefs.show-tooltips'])" :disabled="!preferences['prefs.show-tooltips'].allow_override">
-                        <i class="fas fa-fw fa-check"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <strong>{{ $t('settings.preference.key.link-thesaurex') }}</strong>
-                </td>
-                <td>
-                    <form class="form-mb-0">
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label"></label>
-                            <div class="col-md-10">
-                                <input type="text" :readonly="!preferences['prefs.link-to-thesaurex'].allow_override" :class="[preferences['prefs.link-to-thesaurex'].allow_override ? 'form-control' : 'form-control-plaintext']" v-model="preferences['prefs.link-to-thesaurex'].value" />
-                            </div>
-                        </div>
-                    </form>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-success" @click.prevent="savePreference(preferences['prefs.link-to-thesaurex'])" :disabled="!preferences['prefs.link-to-thesaurex'].allow_override">
-                        <i class="fas fa-fw fa-check"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <strong>{{ $t('settings.preference.key.project.name') }}</strong>
-                </td>
-                <td>
-                    <form class="form-mb-0">
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label"></label>
-                            <div class="col-md-10">
-                                <input type="text" :readonly="!preferences['prefs.project-name'].allow_override" :class="[preferences['prefs.project-name'].allow_override ? 'form-control' : 'form-control-plaintext']" v-model="preferences['prefs.project-name'].value" />
-                            </div>
-                        </div>
-                    </form>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-success" @click.prevent="savePreference(preferences['prefs.project-name'])" :disabled="!preferences['prefs.project-name'].allow_override">
-                        <i class="fas fa-fw fa-check"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <strong>{{ $t('settings.preference.key.project.maintainer') }}</strong>
-                </td>
-                <td>
-                    <form class="form-mb-0">
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label">{{ $t('global.name') }}:</label>
-                            <div class="col-md-10">
-                                <input type="text" :readonly="!preferences['prefs.project-maintainer'].allow_override" :class="[preferences['prefs.project-maintainer'].allow_override ? 'form-control' : 'form-control-plaintext']" v-model="preferences['prefs.project-maintainer'].value.name" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label">{{ $t('global.email') }}:</label>
-                            <div class="col-md-10">
-                                <input type="text" :readonly="!preferences['prefs.project-maintainer'].allow_override" :class="[preferences['prefs.project-maintainer'].allow_override ? 'form-control' : 'form-control-plaintext']" v-model="preferences['prefs.project-maintainer'].value.email" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label">{{ $t('global.description') }}:</label>
-                            <div class="col-md-10">
-                                <input type="text" :readonly="!preferences['prefs.project-maintainer'].allow_override" :class="[preferences['prefs.project-maintainer'].allow_override ? 'form-control' : 'form-control-plaintext']" v-model="preferences['prefs.project-maintainer'].value.description" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-md-2 col-form-label" for="public">{{ $t('settings.preference.key.project.public') }}:</label>
-                            <div class="col-md-10">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="public" :disabled="!preferences['prefs.project-maintainer'].allow_override" v-model="preferences['prefs.project-maintainer'].value.public" />
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-success" @click.prevent="savePreference(preferences['prefs.project-maintainer'])" :disabled="!preferences['prefs.project-maintainer'].allow_override">
-                        <i class="fas fa-fw fa-check"></i>
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="h-100 d-flex flex-column">
+        <h3 class="d-flex flex-row gap-2 align-items-center">
+            {{ t('global.preference', 2) }}
+            <small class="text-muted">
+                {{ getUser().name }}
+            </small>
+            <button type="button" class="btn btn-outline-success btn-sm" @click="savePreferences()">
+                <i class="fas fa-fw fa-save"></i>
+                {{ t('global.save') }}
+            </button>
+        </h3>
+        <div class="table-responsive scroll-x-hidden">
+            <table class="table table-light table-striped table-hover mb-0" v-if="state.prefsLoaded" v-dcan="'thesaurus_write'">
+                <thead class="sticky-top">
+                    <tr class="text-nowrap">
+                        <th>{{ t('global.preference') }}</th>
+                        <th style="width: 99%;" class="text-end">{{ t('global.value') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>
+                                {{ t('settings.preference.key.language') }}
+                            </strong>
+                        </td>
+                        <td>
+                            <gui-language-preference
+                                :data="state.preferences['prefs.gui-language']"
+                                :readonly="!state.overrides['prefs.gui-language']"
+                                :browser-default="true"
+                                @changed="e => trackChanges('prefs.gui-language', e)">
+                            </gui-language-preference>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>{{ t('settings.preference.key.password_reset_link') }}</strong>
+                        </td>
+                        <td>
+                            <reset-email-preference
+                                :data="state.preferences['prefs.enable-password-reset-link']"
+                                :readonly="!state.overrides['prefs.enable-password-reset-link']"
+                                @changed="e => trackChanges('prefs.enable-password-reset-link', e)">
+                            </reset-email-preference>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>{{ t('settings.preference.key.project_name') }}</strong>
+                        </td>
+                        <td>
+                            <project-name-preference
+                                :data="state.preferences['prefs.project-name']"
+                                :readonly="!state.overrides['prefs.project-name']"
+                                @changed="e => trackChanges('prefs.project-name', e)">
+                            </project-name-preference>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>{{ t('settings.preference.key.link_spacialist') }}</strong>
+                        </td>
+                        <td>
+                            <spacialist-link-preference
+                                :data="state.preferences['prefs.link-to-spacialist']"
+                                :readonly="!state.overrides['prefs.link-to-spacialist']"
+                                @changed="e => trackChanges('prefs.link-to-spacialist', e)">
+                            </spacialist-link-preference>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>{{ t('settings.preference.key.import_config') }}</strong>
+                        </td>
+                        <td>
+                            <import-config-preference
+                                :data="state.preferences['prefs.import-config']"
+                                :readonly="!state.overrides['prefs.import-config']"
+                                @changed="e => trackChanges('prefs.import-config', e)">
+                            </import-config-preference>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </template>
 
 <script>
+    import {
+        computed,
+        reactive,
+    } from 'vue';
+
+    import {
+        useRoute,
+    } from 'vue-router';
+
+    import { useI18n } from 'vue-i18n';
+
+    import store from '@/bootstrap/store.js';
+
+    import { useToast } from '@/plugins/toast.js';
+
+    import { patchPreferences } from '@/api.js';
+
+    import {
+        can,
+        getUser,
+    } from '@/helpers/helpers.js';
+
+    import GuiLanguage from './preferences/GuiLanguage.vue';
+    import ResetEmail from './preferences/ResetEmail.vue';
+    import ProjectName from './preferences/ProjectName.vue';
+    import SpacialistLink from './preferences/SpacialistLink.vue';
+    import ImportConfig from './preferences/ImportConfig.vue';
+
     export default {
-        beforeRouteEnter(to, from, next) {
-            $httpQueue.add(() => $http.get(`preference/${to.params.id}`).then(response => {
-                next(vm => vm.init(response.data));
-            }));
+        components: {
+            'gui-language-preference': GuiLanguage,
+            'reset-email-preference': ResetEmail,
+            'project-name-preference': ProjectName,
+            'spacialist-link-preference': SpacialistLink,
+            'import-config-preference': ImportConfig,
         },
-        mounted() {},
-        methods: {
-            init(preferences) {
-                this.initFinished = false;
-                this.preferences = preferences;
-                // get language code of browser's default language
-                //
-                this.browserLanguage = navigator.language ? navigator.language.split('-')[0] : 'en';
-                this.initFinished = true;
-            },
-            savePreference(pref) {
-                let data = {};
-                data.label = pref.label;
-                data.value = pref.value;
-                if(typeof data.value === 'object') data.value = JSON.stringify(data.value);
-                data.user_id = this.$auth.user().id;
-                $http.patch('preference/' + pref.id, data).then(response => {
-                    if(pref.label == 'prefs.gui-language') {
-                        Vue.i18n.locale = pref.value;
+        setup(props, context) {
+            const { t, locale } = useI18n();
+            const route = useRoute();
+            const toast = useToast();
+
+            // FUNCTIONS
+            const trackChanges = (label, data) => {
+                state.preferences[label] = data.value;
+                state.dirtyData[label] = {
+                    value: data.value,
+                };
+            };
+            const savePreferences = _ => {
+                if(!state.hasDirtyData) return;
+
+                let entries = [];
+                let updatedLanguage = null;
+                for(let k in state.dirtyData) {
+                    const dd = state.dirtyData[k];
+                    if(k == 'prefs.gui-language') {
+                        updatedLanguage = dd.value;
                     }
-                    const label = this.$t(`settings.preference.labels.${pref.label}`);
-                    this.$showToast(
-                        this.$t('settings.preference.toasts.updated.title'),
-                        this.$t('settings.preference.toasts.updated.msg', {
-                            name: label
-                        }),
-                        'success'
-                    );
+                    entries.push({
+                        value: dd.value,
+                        label: k,
+                    });
+                }
+                const data = {
+                    changes: entries,
+                };
+                patchPreferences(data, route.params.id).then(data => {
+                    // Update language if value has changed
+                    if(!!updatedLanguage) {
+                        locale.value = updatedLanguage;
+                    }
+                    state.dirtyData = {};
+
+                    const label = t('settings.preference.toasts.updated.msg');
+                    toast.$toast(label, '', {
+                        channel: 'success',
+                        simple: true,
+                    });
                 });
-            }
-        },
-        data() {
+            };
+
+            // DATA
+            const state = reactive({
+                dirtyData: {},
+                hasDirtyData: computed(_ => Object.keys(state.dirtyData).length > 0),
+                preferences: computed(_ => store.getters.preferences),
+                overrides: computed(_ => {
+                    const sysPrefs = store.getters.systemPreferences;
+                    const overrideList = {};
+                    for(let k in sysPrefs) {
+                        overrideList[k] = sysPrefs[k].allow_override;
+                    }
+                    return overrideList;
+                }),
+                prefsLoaded: computed(_ => !!state.preferences),
+                browserLanguage: navigator.language ? navigator.language.split('-')[0] : 'en',
+            });
+
+            // RETURN
             return {
-                preferences: {},
-                browserLanguage: 'en',
-                initFinished: false
-            }
+                t,
+                // HELPERS
+                can,
+                getUser,
+                // LOCAL
+                trackChanges,
+                savePreferences,
+                // PROPS
+                // STATE
+                state,
+            };
         },
     }
 </script>
