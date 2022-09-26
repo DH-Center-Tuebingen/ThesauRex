@@ -1,7 +1,7 @@
 <template>
     <div :ref="el => nodeRef = el" @dragenter="onDragEnter" @dragleave="onDragLeave"
         :id="`${data.tree}-tree-node-${data.id}`" v-show="!data.is_placeholder">
-        <a href="" :id="`${data.tree}-tree-node-cm-toggle-${data.id}`" @contextmenu.stop.prevent="togglePopup()"
+        <a href="" :id="`${data.tree}-tree-node-cm-toggle-${data.id}`" @click.prevent @contextmenu.stop.prevent="togglePopup()"
             class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" data-bs-auto-close="true"
             aria-expanded="false" :data-path="join(data.path)">
             <span :class="{'fw-bold': state.isSelected}">
