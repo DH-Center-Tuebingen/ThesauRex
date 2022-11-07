@@ -349,12 +349,13 @@ export function languageList() {
     return list;
 };
 
-export function gotoConcept(id) {
+export function gotoConcept(id, tree = null) {
+    const query = tree ? {...router.currentRoute.value.query, t: tree} : router.currentRoute.value.query;
     router.push({
         name: 'conceptdetail',
         params: {
             id: id
         },
-        query: router.currentRoute.value.query,
+        query: query,
     });
 }

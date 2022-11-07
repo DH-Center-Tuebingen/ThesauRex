@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.9.2
+### Fixed
+- Updated language files
+- Closing modal on adding concept
+- Search did not work if no concept was selected
+
 ## 0.9.1
 ### Added
 - Logo image

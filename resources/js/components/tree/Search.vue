@@ -146,7 +146,7 @@
                 state.query = '';
                 state.entry = {};
                 if(!context.attrs.onSelect) {
-                    gotoConcept(option.id);
+                    gotoConcept(option.id, treeName.value);
                 } else if(option) {
                     context.emit('select', {
                         option: option
