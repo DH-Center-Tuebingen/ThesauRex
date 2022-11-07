@@ -12,6 +12,7 @@ import {
     addLanguage,
     deleteLanguage,
     addConcept,
+    deleteConcept,
 } from '@/api.js';
 
 import {
@@ -292,13 +293,12 @@ export function showDeleteConcept(tree, conceptId) {
             conceptId: conceptId,
         },
         on: {
-            confirm(_) {
-                // if(!can('thesaurus_create')) return;
+            confirm(e) {
+                if(!can('thesaurus_delete')) return;
 
-                // addConcept(concept, tree, pid).then(_ => {
-                //     store.getters.vfm.hide(uid);
-                // });
-                store.getters.vfm.hide(uid);
+                deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
+                    store.getters.vfm.hide(uid);
+                });
             },
             cancel(e) {
                 store.getters.vfm.hide(uid);

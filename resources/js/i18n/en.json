@@ -2,7 +2,12 @@
     "global": {
         "save": "Save",
         "delete": "Delete",
+        "restore": "Restore",
+        "deactivate": "Deactivate",
+        "reactivate": "Reactivate",
         "remove": "Remove",
+        "reset": "Reset",
+        "send_reset_mail": "Send mail to reset password",
         "cancel": "Cancel",
         "close": "Close",
         "add": "Add",
@@ -12,6 +17,8 @@
         "clear": "Clear",
         "confirm": "OK",
         "create": "Create",
+        "select_all": "Select All",
+        "select_none": "Deselect All",
         "delete_name": {
             "title": "Delete {name}",
             "desc": "Do you really want to delete <span class=\"font-weight-medium\">{name}</span>?"
@@ -22,6 +29,7 @@
             "confirm": "Yes, discard changes",
             "confirmpos": "No, save and continue"
         },
+        "page_access_denied": "You do not have permission(s) to access this page. Missing permissions: {perm}.",
         "error": {
             "alert_title": "Error Message:",
             "info_issue": "If you think this is a bug, please have a look at our <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/issues\" target=\"_blank\">issue tracker</a> on github to see if this has been already reported or <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/issues?q=is:issue+is:closed\" target=\"_blank\">closed</a> in a later version (Your current version can be found in Settings > <i class=\"fas fa-fw fa-info-circle\"></i> About Dialog). If it is neither reported nor closed, feel free to <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/issues/new\" target=\"_blank\">open a new issue</a>.",
@@ -46,7 +54,14 @@
         },
         "user": {
             "settings": "Preferences",
-            "logout": "Logout"
+            "profile": "Profile",
+            "logout": "Logout",
+            "info_title": "User Information",
+            "personal_info_title": "Personal Informationen",
+            "member_since": "Member since",
+            "deactivated_since": "<span class=\"fw-bold\">deactivated</span> since {dt}",
+            "contact": "Contact",
+            "avatar": "Avatar"
         },
         "select": {
             "placehoder": "Select option",
@@ -62,6 +77,7 @@
         "short_name": "Short Name",
         "email": "E-Mail Address",
         "email_or_nick": "E-Mail Address or Nickname",
+        "phonenumber": "Phone number",
         "password": "Password",
         "confirm_password": "Repeat password",
         "remember_me": "Remember me",
@@ -81,11 +97,23 @@
         "set": "Set"
     },
     "tree": {
+        "search": {
+            "placeholder": "Search tree for concepts",
+            "empty_term_info": "Enter a search term to search the tree",
+            "no_results": "No search results for term <span class=\"fst-italic fw-bold\">{term}</span>",
+            "is_top_level": "Top-Level Concept"
+        },
         "import": {
             "label": "Import RDF",
             "extend": "Only import new concepts",
             "update_extend": "Update existing concepts & add new ones",
-            "replace": "Delete existing concepts  & add new ones"
+            "replace": "Delete existing concepts  & add new ones",
+            "toast": {
+                "finish": {
+                    "title": "Import finished successful",
+                    "message": "<span class=\"fw-bold\">Skipped concepts</span>: {lbl_skip}<br/><span class=\"fw-bold\">Concepts added without label</span>: {lbl_ign}<br/><span class=\"fw-bold\">Skipped concepts with missing label</span>: {lang_ign}<br/><span class=\"fw-bold\">Skipped relations</span>: {rel_ign}"
+                }
+            }
         },
         "export": {
             "label": "Export RDF"
@@ -96,18 +124,29 @@
         "sandbox": {
             "title": "Sandbox Tree"
         },
-        "new_top_concept": "Create new Top-Level Concept"
-
+        "contextmenu": {
+            "add": "Add concept",
+            "export": "Export Sub-Tree",
+            "delete": "Delete Concept",
+            "remove_relation_to": "Remove relation to <span class=\"font-weight-medium\">{parent}</span>",
+            "remove_relation_as_tlc": "Remove relation as <span class=\"font-weight-medium\">Top-Level Concept</span>"
+        },
+        "new_top_concept": "Create new Top-Level Concept",
+        "is_empty": "No concepts in this tree",
+        "empty_info": "Either import concepts from a <code>RDF</code> file, drag & drop them from another tree or create new ones."
     },
     "detail": {
         "title": "Concept Properties",
+        "none_selected": "No concept selected. Select one from a tree to view the metadata.",
+        "is_top_concept": "Concept is a Top-Level Concept",
         "copy_url": {
             "title": "Copied URL to Clipboard",
             "message": "<span class=\"font-weight-medium\">{url}</span> successfully copied to the Clipboard."
         },
         "broader": {
             "title": "Broader Concepts",
-            "empty": "No broader concepts available"
+            "empty": "No broader concepts available",
+            "remove_not_possible": "This relation can not be removed, because this is the last remaining relation for the selected concept."
         },
         "narrower": {
             "title": "Narrower Concepts",
@@ -136,15 +175,42 @@
         }
     },
     "modals": {
+        "language": {
+            "add": {
+                "title": "Add new language",
+                "placeholder": "Select a language from the list"
+            },
+            "delete": {
+                "title": "{flag} {name} löschen",
+                "message": "Willst du die Sprache {flag} <span class=\"font-weight-medium\">{name}</span> wirklich löschen?"
+            }
+        },
         "new_concept": {
             "title": "Create new Top-Level Concept",
             "title_parent": "Create new concept under {name}"
         },
         "delete_concept": {
             "title": "Delete {name}",
-            "info": "You can either delete <span class=\"font-weight-medium\">{name}</span> and all narrowers (<i class=\"fas fa-fw fa-trash\"></i>) or only delete <span class=\"font-weight-medium\">{name}</span> and move all narrowers one level up (<span class=\"fa-stack d-inline\" style=\"margin-right: -0.35rem;\"><i class=\"fas fa-trash\"></i><i class=\"fas fa-arrow-up\" data-fa-transform=\"shrink-2 left-4 up-5\"></i></span>).",
-            "delete": "Delete <span class=\"font-weight-medium\">{name}</span>",
-            "delete_recursive": "Delete recursive"
+            "actions": {
+                "cascade": {
+                    "title": "Cascading delete",
+                    "description": "This action also deletes all descendant concepts, with no other relations."
+                },
+                "level": {
+                    "title": "Delete & Level Up",
+                    "description": "This action does not delete descendant concepts, but relates them to <span class=\"fw-bold\">all</span> ancestors of the deleted concept."
+                },
+                "top": {
+                    "title": "Delete & Top-Level Concepts",
+                    "description": "This action is similar to <span class=\"fst-italic\">Delete & Level Up</span>, but instead of relating the descendants to the ancestors of the deleted concept, they are <span class=\"fw-bold\">all</span> converted <span class=\"fst-italic\">Top-Level Concepts</span>."
+                },
+                "rerelate": {
+                    "title": "Delete & new relate",
+                    "description": "This action is similar to <span class=\"fst-italic\">Delete & Level Up</span> and <span class=\"fst-italic\">Delete & Top-Level Concepts</span>, but instead the user can select a new ancestor concept using a search field.",
+                    "search": "Select concept",
+                    "selection": "Relate descendant concepts to:"
+                }
+            }
         },
         "import_info": {
             "title": "Importing…",
@@ -159,9 +225,15 @@
             "remove_concept_relation": "Remove relation"
         }
     },
+    "app": {
+        "loading_screen_msg": "<span class=\"fw-light\">Loading</span> {appname}<span class=\"fw-light\">&hellip;</span>"
+    },
     "settings": {
         "user": {
             "add_button": "Add new User",
+            "active_users": "Active Users",
+            "deactivated_users": "Deactivated Users",
+            "empty_list": "User-list is empty",
             "toasts": {
                 "updated": {
                     "title": "User updated",
@@ -169,14 +241,50 @@
                 }
             },
             "modal": {
-                "new": {
+                "add": {
                     "title": "New User"
+                },
+                "deactivate": {
+                    "title": "Deactivate <span class=\"fst-italic\">{name}</span>",
+                    "desc": "Do you really want to deactivate <span class=\"fst-italic\">{name}</span>?",
+                    "info": "Certain entries can not be deleted or have to be deactivated first. Otherwise deleting these entries could lead to data loss."
                 }
             },
             "add_role_placeholder": "Add roles"
         },
         "role": {
             "add_button": "Add new Role",
+            "permissions": {
+                "access_control_title": "Access Control",
+                "types": {
+                    "read": "Read",
+                    "write": "Write",
+                    "create": "Create",
+                    "delete": "Delete",
+                    "share": "Share",
+                    "write_info": "this also includes similar operations such as moving",
+                    "create_info": "this also includes similar operations such as duplicating",
+                    "share_info": "this also includes similar operations such as exporting"
+                },
+                "groups": {
+                    "entity": "Entities",
+                    "entity_data": "Form Data",
+                    "attribute": "Attributes",
+                    "entity_type": "Entity-Types",
+                    "bibliography": "Bibliography",
+                    "comments": "Comments",
+                    "users_roles": "Users & Roles",
+                    "preferences": "Preferences",
+                    "thesaurus": "Thesaurus",
+                    "is_plugin": "Plugin"
+                }
+            },
+            "preset": {
+                "derive_from_preset": "Derive permissions from preset",
+                "derived_from": "Derived from:",
+                "administrator": "Administrator",
+                "guest": "Guest"
+            },
             "toasts": {
                 "updated": {
                     "title": "Role updated",
@@ -186,6 +294,9 @@
             "modal": {
                 "new": {
                     "title": "New Role"
+                },
+                "delete": {
+                    "alert": "If you delete <span class=\"fw-bold\">{name}</span>, the connection to one user is deleted. | If you delete <span class=\"fw-bold\">{name}</span>, the connection to {cnt} users is deleted."
                 }
             },
             "add_permission-placeholder": "Add permissions"
@@ -209,28 +320,31 @@
         "preference": {
             "toasts": {
                 "updated": {
-                    "title": "Preference updated",
-                    "msg": "{name} successfully updated."
+                    "msg": "Preferences successfully updated."
                 }
             },
             "key": {
                 "language": "Language",
-                "tooltips": "Show Tooltips",
-                "link_thesaurex": "Show link to ThesauRex",
-                "project": {
-                    "name": "Projectname",
-                    "maintainer": "Maintainer",
-                    "public": "Public accessible"
+                "password_reset_link": "Passwort per Link zurücksetzen",
+                "project_name": "Projectname",
+                "link_spacialist": "Show link to Spacialist",
+                "import_config": "Import Settings",
+                "import_keys": {
+                    "ignore_missing_labels": "Ignore missing Labels",
+                    "skip_missing_labels": "Skip missing Labels",
+                    "ignore_missing_languages": "Ignore missing languages",
+                    "ignore_missing_relations": "Ignore missing relations"
                 }
             },
-            "labels": {
-                "prefs": {
-                    "gui-language": "@:settings.preference.key.language",
-                    "show-tooltips": "@:settings.preference.key.tooltips",
-                    "link-to-thesaurex": "@:settings.preference.key.link-thesaurex",
-                    "project-name": "@:settings.preference.key.project.name",
-                    "project-maintainer": "@:settings.preference.key.project.maintainer"
-                }
+            "info": {
+                "set_to_language": "Set to <span class=\"fw-bold\">{lang}</span>",
+                "password_reset_link": "To use this function, you have to set the <code>MAIL_*</code> settings in your <code>.env</code> file. <a href=\"https://github.com/DH-Center-Tuebingen/ThesauRex/blob/master/INSTALL.md#send-mails\" target=\"_blank\">Further informations</a>."
+            },
+            "tooltip": {
+                "missing_labels": "Concepts without labels will be added without.",
+                "skip_labels": "Concepts without labels will be ignored and skipped.",
+                "missing_languages": "Concept Labels with a language that is not added in the language settings will be ignored.",
+                "missing_relations": "Concept Relations with at least one missing connected concept will be ignored."
             }
         },
         "about": {

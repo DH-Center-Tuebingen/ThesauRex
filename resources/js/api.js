@@ -303,6 +303,7 @@ export async function deleteLabel(id, tree, concept_id) {
                 updated_label: response.data,
             });
             handleConceptChange(concept_id, tree);
+            return response.data;
         })
     );
 };
@@ -327,12 +328,13 @@ export async function deleteConcept(id, tree, action, actionParams) {
         }
     }
     await $httpQueue.add(
-        () => http.delete(`/tree/concept/${id}?${urlParams}`).then(_ => {
-            // store.dispatch('deleteNote', {
-            //     id: id,
-            //     concept_id: concept_id,
-            //     tree: tree,
-            // });
+        () => http.delete(`/tree/concept/${id}?t=${tree}&${urlParams}`).then(_ => {
+            store.dispatch('deleteConcept', {
+                id: id,
+                tree: tree,
+                action: action,
+                params: actionParams,
+            });
         })
     );
 };
@@ -352,6 +354,7 @@ export async function addConcept(concept, tree, broader_id) {
                 tree: tree,
             });
             handleConceptChange(response.data.id, tree);
+            return response.data;
         })
     )
 };
@@ -450,7 +453,9 @@ function handleConceptChange(conceptId, tree) {
         sortTree(store.getters.conceptsFromTree(tree));
     }
     parents.forEach(p => {
-        const parentConcept = store.getters.conceptsFromMap(tree)[p.id];
-        sortTree(parentConcept.children);
+        const parentConcept = store.getters.conceptsFromMap(tree)[p];
+        if(!!parentConcept) {
+            sortTree(parentConcept.children);
+        }
     });
 }

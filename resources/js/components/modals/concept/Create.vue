@@ -20,7 +20,7 @@
         <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
         </button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body nonscrollable">
         <form role="form" class="mb-2" id="create-concept-form" name="create-concept-form" @submit.prevent="onAdd()">
             <div class="input-group">
                 <div class="input-group-prepend">

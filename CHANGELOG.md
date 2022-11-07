@@ -1,6 +1,40 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.9.2
+### Fixed
+- Updated language files
+- Closing modal on adding concept
+- Search did not work if no concept was selected
+- Node dropdown not closed on outside click
+- Added missing delete functionality
+
+## 0.9.1
+### Added
+- Logo image
+### Fixed
+- Reload on node item click
+
+## 0.9 - Isfahan
+### Added
+- Show badge what tree the selected concept is from
+- Switch to make a concept a top level concept
+- Show icon and info text if a concept has only one broader relation (and thus is not deletable)
+### Fixed
+### Changed
+- Revamp Role Permission Configuration
+  - Add Presets to Derive Role Permission Set from
+- Update Laravel to Version 9
+- Update VueJS to Version 3
+- Restructure Bootstrapping and Setup of App
+- Restructure Layout of Preference Pages
+- Replace most of Checkboxes with Switches
+- Update Dependencies
+  - Bootstrap 5
+  - Multiselect (switched from [vue-multiselect](https://github.com/shentao/vue-multiselect) to [multiselect](https://github.com/vueform/multiselect))
+  - Modals (switched from [vue-js-modal](https://github.com/euvl/vue-js-modal) to [vue-final-modal](https://github.com/vue-final/vue-final-modal))
+- Renamed eScience-Center to DH-Center
+
 ## 0.6.3
 ### Added
 - Sorting of concepts in tree
