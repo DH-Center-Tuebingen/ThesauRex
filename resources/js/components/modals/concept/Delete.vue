@@ -28,7 +28,6 @@
                         <p class="text-muted">
                             {{ t('modals.delete_concept.actions.cascade.description') }}
                         </p>
-                        <!-- This action also deletes all descendants that have no other remaining relations. -->
                     </label>
                 </div>
                 <div class="form-check">
@@ -42,7 +41,6 @@
                             </span>
                         </div>
                         <p class="text-muted" v-html="t('modals.delete_concept.actions.level.description')" />
-                        <!-- This action does not delete the descendants, but rather create a relation to <span class="fw-bold">all</span> broader concepts of the deleted concept. -->
                     </label>
                 </div>
                 <div class="form-check">
@@ -56,7 +54,6 @@
                             </span>
                         </div>
                         <p class="text-muted" v-html="t('modals.delete_concept.actions.top.description')" />
-                        <!-- This action is similar to <span class="fst-italic">Delete level</span>, but instead of relating it's descendants to the deleted concept's broaders they <span class="fw-bold">all</span> become <span class="fst-italic">top level concepts</span>. -->
                     </label>
                 </div>
                 <div class="form-check">
@@ -69,7 +66,6 @@
                             </span>
                         </div>
                         <p class="text-muted mb-0" v-html="t('modals.delete_concept.actions.rerelate.description')" />
-                        <!-- This action works similar to <span class="fst-italic">Delete level</span> and <span class="fst-italic">Delete top</span>, but instead allows to relate the descendants to another concept from the search. -->
                     </label>
                     <div v-if="state.action == 'rerelate'">
                         <hr class="my-2" />
@@ -160,7 +156,11 @@
             };
             const onConfirm = _ => {
                 state.show = false;
-                context.emit('confirm', state.concept);
+                context.emit('confirm', {
+                    nid: state.concept.nid,
+                    action: state.action,
+                    params: state.params,
+                });
             };
             const handleConnect = e => {
                 if(!e.option) return;

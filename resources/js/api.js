@@ -328,12 +328,13 @@ export async function deleteConcept(id, tree, action, actionParams) {
         }
     }
     await $httpQueue.add(
-        () => http.delete(`/tree/concept/${id}?${urlParams}`).then(_ => {
-            // store.dispatch('deleteNote', {
-            //     id: id,
-            //     concept_id: concept_id,
-            //     tree: tree,
-            // });
+        () => http.delete(`/tree/concept/${id}?t=${tree}&${urlParams}`).then(_ => {
+            store.dispatch('deleteConcept', {
+                id: id,
+                tree: tree,
+                action: action,
+                params: actionParams,
+            });
         })
     );
 };
