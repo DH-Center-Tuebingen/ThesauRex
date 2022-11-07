@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Updated language files
 - Closing modal on adding concept
 - Search did not work if no concept was selected
+- Node dropdown not closed on outside click
 
 ## 0.9.1
 ### Added

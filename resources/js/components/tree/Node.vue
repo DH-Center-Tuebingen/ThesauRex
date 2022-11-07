@@ -1,14 +1,13 @@
 <template>
     <div :ref="el => nodeRef = el" @dragenter="onDragEnter" @dragleave="onDragLeave"
-        :id="`${data.tree}-tree-node-${data.id}`" v-show="!data.is_placeholder">
+        :id="`${data.tree}-tree-node-${data.id}`" class="dropdown" v-show="!data.is_placeholder">
         <a href="" :id="`${data.tree}-tree-node-cm-toggle-${data.id}`" @click.prevent @contextmenu.stop.prevent="togglePopup()"
-            class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" data-bs-auto-close="true"
-            aria-expanded="false" :data-path="join(data.path)">
+            class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" :data-path="join(data.path)">
             <span :class="{'fw-bold': state.isSelected}">
                 {{ state.label }}
             </span>
         </a>
-        <ul class="dropdown-menu" :id="`${data.tree}-tree-node-${data.id}-contextmenu`" v-if="state.ddVisible">
+        <ul class="dropdown-menu" :id="`${data.tree}-tree-node-${data.id}-contextmenu`">
             <li>
                 <h6 class="dropdown-header" @click.stop.prevent="" @dblclick.stop.prevent="">
                     {{ state.label }}
@@ -116,9 +115,8 @@
             };
             const hidePopup = _ => {
                 state.bsElem.hide();
-                state.bsElem.dispose();
-                state.bsElem = null;
                 state.ddVisible = false;
+                state.ddDomElem.classList.add('disabled');
             };
             const showPopup = _ => {
                 state.ddVisible = true;
@@ -126,11 +124,9 @@
                     // To prevent opening the dropdown on normal click on Node,
                     // the DD toggle must have class 'disabled'
                     // This also prevents BS API call .show() to work...
-                    // Thus we remove the 'disabled' class before the API call and add it back afterwards
-                    state.bsElem = new Dropdown(state.ddDomElem);
+                    // Thus we remove the 'disabled' class before the API call and add it back on hide
                     state.ddDomElem.classList.remove('disabled');
                     state.bsElem.show();
-                    state.ddDomElem.classList.add('disabled');
                 })
             };
             const togglePopup = _ => {
@@ -183,7 +179,7 @@
                 canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
                 hasParent: computed(_ => !!state.parent),
                 parent: computed(_ => {
-                    if(!nodeRef) return;
+                    if(!nodeRef || !nodeRef.value.parentElement) return;
 
                     const path = nodeRef.value.parentElement.getAttribute('data-path').split(',');
                 // pop element itself, because we want parent node
@@ -213,6 +209,7 @@
                 state.ddDomElem.addEventListener('hidden.bs.dropdown', _ => {
                     hidePopup();
                 });
+                state.bsElem = new Dropdown(state.ddDomElem);
             });
 
             // RETURN
