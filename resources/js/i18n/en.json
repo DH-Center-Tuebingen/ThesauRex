@@ -44,6 +44,7 @@
         "download": "Download",
         "download_name": "Download {name}",
         "upload": "Upload",
+        "spacialist": "Spacialist",
         "settings": {
             "title": "Settings",
             "users": "User Management",

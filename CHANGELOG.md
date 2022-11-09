@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 - Made language list searchable
 ### Fixed
 - More dropdowns in modals
+- Show link to Spacialist if set in preferences
+- Broken avatar if is part of Spacialist
+### Changed
+- No longer show user profile item in dropdown, if is part of Spacialist
 
 ## 0.9.2
 ### Fixed

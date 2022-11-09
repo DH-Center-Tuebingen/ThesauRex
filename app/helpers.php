@@ -1,5 +1,6 @@
 <?php
 
+use App\Preference;
 use App\ThBroader;
 use App\ThBroaderSandbox;
 use App\ThConcept;
@@ -8,10 +9,12 @@ use App\ThConceptLabel;
 use App\ThConceptLabelSandbox;
 use App\ThConceptNote;
 use App\ThConceptNoteSandbox;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 if(!function_exists('th_is_part_of_spacialist')) {
     function th_is_part_of_spacialist() {
@@ -54,6 +57,14 @@ if(!function_exists('sp_parse_boolean')) {
 
 if(!function_exists('sp_get_public_url')) {
     function sp_get_public_url($filename) {
+        if(!Auth::check()) return "";
+
+        if(th_is_part_of_spacialist() && !Storage::exists($filename)) {
+            $uid = Auth::user()->id;
+            $pref = Preference::getUserPreference($uid, "prefs.link-to-spacialist");
+            $path = Str::finish($pref->value, "/");
+            return "${path}storage/$filename";
+        }
         return Storage::url($filename);
     }
 }
