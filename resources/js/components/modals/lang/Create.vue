@@ -13,7 +13,7 @@
         <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
         </button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body nonscrollable">
         <form id="add-language-form" name="add-language-form" role="form" @submit.prevent="onAdd()">
             <div class="mb-3">
                 <label class="col-form-label col-12" for="display_name">
@@ -45,8 +45,11 @@
                         :track-by="'id'"
                         :valueProp="'id'"
                         :mode="'single'"
-                        :options="state.languageList"
-                        :placeholder="t('modals.language.add.placeholder')">
+                        :searchable="true"
+                        :filterResults="false"
+                        :options="state.selectableLanguages"
+                        :placeholder="t('modals.language.add.placeholder')"
+                        @search-change="searchList">
                             <template v-slot:option="{ option }">
                                 <div class="d-flex gap-2">
                                     {{ emojiFlag(option.code) }}
@@ -92,8 +95,9 @@
 
     import { useI18n } from 'vue-i18n';
     import { useForm, useField } from 'vee-validate';
-
     import * as yup from 'yup';
+
+    import store from '@/bootstrap/store.js';
 
     import {
         languageList,
@@ -130,6 +134,9 @@
                 };
                 context.emit('add', language);
             };
+            const searchList = (query, sel) => {
+                state.query = query.trim().toLowerCase();
+            };
 
             // DATA
             const schema = yup.object({
@@ -147,10 +154,26 @@
                 handleChange: hcdn,
             } = useField('display_name');
 
+            const fullLanguageList = languageList();
             const state = reactive({
                 show: false,
                 form: formMeta,
-                languageList: languageList(),
+                addedLanguagesIds: computed(_ => store.getters.languages.map(l => l.id)),
+                query: '',
+                languageList: computed(_ => fullLanguageList.filter(l => {
+                    return !state.addedLanguagesIds.includes(l.id);
+                })),
+                selectableLanguages: computed(_ => {
+                    if(state.query == '') {
+                        return state.languageList;
+                    }
+                    const list = state.languageList.filter(l => {
+                        const code = l.code.toLowerCase();
+                        const label = l.label.toLowerCase();
+                        return code.includes(state.query) || label.includes(state.query);
+                    });
+                    return list;
+                }),
             });
             const v = reactive({
                 fields: {
@@ -184,6 +207,7 @@
                 isValidated,
                 closeModal,
                 onAdd,
+                searchList,
                 // STATE
                 state,
                 v,

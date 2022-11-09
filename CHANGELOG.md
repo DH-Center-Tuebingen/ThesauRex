@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.9.3
+### Added
+- Made language list searchable
+### Fixed
+- More dropdowns in modals
+
 ## 0.9.2
 ### Fixed
 - Updated language files
@@ -8,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Search did not work if no concept was selected
 - Node dropdown not closed on outside click
 - Added missing delete functionality
+- Dropdowns in modals did not overlap modal boundaries
 
 ## 0.9.1
 ### Added
