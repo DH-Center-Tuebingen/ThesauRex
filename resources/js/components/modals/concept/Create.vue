@@ -74,6 +74,7 @@
 
     import {
         emojiFlag,
+        getPreference,
     } from '@/helpers/helpers.js';
 
     import {
@@ -136,6 +137,13 @@
             // ON MOUNTED
             onMounted(_ => {
                 state.show = true;
+                const userLanguage = getPreference('prefs.gui-language');
+                const conceptLang = state.languages.find(l => l.short_name == userLanguage);
+                if(conceptLang) {
+                    state.concept.language = conceptLang;
+                } else {
+                    state.concept.language = state.languages[0];
+                }
             });
 
             // RETURN

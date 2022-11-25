@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Broken avatar if is part of Spacialist
 ### Changed
 - No longer show user profile item in dropdown, if is part of Spacialist
+- Auto select user (or first available) language in _Create Concept_ modal
 
 ## 0.9.2
 ### Fixed
