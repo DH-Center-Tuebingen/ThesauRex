@@ -2,11 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Preference;
-use App\ThConcept;
-use App\User;
-use Illuminate\Support\Facades\App;
 
 class HomeController extends Controller
 {

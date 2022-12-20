@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## 0.9.3
 ### Added
 - Made language list searchable
+- Add _Project Name_ to browser tab title
 ### Fixed
 - More dropdowns in modals
 - Show link to Spacialist if set in preferences

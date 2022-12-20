@@ -9,7 +9,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>ThesauRex</title>
+    <title>ThesauRex - {{ $p['prefs.project-name'] }}</title>
 
     <!-- Styles -->
     <link href="css/vue-multiselect.min.css" rel="stylesheet">
