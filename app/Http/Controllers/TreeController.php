@@ -858,6 +858,8 @@ class TreeController extends Controller
     }
 
     private static function deleteOrphanedConcepts($descs, $tree) {
+        if(count($descs) == 0) return;
+
         $conceptTable = th_tree_builder($tree);
         $uniqueDescs = $conceptTable
             ->whereIn('id', $descs)
