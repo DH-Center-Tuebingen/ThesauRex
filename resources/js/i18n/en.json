@@ -123,7 +123,9 @@
             "title": "Project Tree"
         },
         "sandbox": {
-            "title": "Sandbox Tree"
+            "title": "Sandbox Tree",
+            "show": "Show Sandbox",
+            "hide": "Hide Sandbox"
         },
         "contextmenu": {
             "add": "Add concept",

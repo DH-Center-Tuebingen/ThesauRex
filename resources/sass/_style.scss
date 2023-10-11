@@ -1,16 +1,17 @@
 body {
-  font-family: $font-family-sans-serif;
-  font-size: $font-size-base;
-  line-height: $line-height-base;
-  color: $body-color;
-  // background-color: #f5f8fa;
+    font-family: $font-family-sans-serif;
+    font-size: $font-size-base;
+    line-height: $line-height-base;
+    color: $body-color;
+    // background-color: #f5f8fa;
 }
 
 html {
     height: 100vh;
 }
 
-body, #app {
+body,
+#app {
     height: 100%;
 }
 
@@ -42,4 +43,30 @@ code.normal {
 
 .notification-info {
     margin-left: -.5rem;
+}
+
+.input-group-prepend {
+    button.btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+
+        div {
+            min-width: 75px;
+        }
+    }
+}
+
+.input-group-append {
+    button.btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+}
+
+.selected {
+    color: $blue;
+}
+
+header {
+    display: flex;
 }

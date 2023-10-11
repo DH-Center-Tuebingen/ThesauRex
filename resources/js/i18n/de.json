@@ -123,7 +123,9 @@
             "title": "Projekt-Baum"
         },
         "sandbox": {
-            "title": "Sandkasten-Baum"
+            "title": "Sandkasten-Baum",
+            "show": "Sandkasten anzeigen",
+            "hide": "Sandkasten verstecken"
         },
         "contextmenu": {
             "add": "Konzept hinzufügen",
