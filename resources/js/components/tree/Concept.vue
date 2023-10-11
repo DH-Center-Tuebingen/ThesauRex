@@ -208,8 +208,8 @@
                 } else {
                     parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), eventData.targetPath.slice(0, eventData.targetPath.length-1));
                 }
-                const nid = srcNode.id;
-                const bid = parentNode ? parentNode.id : -1;
+                const nid = srcNode.nid;
+                const bid = parentNode ? parentNode.nid : -1;
 
                 const isFromOtherTree = srcNode.tree != tgtNode.tree;
 
@@ -274,13 +274,20 @@
                 } else {
                     parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.targetPath.slice(0, dropData.targetPath.length-1));
                 }
-                const nid = srcNode.id;
+                const nid = srcNode.nid;
                 const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
 
                 // Cancel drop if from same tree and ...
                 if(!isFromOtherTree) {
                     // ... target is same node or ...
-                    if(nid == tgtNode.id) return false;
+                    if(nid == tgtNode.nid) return false;
+                    // ... target parent is also parent of source ...
+                    if(parentNode) {
+                        const alreadyChild = parentNode.children.some(c => c.nid == nid);
+                        if(alreadyChild) {
+                            return false;
+                        }
+                    }
                     // ... source is a parent of target (would result in circle) or ...
                     if(dropData.targetPath.length > dropData.sourcePath.length) {
                         let srcIsParent = true;
@@ -296,6 +303,7 @@
                     }
                     // ... source is added on same level (as child of parent/target)
                     const srcParentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.sourcePath.slice(0, dropData.sourcePath.length-1));
+                    console.log("same level", srcParentNode, dropData);
                     if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
                         return false;
                     }
