@@ -54,15 +54,11 @@ export const store = createStore({
                     user: {},
                     users: [],
                     version: {},
-                    vfm: {},
                 };
             },
             mutations: {
                 setAppInitialized(state, data) {
                     state.appInitialized = data;
-                },
-                setModalInstance(state, data) {
-                    state.vfm = data;
                 },
                 addUser(state, data) {
                     state.users.push(data);
@@ -464,9 +460,6 @@ export const store = createStore({
                 setAppState({ commit }, data) {
                     commit("setAppInitialized", data);
                 },
-                setModalInstance({ commit }, data) {
-                    commit("setModalInstance", data);
-                },
                 setRoles({ commit }, data) {
                     commit("setRoles", data.roles);
                     commit("setPermissions", data.permissions);
@@ -671,7 +664,6 @@ export const store = createStore({
                 user: (state) => state.user,
                 isLoggedIn: (state) => !!state.user,
                 version: (state) => state.version,
-                vfm: (state) => state.vfm,
                 isStandalone: (state) => state.standalone,
             },
         },
