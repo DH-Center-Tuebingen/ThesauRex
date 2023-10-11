@@ -1,13 +1,19 @@
 {
     "private": true,
     "name": "thesaurex",
-    "version": "0.7.0",
+    "version": "0.9.3",
     "description": "Web based editor for SKOS based ontologies",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/DH-Center-Tuebingen/ThesauRex.git"
     },
     "author": "Vinzenz Rosenkranz <vinzenz.rosenkranz@uni-tuebingen.de>",
+    "contributors": [
+        {
+            "name": "Severin Opel",
+            "email": "severin.opel@uni-tuebingen.de"
+        }
+    ],
     "license": "MIT",
     "bugs": {
         "url": "https://github.com/DH-Center-Tuebingen/ThesauRex/issues"
