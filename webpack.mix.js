@@ -20,6 +20,7 @@ const path = require('path');
  */
 
 const appPath = process.env.MIX_APP_PATH;
+const appName = process.env.APP_NAME;
 
 /*
  |--------------------------------------------------------------------------
@@ -55,6 +56,11 @@ mix.js('resources/js/app.js', 'public/js').vue()
             stats: {
                 children: true
             },
+            plugins: [
+                new webpack.DefinePlugin({
+                    __APPNAME__: `'${appName}'`,
+                })
+            ]
        }
    })
    .sourceMaps()
