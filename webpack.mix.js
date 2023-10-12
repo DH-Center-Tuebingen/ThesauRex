@@ -33,32 +33,38 @@ const appPath = process.env.MIX_APP_PATH;
  */
 
 mix.js('resources/js/app.js', 'public/js').vue()
-   .sass('resources/sass/app.scss', 'public/css')
-//    .copy(
-//        'node_modules/vue-multiselect/dist/vue-multiselect.min.css',
-//        'public/css'
-//    )
-   .options({
-       fileLoaderDirs: {
-           fonts: appPath + 'fonts'
-       }
-   })
-   .webpackConfig(webpack => {
-       return {
+    .sass('resources/sass/app.scss', 'public/css')
+    //    .copy(
+    //        'node_modules/vue-multiselect/dist/vue-multiselect.min.css',
+    //        'public/css'
+    //    )
+    .options({
+        fileLoaderDirs: {
+            fonts: appPath + 'fonts'
+        }
+    })
+    .webpackConfig(webpack => {
+        return {
             output: {
                 publicPath: '/' + appPath
             },
             stats: {
                 children: true
             },
-       }
-   })
-   .sourceMaps()
-   .extract();
+        }
+    })
+    .sourceMaps()
+    .extract();
 
-if(`public/${appPath}fonts` !== 'public/fonts') {
+
+if (`public/${appPath}fonts` !== 'public/fonts') {
     mix.copyDirectory(`public/${appPath}fonts`, 'public/fonts');
 }
 mix.alias({
     '@': path.join(__dirname, 'resources/js')
+});
+
+mix.browserSync({
+    proxy: "http://localhost:8000",
+    files: "resources/**/*",
 });

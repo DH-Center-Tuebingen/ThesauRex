@@ -141,6 +141,7 @@
     "detail": {
         "title": "Concept Properties",
         "none_selected": "No concept selected. Select one from a tree to view the metadata.",
+        "is_top_concept_short": "Top-Level Concept",
         "is_top_concept": "Concept is a Top-Level Concept",
         "copy_url": {
             "title": "Copied URL to Clipboard",

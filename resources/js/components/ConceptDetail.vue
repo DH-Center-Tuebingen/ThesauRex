@@ -1,25 +1,27 @@
 <template>
     <div class="h-100 d-flex flex-column of-hidden" v-if="state.initialized && state.concept">
-        <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
-            {{ state.label }}
-            <small>
-                <span class="badge badge-light text-primary" :class="state.badgeClass">
-                    {{ t(`tree.${state.tree}.title`) }}
-                </span>
-            </small>
-        </h4>
-        <div class="flex">
-            <small>
-                {{ t('detail.title') }}
-            </small>
-        </div>
+        <header class="title-header space-below">
+            <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
+                {{ state.label }}
+                <small>
+                    <span class="badge badge-light text-primary" :class="state.badgeClass">
+                        {{ t(`tree.${state.tree}.title`) }}
+                    </span>
+                </small>
+            </h4>
+            <!-- <div class="flex">
+                <small>
+                    {{ t('detail.title') }}
+                </small>
+            </div> -->
+        </header>
         <!-- <div class="d-flex flex-row justify-content-start">
             <code id="concept-url" class="normal text-black-50">{{ state.concept.concept_url }}</code>
             <a href="" class="ps-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
                 <i class="fas fa-fw fa-copy"></i>
             </a>
         </div> -->
-        <div class="form-check form-switch mx-2 pt-2">
+        <!-- <div class="form-check form-switch mx-2 pt-2">
             <span v-show="state.updatingTopLevelState">
                 <i class="fas fa-fw fa-spinner fa-spin"></i>
             </span>
@@ -29,9 +31,8 @@
             <label class="form-check-label" for="concept-detail-tlc-switch">
                 {{ t('detail.is_top_concept') }}
             </label>
-  
-        </div>
-        <hr class="w-100" />
+        </div> -->
+        <!-- <hr class="w-100" /> -->
         <div class="row flex-grow-1 of-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
                 <div class="col px-0 d-flex flex-column mb-2 of-hidden">
@@ -44,7 +45,28 @@
                                 @select="handleAddBroader" />
                         </div>
                     </form>
-                    <ul class="list-group list-group-xs scroll-y-auto" v-if="state.hasBroaders">
+                    <ul class="list-group list-group-xs scroll-y-auto">
+                        <li :class="{
+                            // disabled: state.updatingTopLevelState || state.canDeleteTopLevelState, // This is somehow not visible when state is also active
+                            active: state.concept.is_top_concept
+                        }" class="list-group-item d-flex flex-row justify-content-between"
+                            @mouseenter="setHoverState('broaders', 'isTop', true)"
+                            @mouseleave="setHoverState('broaders', 'isTop', false)" 
+                            :key="`broaders-${state.concept.id}-isTop`">
+                            {{ t('detail.is_top_concept_short') }}
+
+                            <span class="help-handle" v-if="!state.canDeleteTopLevelState"
+                                :title="t('detail.broader.remove_not_possible')">
+                                <i class="fas fa-fw fa-info-circle"></i>
+                            </span>
+
+
+                            <span v-show="state.hoverStates.broaders.isTop && state.canDeleteTopLevelState"
+                                @click="updateTopLevelState()">
+                                <i key="top-delete-icon" v-if="state.concept.is_top_concept" class="fas fa-fw fa-times clickable"></i>
+                                <i key="top-add-icon" v-else class="fas fa-fw fa-plus clickable"></i>
+                            </span>
+                        </li>
                         <li class="list-group-item d-flex flex-row justify-content-between"
                             v-for="(broader, i) in state.concept.broaders" @mouseenter="setHoverState('broaders', i, true)"
                             @mouseleave="setHoverState('broaders', i, false)" :key="`broaders-${state.concept.id}-${i}`">
@@ -61,10 +83,10 @@
                             </span>
                         </li>
                     </ul>
-                    <p class="mb-0 alert alert-primary px-2 py-1" v-else>
+                    <!-- <p class="mb-0 alert alert-primary px-2 py-1" v-else>
                         <i class="fas fa-fw fa-times"></i>
                         {{ t('detail.broader.empty') }}
-                    </p>
+                    </p> -->
                 </div>
                 <div class="col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
@@ -97,10 +119,9 @@
             </div>
             <div class="col-md-6 h-100 d-flex flex-column">
                 <div class="col px-0 d-flex flex-column mb-2 of-hidden">
-                    <header class="flex justify-content-between">
+                    <header class="d-flex justify-content-between">
                         <h5>
                             {{ t('detail.label.title') }}
-
                         </h5>
                         <span class="text-danger" v-show="state.prefLabelCount < state.languages.length"
                             :title="t('detail.label.info_label_missing')">
@@ -554,6 +575,7 @@ export default {
             isTopConcept: computed(_ => state.concept.is_top_concept),
             hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
             canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
+            canDeleteTopLevelState: computed(_ => state.hasBroaders && state.concept.broaders.length >= 0),
             hasNarrowers: computed(_ => state.concept.narrowers && state.concept.narrowers.length > 0),
             hasLabels: computed(_ => state.concept.labels && state.concept.labels.length > 0),
             hasNotes: computed(_ => state.concept.notes && state.concept.notes.length > 0),
@@ -630,6 +652,8 @@ export default {
             // PROPS
             // STATE
             state,
+            
+            log: computed((..._) => console.log(..._)),
         };
     }
     // beforeRouteEnter(to, from, next) {

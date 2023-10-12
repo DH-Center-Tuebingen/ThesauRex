@@ -20,14 +20,18 @@
                 </concept-tree>
             </div>
             <div class="h-100 col-md-9" :class="{ 'col-md-12': !state.showSandbox }">
-                <div class="row">
+                <div class="row h-100">
                     <div class="col-md-4 h-100 d-flex flex-column">
-                        <h4>
-                            {{ t('tree.project.title') }}
-                        </h4>
+
                         <concept-tree class="flex-grow-1 of-hidden" :drag-target="state.dragTarget"
                             :tree-data="state.projectConcepts" :tree-name="'project'" @added="addConceptTo('project')"
                             @change-drag-target="changeDragTarget">
+
+                            <template #title>
+                                <h4>
+                                    {{ t('tree.project.title') }}
+                                </h4>
+                            </template>
                         </concept-tree>
                     </div>
                     <div class="col-md-8 h-100">

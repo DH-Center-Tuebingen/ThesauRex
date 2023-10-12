@@ -1,44 +1,42 @@
 <template>
     <div class="d-flex flex-column">
-        <div class="d-flex flex-row justify-content-start gap-2">
-            <file-upload class="d-none" accept="application/rdf+xml,application/xml" extensions="xml,rdf"
-                v-model="state.files" :ref="el => uploadRef = el" :custom-action="importFile" :directory="false"
-                :disabled="!can('thesaurus_write|thesaurus_create')" :multiple="false" :drop="true" @input-file="inputFile">
-            </file-upload>
+        <header class="title-header space-below  d-flex justify-content-between align-items-center">
+            <slot name="title">
+            </slot>
 
-            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
 
-                <button type="button" class="btn btn-outline-secondary" @click.prevent="triggerFileUpload('extend')">
-                    {{ t('tree.import.label') }}
-                </button>
-                <div class="btn-group" role="group">
-                    <button :id="`import-tree-btn-dropdown-${treeName}`" type="button"
-                        class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"
-                        aria-expanded="false"></button>
-                    <div class="dropdown-menu" :aria-labelledby="`import-tree-btn-dropdown-${treeName}`">
-                        <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('extend')">
-                            <i class="fas fa-fw fa-"></i>
-                            {{ t('tree.import.extend') }}
+            <div>
+                <div class="px-2 clickable" data-bs-toggle="dropdown" data-toggle="dropdown">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </div>
+
+                <file-upload class="d-none" accept="application/rdf+xml,application/xml" extensions="xml,rdf"
+                    v-model="state.files" :ref="el => uploadRef = el" :custom-action="importFile" :directory="false"
+                    :disabled="!can('thesaurus_write|thesaurus_create')" :multiple="false" :drop="true"
+                    @input-file="inputFile">
+                </file-upload>
+
+                <div class="dropdown-menu" :aria-labelledby="`import-tree-btn-dropdown-${treeName}`">
+                    <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('extend')">
+                        {{ t('tree.import.extend') }}
+                    </a>
+                    <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('update_extend')">
+                        {{ t('tree.import.update_extend') }}
+                    </a>
+                    <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('replace')">
+                        {{ t('tree.import.replace') }}
+                    </a>
+                    <template v-if="can('thesaurus_share')">
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#" @click.prevent="onExport()">
+                            {{ t('tree.export.label') }}
                         </a>
-                        <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('update_extend')">
-                            <i class="fas fa-fw fa-"></i>
-                            {{ t('tree.import.update_extend') }}
-                        </a>
-                        <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('replace')">
-                            <i class="fas fa-fw fa-"></i>
-                            {{ t('tree.import.replace') }}
-                        </a>
-                    </div>
+                    </template>
                 </div>
 
             </div>
-            <button type="button" class="btn btn-outline-secondary" @click="onExport()" v-if="can('thesaurus_share')">
-                {{ t('tree.export.label') }}
-            </button>
-            <slot name="tools">
+        </header>
 
-            </slot>
-        </div>
         <tree-search class="my-2" :on-multiselect="onSearchMultiSelect" :on-clear="resetHighlighting" :tree-name="treeName">
         </tree-search>
         <a href="" class="text-secondary" @click.prevent="onAddTopConcept()" v-if="can('thesaurus_write')">

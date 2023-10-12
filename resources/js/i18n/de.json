@@ -141,6 +141,7 @@
     "detail": {
         "title": "Konzept-Eigenschaften",
         "none_selected": "Kein Konzept ausgewählt. Wähle eines aus einem Baum aus um die Metadaten zu sehen.",
+        "is_top_concept_short": "Top-Level-Konzept",
         "is_top_concept": "Konzept ist ein Top-Level-Konzept",
         "copy_url": {
             "title": "URL in Zwischenablage kopiert",
