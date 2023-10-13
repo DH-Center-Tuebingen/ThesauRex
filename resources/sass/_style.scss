@@ -64,18 +64,29 @@ code.normal {
     }
 }
 
-.selected {
-    color: $blue;
-}
 
+/**
+    TODO: Move below to components
+*/
 
 .space-below {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 
 .title-header {
     min-height: 1.5rem;
+}
+
+.title-header code{
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    align-items: flex-end;
+
+    direction: rtl;
 }
 
 @for $i from 1 through 6 {

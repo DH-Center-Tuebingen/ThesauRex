@@ -1,6 +1,6 @@
 <template>
     <div class="h-100 d-flex flex-column of-hidden" v-if="state.initialized && state.concept">
-        <header class="title-header space-below">
+        <header class="title-header space-below d-flex justify-content-between">
             <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
                 {{ state.label }}
                 <small>
@@ -9,30 +9,15 @@
                     </span>
                 </small>
             </h4>
-            <!-- <div class="flex">
-                <small>
-                    {{ t('detail.title') }}
-                </small>
-            </div> -->
-        </header>
-        <!-- <div class="d-flex flex-row justify-content-start">
-            <code id="concept-url" class="normal text-black-50">{{ state.concept.concept_url }}</code>
+
+            <div class="d-flex flex-row justify-content-start flex-fill overflow-hidden ms-5">
+            <code id="concept-url" class="normal text-end text-black-50 ">{{ state.concept.concept_url }}</code>
             <a href="" class="ps-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
                 <i class="fas fa-fw fa-copy"></i>
             </a>
-        </div> -->
-        <!-- <div class="form-check form-switch mx-2 pt-2">
-            <span v-show="state.updatingTopLevelState">
-                <i class="fas fa-fw fa-spinner fa-spin"></i>
-            </span>
-            <input class="form-check-input" type="checkbox" role="switch" id="concept-detail-tlc-switch"
-                :disabled="state.updatingTopLevelState || (!state.canDeleteBroader && state.isTopConcept)"
-                v-model="state.concept.is_top_concept" @click.prevent="updateTopLevelState()">
-            <label class="form-check-label" for="concept-detail-tlc-switch">
-                {{ t('detail.is_top_concept') }}
-            </label>
-        </div> -->
-        <!-- <hr class="w-100" /> -->
+        </div>
+        </header>
+
         <div class="row flex-grow-1 of-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
                 <div class="col px-0 d-flex flex-column mb-2 of-hidden">
@@ -48,10 +33,12 @@
                     <ul class="list-group list-group-xs scroll-y-auto">
                         <li :class="{
                             // disabled: state.updatingTopLevelState || state.canDeleteTopLevelState, // This is somehow not visible when state is also active
-                            active: state.concept.is_top_concept
-                        }" class="list-group-item d-flex flex-row justify-content-between"
+                            'bg-success': state.concept.is_top_concept,
+                            'bg-warning': !state.concept.is_top_concept,
+
+                        }" class="list-group-item d-flex flex-row justify-content-between bg-opacity-10"
                             @mouseenter="setHoverState('broaders', 'isTop', true)"
-                            @mouseleave="setHoverState('broaders', 'isTop', false)" 
+                            @mouseleave="setHoverState('broaders', 'isTop', false)"
                             :key="`broaders-${state.concept.id}-isTop`">
                             {{ t('detail.is_top_concept_short') }}
 
@@ -63,8 +50,12 @@
 
                             <span v-show="state.hoverStates.broaders.isTop && state.canDeleteTopLevelState"
                                 @click="updateTopLevelState()">
-                                <i key="top-delete-icon" v-if="state.concept.is_top_concept" class="fas fa-fw fa-times clickable"></i>
-                                <i key="top-add-icon" v-else class="fas fa-fw fa-plus clickable"></i>
+                                <span v-if="state.concept.is_top_concept" class="clickable">
+                                    <i key="top-delete-icon" class="fas fa-fw fa-times"></i>
+                                </span>
+                                <span v-else class="clickable">
+                                    <i key="top-add-icon" class="fas fa-fw fa-plus"></i>
+                                </span>
                             </span>
                         </li>
                         <li class="list-group-item d-flex flex-row justify-content-between"
@@ -652,7 +643,7 @@ export default {
             // PROPS
             // STATE
             state,
-            
+
             log: computed((..._) => console.log(..._)),
         };
     }

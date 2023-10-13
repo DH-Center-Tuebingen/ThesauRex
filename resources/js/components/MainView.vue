@@ -11,12 +11,16 @@
         <div class="row h-100 of-hidden flex-grow-1">
 
             <div class="sandbox-view h-100 col-md-3 d-flex flex-column fade-in" v-if="state.showSandbox">
-                <h4>
-                    {{ t('tree.sandbox.title') }}
-                </h4>
                 <concept-tree class="flex-grow-1 of-hidden" :drag-target="state.dragTarget"
                     :tree-data="state.sandboxConcepts" :tree-name="'sandbox'" @added="addConceptTo('sandbox')"
                     @change-drag-target="changeDragTarget">
+
+                    <template #title>
+                        <h4>
+                            {{ t('tree.sandbox.title') }}
+                        </h4>
+                    </template>
+
                 </concept-tree>
             </div>
             <div class="h-100 col-md-9" :class="{ 'col-md-12': !state.showSandbox }">
