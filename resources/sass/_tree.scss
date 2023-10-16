@@ -69,5 +69,13 @@ ul.grtvn-children>.grtvn {
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
-    background-image: url('/img/tree/tree_closed.svg');
+
+    background-image: url('/img/tree/tree_handle_closed.svg');
+}
+
+.tree-default-small .tree-open > .tree-ocl {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url('/img/tree/tree_handle_open.svg'); 
 }

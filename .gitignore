@@ -5,7 +5,8 @@ node_modules
 
 ## Created by Laravel
 /node_modules
-/public
+/public/*
+!/public/img/
 /public/hot
 /public/storage
 /storage/*.key
