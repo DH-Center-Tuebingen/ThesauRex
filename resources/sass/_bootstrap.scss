@@ -17,3 +17,35 @@
 .dropdown-item:hover>.submenu {
     display: block;
 }
+
+
+$table-light-text-color: $body-text-color;
+
+.table-light {
+    color: $table-light-text-color;
+}
+
+.table-striped>tbody>tr:nth-of-type(2n+1)>* {
+    color: $table-light-text-color;
+}
+
+.badge-light {
+    background-color: transparent !important;
+    border: 1px solid currentColor;
+}
+
+button.dropdown-toggle {
+
+    &:hover,
+    &:active,
+    &:focus {
+        color: #222;
+        background-color: rgba($color: #cccccc, $alpha: 1.0);
+    }
+}
+
+// .error-indicator{
+//     color: $red;
+//     font-size: 1.5em;
+//     font-weight: 700;
+// }

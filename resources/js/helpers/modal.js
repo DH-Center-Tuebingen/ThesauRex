@@ -34,6 +34,7 @@ import CreateConcept from '@/components/modals/concept/Create.vue';
 import DeleteConcept from '@/components/modals/concept/Delete.vue';
 import AddLanguage from '@/components/modals/lang/Create.vue';
 import DeleteLanguage from '@/components/modals/lang/Delete.vue';
+import router from '../bootstrap/router';
 
 export function showAbout() {
     const uid = `AboutModal-${getTs()}`;
@@ -70,7 +71,7 @@ export function showDiscard(target, resetData, onBeforeConfirm) {
                 pushRoute();
             },
             saveConfirm(e) {
-                if (!!onBeforeConfirm) {
+                if(!!onBeforeConfirm) {
                     onBeforeConfirm().then(_ => {
                         pushRoute();
                     }).catch(e => {

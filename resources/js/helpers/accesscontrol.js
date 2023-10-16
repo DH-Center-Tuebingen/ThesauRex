@@ -4,4 +4,4 @@ import {
 
 export async function getAccessGroups() {
     return await fetchAccessGroups();
-};
+}

@@ -3,7 +3,7 @@
         :id="`${data.tree}-tree-node-${data.id}`" class="dropdown" v-show="!data.is_placeholder">
         <a href="" :id="`${data.tree}-tree-node-cm-toggle-${data.id}`" @click.prevent @contextmenu.stop.prevent="togglePopup()"
             class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" :data-path="join(data.path)">
-            <span :class="{'fw-bold': state.isSelected}">
+            <span :class="{selected: state.isSelected, 'fw-bold': state.isSelected}">
                 {{ state.label }}
             </span>
         </a>

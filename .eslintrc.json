@@ -1,0 +1,25 @@
+{
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": "latest"
+    },
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true
+    },
+    "rules": {
+        "no-console": "off",
+        "no-unused-vars": "off",
+        "no-extra-boolean-cast": "off",
+        "no-extra-semi": "warn",
+        "quotes": [
+            "warn",
+            "single",
+            {
+                "allowTemplateLiterals": true
+            }
+        ]
+    }
+}

@@ -18,21 +18,16 @@ import ConceptSearch from '@/components/tree/Search.vue';
 // import Discard from './components/modals/system/Discard.vue';
 // TODO End
 
-// Init Libs
-// PQueue, httpQueue
-const queue = new PQueue({concurrency: 1});
-window.$httpQueue = queue;
-
 // Third-Party Components
 import Multiselect from '@vueform/multiselect';
 import VueUploadComponent from 'vue-upload-component';
 import draggable from 'vuedraggable';
-import { Tree, Node, } from "tree-vue-component";
+import { Tree, Node, } from 'tree-vue-component';
 import VueFinalModal from 'vue-final-modal';
 
 // Init required libs
 import {
-  can,
+    can,
 } from '@/helpers/helpers.js';
 // Vuex
 import store from '@/bootstrap/store.js';
@@ -67,7 +62,7 @@ app.directive('dcan', {
             const warningElem = document.createElement('p');
             warningElem.className = 'alert alert-warning v-can-warning';
             warningElem.innerHTML = i18n.global.t('global.page_access_denied');
-            for(let i=0; i<el.children.length; i++) {
+            for(let i = 0; i < el.children.length; i++) {
                 let c = el.children[i];
                 c.classList.add('v-can-hidden');
             }
@@ -76,7 +71,7 @@ app.directive('dcan', {
     },
     unmounted(el) {
         if(!el.children) return;
-        for(let i=0; i<el.children.length; i++) {
+        for(let i = 0; i < el.children.length; i++) {
             let c = el.children[i];
             // remove our warning elem
             if(c.classList.contains('v-can-warning')) {

@@ -1,18 +1,22 @@
+.tree-anchor {
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
 .tree-hovered {
-    background-color: rgba(red($orange), green($orange), blue($orange), 0.75) !important;
+    background-color: rgba($orange, 0.3);
+
 }
 
 .tree-clicked {
     font-weight: $font-weight-bold !important;
-    background-color: rgba(red($yellow), green($yellow), blue($yellow), 0.75) !important;
+    background-color: rgba($yellow, 0.75) !important;
 }
 
 .tree-search {
     font-style: normal !important;
     font-weight: $font-weight-normal;
-    // color: $white !important;
-    background-color: rgba(red($yellow), green($yellow), blue($yellow), 0.5) !important;
-
+    background-color: rgba($yellow, 0.5) !important;
     border-radius: $border-radius;
 }
 
@@ -21,9 +25,12 @@
 }
 
 .tree-anchor {
-    background-color: $orange;
     border-radius: 3px;
     padding: 0 0.5rem;
+}
+
+.tree-anchor .selected {
+    color: $orange;
 }
 
 ul.grtvn-children > .grtvn {
@@ -53,4 +60,19 @@ ul.grtvn-children > .grtvn {
     content: "🢒" !important;
     display: inline-block;
     transform: rotate(90deg);
+}
+
+.tree-default-small .tree-closed > .tree-ocl {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    background-image: url('/img/tree/tree_handle_closed.svg');
+}
+
+.tree-default-small .tree-open > .tree-ocl {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url('/img/tree/tree_handle_open.svg');
 }

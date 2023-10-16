@@ -71,10 +71,10 @@ export const store = createStore({
                     const index = state.users.findIndex((u) => u.id == data.id);
                     if (index > -1) {
                         const cleanData = only(data, [
-                            "email",
-                            "roles",
-                            "updated_at",
-                            "deleted_at",
+                            'email',
+                            'roles',
+                            'updated_at',
+                            'deleted_at',
                         ]);
                         const currentData = state.users[index];
                         state.users[index] = {
@@ -107,11 +107,11 @@ export const store = createStore({
                     const index = state.roles.findIndex((r) => r.id == data.id);
                     if (index > -1) {
                         const cleanData = only(data, [
-                            "display_name",
-                            "description",
-                            "permissions",
-                            "updated_at",
-                            "deleted_at",
+                            'display_name',
+                            'description',
+                            'permissions',
+                            'updated_at',
+                            'deleted_at',
                         ]);
                         const currentData = state.roles[index];
                         state.roles[index] = {
@@ -462,28 +462,28 @@ export const store = createStore({
             },
             actions: {
                 setAppState({ commit }, data) {
-                    commit("setAppInitialized", data);
+                    commit('setAppInitialized', data);
                 },
                 setModalInstance({ commit }, data) {
-                    commit("setModalInstance", data);
+                    commit('setModalInstance', data);
                 },
                 setRoles({ commit }, data) {
-                    commit("setRoles", data.roles);
-                    commit("setPermissions", data.permissions);
-                    commit("setRolePresets", data.presets);
+                    commit('setRoles', data.roles);
+                    commit('setPermissions', data.permissions);
+                    commit('setRolePresets', data.presets);
                 },
                 setUser({ commit }, data) {
-                    commit("setUser", data);
+                    commit('setUser', data);
                 },
                 setUsers({ commit }, data) {
-                    commit("setUsers", data);
+                    commit('setUsers', data);
                 },
                 addConcept({ commit }, data) {
                     const n = new Node({
                         ...data.concept,
                         tree: data.tree,
                     });
-                    commit("addConcept", {
+                    commit('addConcept', {
                         tree: data.tree,
                         node: n,
                     });
@@ -495,7 +495,7 @@ export const store = createStore({
                             ...c,
                             tree: data.tree,
                         });
-                        commit("addConcept", {
+                        commit('addConcept', {
                             tree: data.tree,
                             node: {
                                 ...n,
@@ -508,10 +508,10 @@ export const store = createStore({
                     return nodes;
                 },
                 resetConcepts({ commit }, data) {
-                    commit("resetConcepts", data);
+                    commit('resetConcepts', data);
                 },
                 setConcepts({ commit }, data) {
-                    commit("setConcepts", data);
+                    commit('setConcepts', data);
                 },
                 deleteConcept({ commit }, data) {
                     const nid = data.id;
@@ -527,19 +527,19 @@ export const store = createStore({
                     if(action != '' && action != 'cascade') {
                         const narrowerIds = concept.narrowers.map(n => n.id);
                         if(action == 'level') {
-                            commit("addRelation", {
+                            commit('addRelation', {
                                 broader: concept.is_top_concept ? [...parentRefs, -1] : parentRefs,
                                 narrower: narrowerIds,
                                 tree: tree,
                             });
                         } else if(action == 'top') {
-                            commit("addRelation", {
+                            commit('addRelation', {
                                 broader: [-1],
                                 narrower: narrowerIds,
                                 tree: tree,
                             });
                         } else if(action == 'rerelate') {
-                            commit("addRelation", {
+                            commit('addRelation', {
                                 broader: [params.p],
                                 narrower: narrowerIds,
                                 tree: tree,
@@ -547,39 +547,39 @@ export const store = createStore({
                         }
                     }
 
-                    commit("removeRelation", {
+                    commit('removeRelation', {
                         broader: concept.is_top_concept ? [...parentRefs, -1] : parentRefs,
                         narrower: [nid],
                         tree: tree,
                     });
-                    commit("deleteConceptReferences", data);
+                    commit('deleteConceptReferences', data);
                 },
                 addLabel({commit}, data) {
-                    commit("addLabel", data);
+                    commit('addLabel', data);
                 },
                 updateLabel({commit}, data) {
-                    commit("updateLabel", data);
+                    commit('updateLabel', data);
                 },
                 deleteLabel({commit}, data) {
-                    commit("deleteLabel", data);
+                    commit('deleteLabel', data);
                 },
                 addNote({commit}, data) {
-                    commit("addNote", data);
+                    commit('addNote', data);
                 },
                 updateNote({commit}, data) {
-                    commit("updateNote", data);
+                    commit('updateNote', data);
                 },
                 deleteNote({commit}, data) {
-                    commit("deleteNote", data);
+                    commit('deleteNote', data);
                 },
                 addRelation({commit}, data) {
-                    commit("addRelation", data);
+                    commit('addRelation', data);
                 },
                 removeRelation({commit}, data) {
-                    commit("removeRelation", data);
+                    commit('removeRelation', data);
                 },
                 unsetSelectedConcept({ commit }, data) {
-                    commit("setSelectedConcept", null);
+                    commit('setSelectedConcept', null);
                 },
                 async setSelectedConcept({ commit, state }, data) {
                     let concept = state.conceptMap[data.tree][data.concept_id];
@@ -591,52 +591,52 @@ export const store = createStore({
                         }
                         concept = state.conceptMap[data.tree][data.concept_id];
                     }
-                    commit("setSelectedConcept", {
+                    commit('setSelectedConcept', {
                         data: concept,
                         from: data.tree,
                     });
                 },
                 addUser({ commit }, data) {
-                    commit("addUser", data);
+                    commit('addUser', data);
                 },
                 updateUser({ commit }, data) {
-                    commit("updateUser", data);
+                    commit('updateUser', data);
                 },
                 deactivateUser({ commit }, data) {
-                    commit("deactivateUser", data);
+                    commit('deactivateUser', data);
                 },
                 reactivateUser({ commit }, data) {
-                    commit("reactivateUser", data);
+                    commit('reactivateUser', data);
                 },
                 setPreferences({ commit }, data) {
-                    commit("setPreferences", data);
+                    commit('setPreferences', data);
                 },
                 setSystemPreferences({ commit }, data) {
-                    commit("setSystemPreferences", data);
+                    commit('setSystemPreferences', data);
                 },
                 addRole({ commit }, data) {
-                    commit("addRole", data);
+                    commit('addRole', data);
                 },
                 updateRole({ commit }, data) {
-                    commit("updateRole", data);
+                    commit('updateRole', data);
                 },
                 deleteRole({ commit }, data) {
-                    commit("deleteRole", data);
+                    commit('deleteRole', data);
                 },
                 setVersion({ commit }, data) {
-                    commit("setVersion", data);
+                    commit('setVersion', data);
                 },
                 addLanguage({ commit }, data) {
-                    commit("addLanguage", data);
+                    commit('addLanguage', data);
                 },
                 removeLanguage({ commit }, data) {
-                    commit("removeLanguage", data);
+                    commit('removeLanguage', data);
                 },
                 setLanguages({ commit }, data) {
-                    commit("setLanguages", data);
+                    commit('setLanguages', data);
                 },
                 setStandaloneState({ commit }, data) {
-                    commit("setStandaloneState", data);
+                    commit('setStandaloneState', data);
                 },
             },
             getters: {

@@ -14,4 +14,4 @@ export function searchParamsToObject(path) {
         params[k] = v;
     });
     return params;
-};
+}
