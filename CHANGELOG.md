@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file.
 ## 0.10.0
 
 ### Added
-
 - Added eslint, stylelint and vscode workspace
 
 ### Changed
