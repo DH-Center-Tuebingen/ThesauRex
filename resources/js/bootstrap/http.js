@@ -1,5 +1,6 @@
 import axios from 'axios';
 import router from './router.js';
+import PQueue from 'p-queue';
 
 import {
     throwError,
@@ -42,6 +43,8 @@ instance.interceptors.response.use(response => {
 
 export function useHttp() {
     return instance;
-};
+}
 
 export default instance;
+
+export const httpQueue = new PQueue({ concurrency: 1 });

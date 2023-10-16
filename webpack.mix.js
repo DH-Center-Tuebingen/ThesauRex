@@ -34,10 +34,6 @@ const appPath = process.env.MIX_APP_PATH;
 
 mix.js('resources/js/app.js', 'public/js').vue()
     .sass('resources/sass/app.scss', 'public/css')
-    //    .copy(
-    //        'node_modules/vue-multiselect/dist/vue-multiselect.min.css',
-    //        'public/css'
-    //    )
     .options({
         fileLoaderDirs: {
             fonts: appPath + 'fonts'
@@ -57,7 +53,7 @@ mix.js('resources/js/app.js', 'public/js').vue()
     .extract();
 
 
-if (`public/${appPath}fonts` !== 'public/fonts') {
+if(`public/${appPath}fonts` !== 'public/fonts') {
     mix.copyDirectory(`public/${appPath}fonts`, 'public/fonts');
 }
 mix.alias({
@@ -65,6 +61,6 @@ mix.alias({
 });
 
 mix.browserSync({
-    proxy: "http://localhost:8000",
-    files: "resources/**/*",
+    proxy: 'http://localhost:8000',
+    files: 'resources/**/*',
 });

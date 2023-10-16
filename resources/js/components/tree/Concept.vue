@@ -38,7 +38,11 @@
 
         <tree-search class="my-2" :on-multiselect="onSearchMultiSelect" :on-clear="resetHighlighting" :tree-name="treeName">
         </tree-search>
-        <a href="" class="text-secondary" @click.prevent="onAddTopConcept()" v-if="can('thesaurus_write')">
+        <a href="" class="btn btn-sm btn-outline-success mb-2" @click.prevent="onAddTopConcept()"
+            v-if="can('thesaurus_write')">
+            <span>
+                <i class="fas fa-plus mx-3"></i>
+            </span>
             {{ t('tree.new_top_concept') }}
         </a>
         <div class="d-flex flex-column col px-0 scroll-y-auto">

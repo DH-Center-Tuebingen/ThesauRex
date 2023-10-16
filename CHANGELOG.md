@@ -1,6 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.10.0
+
+### Added
+
+- Added eslint, stylelint and vscode workspace
+
+### Changed
+- Updated tree icons to be more prominent
+- Moved the sandbox inside a collapsed side panel
+- Slightly improved styling of the 'language-fields'
+- Improved concept details styling
+
 ## 0.9.3
 ### Added
 - Made language list searchable

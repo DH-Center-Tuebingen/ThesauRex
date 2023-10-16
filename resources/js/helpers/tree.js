@@ -30,18 +30,18 @@ import {
 export async function fetchChildren(id, tree) {
     tree = tree != 'sandbox' ? 'project' : tree;
     return fetchChildrenApi(id, tree).then(data => {
-        return store.dispatch("addConcepts", {
+        return store.dispatch('addConcepts', {
             concepts: data,
             tree: tree,
         });
     });
 
-};
+}
 
 export function sortParents(parents) {
     parents.sort((a, b) => a.length - b.length);
     return parents;
-};
+}
 
 export function sortTree(tree, dir = 'asc') {
     const sortFn = (a, b) => {
@@ -56,7 +56,7 @@ export function sortTree(tree, dir = 'asc') {
         return value;
     };
     sortTreeLevel(tree, sortFn);
-};
+}
 
 function sortTreeLevel(tree, fn) {
     if(!tree) return;
@@ -75,7 +75,7 @@ function sortTreeLevel(tree, fn) {
             n.narrowers.sort(fn);
         }
     });
-};
+}
 
 export function uploadConceptsFile(file, tree, type) {
     return uploadFile(file, tree, type).then(data => {
@@ -97,7 +97,7 @@ export function uploadConceptsFile(file, tree, type) {
         });
         return fetchTreeData([tree]);
     });
-};
+}
 
 export function exportTree(tree, rootId) {
     let filename = '';
@@ -112,7 +112,7 @@ export function exportTree(tree, rootId) {
     exportTreeApi(tree, rootId).then(response => {
         createDownloadLink(response.data, filename, false, response.headers['content-type']);
     });
-};
+}
 
 export async function openPath(ids, tree = 'project') {
     const index = ids.pop();
@@ -134,7 +134,7 @@ export async function openPath(ids, tree = 'project') {
     }
     elem.state.opened = true;
     return openPath(ids, tree);
-};
+}
 
 export function toggleTreeNode(node, tree) {
     if(node.children.length < node.children_count) {
@@ -146,7 +146,7 @@ export function toggleTreeNode(node, tree) {
         });
     }
     node.state.opened = !node.state.opened;
-};
+}
 
 export function getLabel(node, displayForeign = false) {
     if(!node) return 'No Title';
@@ -177,7 +177,7 @@ export function getLabel(node, displayForeign = false) {
         label = `${label} ${emojiFlag(bestLabel.language.short_name)}`;
     }
     return label;
-};
+}
 
 export function unnode(node) {
     if(!node) return {};
@@ -189,7 +189,7 @@ export function unnode(node) {
     return only(node, [
         'concept_scheme', 'concept_url', 'created_at', 'id', 'is_top_concept', 'labels', 'pivot', 'updated_at', 'user_id'
     ]);
-};
+}
 
 // export class Node {
 //     constructor(data) {

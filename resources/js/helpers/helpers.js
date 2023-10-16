@@ -19,7 +19,7 @@ import {
     showError,
 } from '@/helpers/modal.js';
 
-export const multiselectResetClasslist = {clear: 'multiselect-clear multiselect-clear-reset'};
+export const multiselectResetClasslist = { clear: 'multiselect-clear multiselect-clear-reset' };
 
 export async function initApp(locale) {
     store.dispatch('setAppState', false);
@@ -30,7 +30,7 @@ export async function initApp(locale) {
     await fetchVersion();
     store.dispatch('setAppState', true);
     return new Promise(r => r(null));
-};
+}
 
 export function can(permissionString, oneOf) {
     oneOf = oneOf || false;
@@ -46,7 +46,7 @@ export function can(permissionString, oneOf) {
     } else {
         return permissions.every(hasPermission);
     }
-};
+}
 
 export function getErrorMessages(error, suffix = '') {
     let msgObject = {};
@@ -61,28 +61,28 @@ export function getErrorMessages(error, suffix = '') {
         msgObject.global = r.data.error;
     }
     return msgObject;
-};
+}
 
 export function getTs() {
     const d = new Date();
     return d.getTime();
-};
+}
 
 export function hasPreference(prefKey, prop) {
     const ps = store.getters.preferenceByKey(prefKey);
-    if (ps) {
+    if(ps) {
         return ps[prop] || ps;
     }
-};
+}
 
 export function getPreference(prefKey) {
     return store.getters.preferenceByKey(prefKey);
-};
+}
 
 export function getProjectName(slug = false) {
     const name = getPreference('prefs.project-name');
     return slug ? slugify(name) : name;
-};
+}
 
 export function slugify(s, delimiter = '-') {
     var char_map = {
@@ -114,8 +114,8 @@ export function slugify(s, delimiter = '-') {
         'Ï': 'i', 'Î°': 'y', 'Ï': 'y', 'Î': 'i',
 
         // Turkish
-        'Å': 'S', 'Ä°': 'I', 'Ç': 'C', 'Ü': 'U', 'Ö': 'O', 'Ä': 'G',
-        'Å': 's', 'Ä±': 'i', 'ç': 'c', 'ü': 'u', 'ö': 'o', 'Ä': 'g',
+        'Å': 'S', 'Ä°': 'I', /* 'Ç': 'C', 'Ü': 'U', 'Ö': 'O' ,*/ 'Ä': 'G',
+        'Å': 's', 'Ä±': 'i', /* 'ç': 'c', 'ü': 'u', 'ö': 'o', */ 'Ä': 'g',
 
         // Russian
         'Ð': 'A', 'Ð': 'B', 'Ð': 'V', 'Ð': 'G', 'Ð': 'D', 'Ð': 'E', 'Ð': 'Yo', 'Ð': 'Zh',
@@ -140,20 +140,20 @@ export function slugify(s, delimiter = '-') {
         'Å¾': 'z',
 
         // Polish
-        'Ä': 'A', 'Ä': 'C', 'Ä': 'e', 'Å': 'L', 'Å': 'N', 'Ó': 'o', 'Å': 'S', 'Å¹': 'Z',
+        'Ä': 'A', 'Ä': 'C', 'Ä': 'e', 'Å': 'L', 'Å': 'N', /* 'Ó': 'o', */ 'Å': 'S', 'Å¹': 'Z',
         'Å»': 'Z',
-        'Ä': 'a', 'Ä': 'c', 'Ä': 'e', 'Å': 'l', 'Å': 'n', 'ó': 'o', 'Å': 's', 'Åº': 'z',
+        'Ä': 'a', 'Ä': 'c', 'Ä': 'e', 'Å': 'l', 'Å': 'n', /* 'ó': 'o', */ 'Å': 's', 'Åº': 'z',
         'Å¼': 'z',
 
         // Latvian
-        'Ä': 'A', 'Ä': 'C', 'Ä': 'E', 'Ä¢': 'G', 'Äª': 'i', 'Ä¶': 'k', 'Ä»': 'L', 'Å': 'N',
-        'Š': 'S', 'Åª': 'u', 'Å½': 'Z',
-        'Ä': 'a', 'Ä': 'c', 'Ä': 'e', 'Ä£': 'g', 'Ä«': 'i', 'Ä·': 'k', 'Ä¼': 'l', 'Å': 'n',
-        'š': 's', 'Å«': 'u', 'Å¾': 'z'
+        'Ä': 'A', /* 'Ä': 'C', */ 'Ä': 'E', 'Ä¢': 'G', 'Äª': 'i', 'Ä¶': 'k', 'Ä»': 'L', 'Å': 'N',
+        /* 'Š': 'S', */ 'Åª': 'u', /* 'Å½': 'Z', */
+        'Ä': 'a', /* 'Ä': 'c', */ 'Ä': 'e', 'Ä£': 'g', 'Ä«': 'i', 'Ä·': 'k', 'Ä¼': 'l', 'Å': 'n',
+        /* 'š': 's', */ 'Å«': 'u'/* , 'Å¾': 'z' */
     };
 
     // Transliterate characters to ASCII
-    for (var k in char_map) {
+    for(var k in char_map) {
         s = s.replace(RegExp(k, 'g'), char_map[k]);
     }
 
@@ -168,34 +168,34 @@ export function slugify(s, delimiter = '-') {
     s = s.replace(RegExp('(^' + delimiter + '|' + delimiter + '$)', 'g'), '');
 
     return s.toLowerCase();
-};
+}
 
 export function createDownloadLink(content, filename, base64 = false, contentType = 'text/plain') {
-    var link = document.createElement("a");
+    var link = document.createElement('a');
     let url;
     if(base64) {
         url = `data:${contentType};base64,${content}`;
     } else {
         url = window.URL.createObjectURL(new Blob([content]));
     }
-    link.setAttribute("href", url);
-    link.setAttribute("type", contentType);
-    link.setAttribute("download", filename);
+    link.setAttribute('href', url);
+    link.setAttribute('type', contentType);
+    link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
-};
+}
 
 export function isLoggedIn() {
     return auth.check();
-};
+}
 
 export function getUser() {
     return isLoggedIn() ? auth.user() : {};
-};
+}
 
 export function userId() {
     return getUser().id || -1;
-};
+}
 
 export function getUsers() {
     const fallback = [];
@@ -204,7 +204,7 @@ export function getUsers() {
     } else {
         return fallback;
     }
-};
+}
 
 export function getRoles(withPermissions = false) {
     const fallback = [];
@@ -213,7 +213,7 @@ export function getRoles(withPermissions = false) {
     } else {
         return fallback;
     }
-};
+}
 
 export function getUserBy(value, attr = 'id') {
     if(isLoggedIn()) {
@@ -227,7 +227,7 @@ export function getUserBy(value, attr = 'id') {
     } else {
         return null;
     }
-};
+}
 
 export function getRoleBy(value, attr = 'id', withPermissions = false) {
     if(isLoggedIn()) {
@@ -237,14 +237,14 @@ export function getRoleBy(value, attr = 'id', withPermissions = false) {
     } else {
         return null;
     }
-};
+}
 
 export function isStandalone() {
     return store.getters.isStandalone;
-};
+}
 
 export function throwError(error) {
-    if (error.response) {
+    if(error.response) {
         const r = error.response;
         const req = {
             status: r.status,
@@ -252,12 +252,12 @@ export function throwError(error) {
             method: r.config.method.toUpperCase()
         };
         showErrorModal(r.data, r.headers, req);
-    } else if (error.request) {
+    } else if(error.request) {
         showErrorModal(error.request);
     } else {
         showErrorModal(error.message || error);
     }
-};
+}
 
 export function showErrorModal(errorMsg, headers, request) {
     showError({
@@ -265,37 +265,37 @@ export function showErrorModal(errorMsg, headers, request) {
         headers: headers,
         request: request,
     });
-};
+}
 
 export function only(object, allows = []) {
     return Object.keys(object)
         .filter(key => allows.includes(key))
         .reduce((obj, key) => {
             return {
-            ...obj,
-            [key]: object[key]
+                ...obj,
+                [key]: object[key]
             };
         }, {});
-};
+}
 
 export function except(object, excepts = []) {
     return Object.keys(object)
         .filter(key => !excepts.includes(key))
         .reduce((obj, key) => {
             return {
-            ...obj,
-            [key]: object[key]
+                ...obj,
+                [key]: object[key]
             };
         }, {});
-};
+}
 
 export function isArray(arr) {
     return Array.isArray(arr);
-};
+}
 
 export function firstOrPlain(value) {
     return isArray(value) ? value[0] : value;
-};
+}
 
 export const _cloneDeep = require('lodash/cloneDeep');
 export const _debounce = require('lodash/debounce');
@@ -308,7 +308,7 @@ export function getValidClass(msgObject, field) {
 
     let isInvalid = false;
     field.split('|').forEach(f => {
-        if (!!msgObject[f]) {
+        if(!!msgObject[f]) {
             isInvalid = true;
         }
     });
@@ -317,21 +317,21 @@ export function getValidClass(msgObject, field) {
         // 'is-valid': !msgObject[field],
         'is-invalid': isInvalid
     };
-};
+}
 
 export function getClassByValidation(errorList) {
     return {
         // 'is-valid': !msgObject[field],
         'is-invalid': !!errorList && errorList.length > 0,
     };
-};
+}
 
 export function emojiFlag(code) {
     if(code == 'en') {
         code = 'gb';
     }
     return flag(code)
-};
+}
 
 export function getLanguage(id) {
     return store.getters.languages.find(l => l.id == id);
@@ -347,10 +347,10 @@ export function languageList() {
         });
     }
     return list;
-};
+}
 
 export function gotoConcept(id, tree = null) {
-    const query = tree ? {...router.currentRoute.value.query, t: tree} : router.currentRoute.value.query;
+    const query = tree ? { ...router.currentRoute.value.query, t: tree } : router.currentRoute.value.query;
     router.push({
         name: 'conceptdetail',
         params: {

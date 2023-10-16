@@ -1,12 +1,12 @@
 // Sans serif
-import "@fontsource/raleway/300.css";
-import "@fontsource/raleway/400.css";
-import "@fontsource/raleway/600.css";
-import "@fontsource/raleway/700.css";
+import '@fontsource/raleway/300.css';
+import '@fontsource/raleway/400.css';
+import '@fontsource/raleway/600.css';
+import '@fontsource/raleway/700.css';
 
 // Monospace
-import "@fontsource/source-code-pro/400.css";
-import "@fontsource/source-code-pro/500.css";
+import '@fontsource/source-code-pro/400.css';
+import '@fontsource/source-code-pro/500.css';
 
 // Font Awesome
 import { library, dom } from '@fortawesome/fontawesome-svg-core';
@@ -66,7 +66,7 @@ import {
     faUserCog,
     faUsers,
     faUserTimes,
-} from "@fortawesome/free-solid-svg-icons";
+} from '@fortawesome/free-solid-svg-icons';
 
 library.add(
     faArrowTurnUp,

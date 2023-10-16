@@ -25,4 +25,4 @@ export function getContributors() {
             roles: ['support_archaeology', 'project_lead_former'],
         }
     ];
-};
+}

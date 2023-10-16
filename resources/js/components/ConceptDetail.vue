@@ -11,11 +11,11 @@
             </h4>
 
             <div class="d-flex flex-row justify-content-start flex-fill overflow-hidden ms-5">
-            <code id="concept-url" class="normal text-end text-black-50 ">{{ state.concept.concept_url }}</code>
-            <a href="" class="ps-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
-                <i class="fas fa-fw fa-copy"></i>
-            </a>
-        </div>
+                <code id="concept-url" class="normal text-end text-black-50 ">{{ state.concept.concept_url }}</code>
+                <a href="" class="ps-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
+                    <i class="fas fa-fw fa-copy"></i>
+                </a>
+            </div>
         </header>
 
         <div class="row flex-grow-1 of-hidden">
@@ -40,7 +40,10 @@
                             @mouseenter="setHoverState('broaders', 'isTop', true)"
                             @mouseleave="setHoverState('broaders', 'isTop', false)"
                             :key="`broaders-${state.concept.id}-isTop`">
-                            {{ t('detail.is_top_concept_short') }}
+                            <template v-if="state.concept.is_top_concept">
+                                {{ t('detail.is_top_concept_short') }}
+                            </template>
+                            <s v-else>{{ t('detail.is_top_concept_short') }}</s>
 
                             <span class="help-handle" v-if="!state.canDeleteTopLevelState"
                                 :title="t('detail.broader.remove_not_possible')">
