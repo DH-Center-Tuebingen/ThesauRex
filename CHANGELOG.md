@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - More dropdowns in modals
 - Show link to Spacialist if set in preferences
 - Broken avatar if is part of Spacialist
+- Tree export
+- Toggling concepts in sandbox tree no longer show descendants on top level
 ### Changed
 - No longer show user profile item in dropdown, if is part of Spacialist
 - Auto select user (or first available) language in _Create Concept_ modal
