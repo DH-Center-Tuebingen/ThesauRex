@@ -256,7 +256,7 @@
                 });
             };
             const onExport = _ => {
-                exportTree();
+                exportTree(treeName.value);
             };
             const onAddTopConcept = _ => {
                 if(!can('thesaurus_write')) return;
