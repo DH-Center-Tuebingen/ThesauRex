@@ -1160,7 +1160,7 @@ class TreeController extends Controller
         }
 
         // check circles
-        $circles = th_detect_circles();
+        $circles = th_detect_circles($thBroader);
 
         if(count($circles) > 0) {
             $circleList = '';
