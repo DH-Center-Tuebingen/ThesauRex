@@ -597,8 +597,10 @@ class TreeController extends Controller
         try {
             if($treeName === 'sandbox') {
                 $concept = ThConceptSandbox::findOrFail($id);
+                $broaderTable = (new ThBroaderSandbox())->getTable();
             } else {
                 $concept = ThConcept::findOrFail($id);
+                $broaderTable = (new ThBroader())->getTable();
             }
         } catch(ModelNotFoundException $e) {
             return response()->json([
@@ -647,7 +649,7 @@ class TreeController extends Controller
         }
 
         // check circles
-        $circles = th_detect_circles();
+        $circles = th_detect_circles($broaderTable);
 
         if(count($circles) > 0) {
             DB::rollBack();
