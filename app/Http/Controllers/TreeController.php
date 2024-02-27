@@ -727,8 +727,8 @@ class TreeController extends Controller
             }
 
             $query->where('broader_id', $bid)
-            ->where('narrower_id', $id)
-            ->delete();
+                ->where('narrower_id', $id)
+                ->delete();
         } else {
             $concept->is_top_concept = false;
             $concept->save();
@@ -1591,14 +1591,20 @@ class TreeController extends Controller
         $clonedConcept->save();
 
         if(!$clonedConcept->is_top_concept) {
-            if($srcTree === 'sandbox') {
-                $relation = new ThBroader();
-            } else {
-                $relation = new ThBroaderSandbox();
+            $exists = th_broader_builder($tgtTree)
+                ->where('broader_id', $tgtBroaderId)
+                ->where('narrower_id', $clonedConcept->id)
+                ->exists();
+            if(!$exists) {
+                if($srcTree === 'sandbox') {
+                    $relation = new ThBroader();
+                } else {
+                    $relation = new ThBroaderSandbox();
+                }
+                $relation->broader_id = $tgtBroaderId;
+                $relation->narrower_id = $clonedConcept->id;
+                $relation->save();
             }
-            $relation->broader_id = $tgtBroaderId;
-            $relation->narrower_id = $clonedConcept->id;
-            $relation->save();
         }
 
         $srcLabels = $srcConcept->labels;
