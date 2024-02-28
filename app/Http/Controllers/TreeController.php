@@ -767,11 +767,8 @@ class TreeController extends Controller
         // 'rerelate' => add concept given by query param 'p' as parent for descendants
         $action = $request->query('a', 'cascade');
 
-        $conceptTable = th_tree_builder($treeName);
-        $broaderTable = th_broader_builder($treeName);
-
-        $broaders = $broaderTable->where('narrower_id', $id)->pluck('broader_id')->toArray();
-        $narrowers = $broaderTable->where('broader_id', $id)->pluck('narrower_id')->toArray();
+        $broaders = th_broader_builder($treeName)->where('narrower_id', $id)->pluck('broader_id')->toArray();
+        $narrowers = th_broader_builder($treeName)->where('broader_id', $id)->pluck('narrower_id')->toArray();
 
         switch($action) {
             case 'cascade':
@@ -780,15 +777,14 @@ class TreeController extends Controller
                 break;
             case 'level':
                 if($concept->is_top_concept) {
-                    $conceptTable
+                    th_tree_builder($treeName)
                         ->whereIn('id', $narrowers)
                         ->update(['is_top_concept' => true]);
                 }
                 $concept->delete();
                 foreach($broaders as $broaderId) {
                     foreach($narrowers as $narrowerId) {
-                        $broaderTable = th_broader_builder($treeName);
-                        $exists = $broaderTable
+                        $exists = th_broader_builder($treeName)
                             ->where('broader_id', $broaderId)
                             ->where('narrower_id', $narrowerId)
                             ->exists();
@@ -808,7 +804,7 @@ class TreeController extends Controller
                 break;
             case 'top':
                 $concept->delete();
-                $conceptTable
+                th_tree_builder($treeName)
                     ->whereIn('id', $narrowers)
                     ->update(['is_top_concept' => true]);
                 break;
@@ -834,8 +830,7 @@ class TreeController extends Controller
                 }
                 $concept->delete();
                 foreach($narrowers as $narrowerId) {
-                    $broaderTable = th_broader_builder($treeName);
-                    $exists = $broaderTable
+                    $exists = th_broader_builder($treeName)
                         ->where('broader_id', $newParentId)
                         ->where('narrower_id', $narrowerId)
                         ->exists();

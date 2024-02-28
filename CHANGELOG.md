@@ -61,6 +61,7 @@ All notable changes to this project will be documented in this file.
 - Ignore uppercase/lowercase letters in login form user names
 - Several problems with removing concepts
 - Adding new top level concept not visible
+- Deleting concept with strategy _Delete & Level Up_ led to orphaned descendant concepts
 
 ## 0.6.2
 ### Changed

@@ -16,6 +16,7 @@ class ThConcept extends ThConceptBase
     protected $fillable = [
         'concept_url',
         'concept_scheme',
+        'is_top_concept',
         'user_id',
     ];
 
