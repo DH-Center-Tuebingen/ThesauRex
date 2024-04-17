@@ -8,6 +8,7 @@ class ThConceptBase extends Model
 {
     protected $table;
     protected $broader;
+
     /**
      * The attributes that are assignable.
      *

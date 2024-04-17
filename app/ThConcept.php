@@ -8,6 +8,8 @@ class ThConcept extends ThConceptBase
 {
     protected $table = 'th_concept';
     protected $broader = ThBroader::class;
+    protected $appends = ['broaders_count'];
+
     /**
      * The attributes that are assignable.
      *
@@ -75,6 +77,10 @@ class ThConcept extends ThConceptBase
             ";
         }
         return DB::select($query);
+    }
+
+    public function getBroadersCountAttribute() {
+        return $this->broaders()->count();
     }
 
     public function labels() {

@@ -337,8 +337,10 @@ export const store = createStore({
                                             sortTree(broaderConcept.children);
                                         }
                                         if(broaderConcept.narrowers) {
-                                            broaderConcept.narrowers.push(narrower);
-                                            sortTree(broaderConcept.narrowers);
+                                            if(!broaderConcept.narrowers.some(n => n.id == narrower.id)) {
+                                                broaderConcept.narrowers.push(narrower);
+                                                sortTree(broaderConcept.narrowers);
+                                            }
                                         }
                                         broaderConcept.children_count++;
                                         broaderConcept.state.openable = true;
@@ -348,8 +350,10 @@ export const store = createStore({
                                     const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
                                     if(narrowerConcept) {
                                         if(narrowerConcept.broaders) {
-                                            narrowerConcept.broaders.push(broader);
-                                            sortTree(narrowerConcept.broaders);
+                                            if(!narrowerConcept.broaders.some(b => b.id == broader.id)) {
+                                                narrowerConcept.broaders.push(broader);
+                                                sortTree(narrowerConcept.broaders);
+                                            }
                                         }
                                     }
                                 }

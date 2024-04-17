@@ -151,7 +151,8 @@
         },
         "narrower": {
             "title": "Untergeordnete Konzepte",
-            "empty": "Keine untergeordneten Konzepte vorhanden"
+            "empty": "Keine untergeordneten Konzepte vorhanden",
+            "remove_not_possible": "Diese Verbindung kann nicht aufgehoben werden, da dies die letzte Verbindung für das ausgewählte Konzept ist. Benutze das Kontextmenü im Baum um das Konzept zu löschen."
         },
         "label": {
             "title": "Beschriftungen",

@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Broken avatar if is part of Spacialist
 - Tree export
 - Toggling concepts in sandbox tree no longer show descendants on top level
+- Removing a narrower relation in _Detail View_ of a narrower with only one broader left only removed the relation, but the narrower concept still existed without any broaders
 ### Changed
 - No longer show user profile item in dropdown, if is part of Spacialist
 - Auto select user (or first available) language in _Create Concept_ modal

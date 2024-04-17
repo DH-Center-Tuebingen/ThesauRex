@@ -90,8 +90,11 @@
                             <a href="" @click.prevent="gotoConcept(narrower.id)">
                                 {{ getLabel(narrower) }}
                             </a>
-                            <span v-show="state.hoverStates.narrowers[i]" @click="removeNarrower(i)">
+                            <span v-show="state.hoverStates.narrowers[i] && narrower.broaders_count > 1" @click="removeNarrower(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
+                            </span>
+                            <span v-show="state.hoverStates.narrowers[i] && narrower.broaders_count <= 1" class="not-allowed-handle" :title="t('detail.narrower.remove_not_possible')">
+                                <i class="fas fa-fw fa-ban"></i>
                             </span>
                         </li>
                     </ul>
@@ -373,6 +376,7 @@
             };
             const removeNarrower = idx => {
                 const narrower = state.concept.narrowers[idx];
+                if(narrower.broaders_count <= 1) return;
                 const nid = narrower.nid || narrower.id;
                 const bid = state.concept.nid || state.concept.id;
                 removeRelation(nid, bid, state.tree);
