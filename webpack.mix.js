@@ -53,7 +53,7 @@ mix.js('resources/js/app.js', 'public/js').vue()
     .extract();
 
 
-if(`public/${appPath}fonts` !== 'public/fonts') {
+if (`public/${appPath}fonts` !== 'public/fonts') {
     mix.copyDirectory(`public/${appPath}fonts`, 'public/fonts');
 }
 mix.alias({
@@ -61,6 +61,6 @@ mix.alias({
 });
 
 mix.browserSync({
-    proxy: 'http://localhost:8000',
+    proxy: 'http://localhost:8001',
     files: 'resources/**/*',
 });
