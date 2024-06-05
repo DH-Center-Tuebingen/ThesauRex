@@ -1,65 +1,104 @@
 <template>
-    <div class="col-md-4 offset-md-4">
-        <div class="login-header mb-3">
-            <h1>ThesauRex</h1>
-            <img src="img/logo.png" width="100" />
+    <div
+        class="col-md-4 offset-md-4 mx-auto"
+        style="max-width: 420px;"
+    >
+        <div class="login-header my-5">
+
+            <img
+                src="img/logo.png"
+                width="100"
+            />
+            <h1 class="mt-4 fw-bold">ThesauRex</h1>
         </div>
-        <div class="card">
+        <div class="card p-3">
             <div class="card-body">
-                <h5 class="card-title">
+                <h2 class="fw-bold card-title mb-4">
                     {{ t('global.login_title') }}
-                </h5>
-                <h6 class="card-subtitle mb-2 text-muted">
-                    {{ t('global.login_subtitle') }}
-                </h6>
+                </h2>
+
+
+
                 <p class="card-text">
-                    <form @submit.prevent="login">
-                        <div class="mb-2">
-                            <label for="email" class="col-md-4 col-form-label">
-                                {{ t('global.email_or_nick') }}
-                                <i class="fas fa-fw fa-user"></i>
-                            </label>
+                <form
+                    @submit.prevent="login"
+                    class="d-flex flex-column gap-2"
+                >
+                    <div class="mb-2">
+                        <label
+                            for="email"
+                            class="mb-2"
+                        >
+                            <i class="text-muted fas fa-fw fa-user me-2"></i>
+                            {{ t('global.email_or_nick') }}
+                        </label>
 
-                            <div class="col-md-6">
-                                <input id="email" type="text" class="form-control" :class="getValidClass(state.error, 'email|nickname|global')" v-model="state.user.email" name="email" required autofocus>
-                            </div>
-                        </div>
+                        <input
+                            id="email"
+                            type="text"
+                            class="form-control"
+                            :class="getValidClass(state.error, 'email|nickname|global')"
+                            v-model="state.user.email"
+                            name="email"
+                            autocomplete="username"
+                            required
+                            autofocus
+                        >
+                    </div>
 
-                        <div class="mb-2">
-                            <label for="password" class="col-md-4 col-form-label">
-                                {{ t('global.password') }}
-                                <i class="fas fa-fw fa-unlock-alt"></i>
-                            </label>
+                    <div>
+                        <label
+                            for="password"
+                            class="mb-2"
+                        >
+                            <i class="text-muted fas fa-fw fa-unlock-alt me-2"></i>
+                            {{ t('global.password') }}
+                        </label>
 
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control" :class="getValidClass(state.error, 'password|global')" v-model="state.user.password" name="password" required>
-                            </div>
-                        </div>
+                        <input
+                            id="password"
+                            type="password"
+                            class="form-control"
+                            :class="getValidClass(state.error, 'password|global')"
+                            v-model="state.user.password"
+                            name="password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
 
-                        <div class="mb-2" v-if="state.error.global">
-                            <div class="col-md-6 text-danger small">
-                                {{ state.error.global }}
-                            </div>
-                        </div>
+                    <div class="mt-3">
+                        <Alert
+                            v-if="state.error.global"
+                            type="error"
+                            :message="state.error.global"
+                            :noicon="false"
+                        />
+                    </div>
 
-                        <div class="mb-2">
-                            <div class="col-md-6 col-md-offset-4">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" name="remember" v-model="state.user.remember"> {{ t('global.remember_me') }}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="col-md-8 col-md-offset-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ t('global.login') }}
-                                </button>
+                            <div class="checkbox">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="remember"
+                                        v-model="state.user.remember"
+                                    > {{ t('global.remember_me') }}
+                                </label>
                             </div>
                         </div>
-                    </form>
+
+                        <LoadingButton
+                            class="btn btn-primary"
+                            :loading="state.loading"
+                        >
+                            {{ t('global.login') }}
+                        </LoadingButton>
+                    </div>
+
+
+                </form>
                 </p>
             </div>
         </div>
@@ -69,6 +108,7 @@
 
 <script>
     import {
+        computed,
         reactive,
         onMounted,
     } from 'vue';
@@ -84,12 +124,21 @@
         getValidClass
     } from '@/helpers/helpers.js';
 
+    import LoadingButton from '@/components/form/LoadingButton.vue';
+    import Alert from './Alert.vue';
+
     export default {
+        components: {
+            Alert,
+            LoadingButton,
+        },
         setup() {
             const { t, locale } = useI18n();
             // DATA
             const state = reactive({
                 user: {},
+                disabled: computed(_ => !state.user.email || !state.user.password),
+                loading: false,
                 redirect: {
                     name: 'home'
                 },
@@ -97,49 +146,51 @@
             });
 
             // FUNCTIONS
-            const login = _ => {
+            const login = async _ => {
+                state.loading = true;
+                state.error = {};
+
                 let data = {
                     password: state.user.password
                 };
                 // dirty check if email field should be treated
                 // as actual email address or nickname
-                if(state.user.email.includes('@')) {
+                if (state.user.email.includes('@')) {
                     data.email = state.user.email;
                 } else {
                     data.nickname = state.user.email;
                 }
-                auth.login({
-                    data: data,
-                    staySignedIn: state.user.remember,
-                    redirect: state.redirect,
-                    fetchUser: true
-                })
-                .then(_ => initApp(locale))
-                .catch(e => {
+
+                try {
+                    await auth.login({
+                        data: data,
+                        staySignedIn: state.user.remember,
+                        redirect: state.redirect,
+                        fetchUser: true
+                    })
+                    initApp(locale)
+                } catch (e) {
                     state.error = getErrorMessages(e);
-                    return Promise.reject();
-                })
-                .then(_ => {
-                    state.error = {};
-                });
+                }
+                state.loading = false;
             };
 
             // ON MOUNTED
             onMounted(_ => {
-                if(auth.check()) {
+                if (auth.check()) {
                     router.push({
                         name: 'home'
                     });
                 }
                 const lastRoute = auth.redirect() ? auth.redirect().from : undefined;
                 const currentRoute = useRoute();
-                if(lastRoute && lastRoute.name != 'login') {
+                if (lastRoute && lastRoute.name != 'login') {
                     state.redirect = {
                         name: lastRoute.name,
                         params: lastRoute.params,
                         query: lastRoute.query
                     };
-                } else if(currentRoute.query && currentRoute.query.redirect) {
+                } else if (currentRoute.query && currentRoute.query.redirect) {
                     state.redirect = {
                         path: currentRoute.query.redirect
                     };
