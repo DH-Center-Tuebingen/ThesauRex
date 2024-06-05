@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
-class UserController extends Controller
-{
+class UserController extends Controller {
     public function __construct() {
         $this->middleware('auth:api', ['except' => ['login']]);
     }
@@ -24,8 +23,8 @@ class UserController extends Controller
 
     public function refreshToken() {
         return response()->json([
-                'status' => 'success'
-            ]);
+            'status' => 'success'
+        ]);
     }
 
     public function getUser(Request $request) {
@@ -37,7 +36,7 @@ class UserController extends Controller
                 'status' => 'success',
                 'data' => $user
             ]);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This user does not exist'
             ], 400);
@@ -46,7 +45,7 @@ class UserController extends Controller
 
     public function getUsers() {
         $user = auth()->user();
-        if(!$user->can('users_roles_read')) {
+        if (!$user->can('users_roles_read')) {
             return response()->json([
                 'error' => __('You do not have the permission to view users')
             ], 403);
@@ -62,7 +61,7 @@ class UserController extends Controller
 
     public function getRoles() {
         $user = auth()->user();
-        if(!$user->can('users_roles_read')) {
+        if (!$user->can('users_roles_read')) {
             return response()->json([
                 'error' => __('You do not have the permission to view roles')
             ], 403);
@@ -80,7 +79,7 @@ class UserController extends Controller
 
     public function getAccessGroups(Request $request) {
         $user = auth()->user();
-        if(!$user->can('users_roles_read')) {
+        if (!$user->can('users_roles_read')) {
             return response()->json([
                 'error' => __('You do not have the permission to view roles')
             ], 403);
@@ -95,21 +94,21 @@ class UserController extends Controller
 
     public function login(Request $request) {
         $this->validate($request, [
-            'email' => 'required_without:nickname|email|max:255|exists:users,email',
-            'nickname' => 'required_without:email|alpha_num|max:255|exists:users,nickname',
+            'email' => 'required_without:nickname|email|max:255',
+            'nickname' => 'required_without:email|alpha_num|max:255',
             'password' => 'required'
         ]);
 
         $creds = ['password'];
-        if($request->has('nickname')) {
+        if ($request->has('nickname')) {
             $creds[] = 'nickname';
         } else {
             $creds[] = 'email';
         }
         $credentials = request($creds);
 
-        if(!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Invalid Credentials'], 400);
+        if (!$token = auth()->attempt($credentials)) {
+            return response()->json(['error' => __('auth.failed')], 400);
         }
 
         return response()
@@ -119,7 +118,7 @@ class UserController extends Controller
 
     public function addUser(Request $request) {
         $user = auth()->user();
-        if(!$user->can('users_roles_create')) {
+        if (!$user->can('users_roles_create')) {
             return response()->json([
                 'error' => 'You do not have the permission to add new users'
             ], 403);
@@ -154,7 +153,7 @@ class UserController extends Controller
 
         try {
             $user = User::findOrFail($user->id);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => __('This user does not exist')
             ], 400);
@@ -174,7 +173,7 @@ class UserController extends Controller
 
     public function addRole(Request $request) {
         $user = auth()->user();
-        if(!$user->can('users_roles_create')) {
+        if (!$user->can('users_roles_create')) {
             return response()->json([
                 'error' => __('You do not have the permission to add roles')
             ], 403);
@@ -183,11 +182,11 @@ class UserController extends Controller
 
         $role = new Role();
         $role->guard_name = 'web';
-        foreach($request->only(array_keys(Role::rules)) as $key => $value) {
+        foreach ($request->only(array_keys(Role::rules)) as $key => $value) {
             $role->{$key} = $value;
         }
 
-        if($request->has('derived_from')) {
+        if ($request->has('derived_from')) {
             $preset = RolePreset::find($request->get('derived_from'));
             $permissions = $preset->fullSet;
             $role->syncPermissions($permissions);
@@ -209,7 +208,7 @@ class UserController extends Controller
     public function patchUser(Request $request, $id) {
         $user = auth()->user();
 
-        if(!$user->can('users_roles_write')) {
+        if (!$user->can('users_roles_write')) {
             return response()->json([
                 'error' => __('You do not have the permission to modify user data')
             ], 403);
@@ -222,13 +221,13 @@ class UserController extends Controller
             'phonenumber' => 'nullable|string|max:255',
         ]);
 
-        if(!$this->hasInput($request)) {
+        if (!$this->hasInput($request)) {
             return response()->json(null, 204);
         }
 
         try {
             $user = User::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => __('This user does not exist')
             ], 400);
@@ -236,9 +235,9 @@ class UserController extends Controller
 
         // Check if another user with the desired email address
         // is already added. If so, return with failed validation
-        if($request->has('email')) {
+        if ($request->has('email')) {
             $userWithMail = User::where('email', $request->get('email'))->first();
-            if(isset($userWithMail) && $userWithMail->id != $id) {
+            if (isset($userWithMail) && $userWithMail->id != $id) {
                 $error = ValidationException::withMessages([
                     'email' => [__('validation.unique', ['attribute' => 'email'])]
                 ]);
@@ -246,7 +245,7 @@ class UserController extends Controller
             }
         }
 
-        if($request->has('roles')) {
+        if ($request->has('roles')) {
             $user->roles()->detach();
             $roles = $request->get('roles');
             $user->assignRole($roles);
@@ -254,19 +253,19 @@ class UserController extends Controller
             // Update updated_at column
             $user->touch();
         }
-        if($request->has('email')) {
+        if ($request->has('email')) {
             $user->email = Str::lower($request->get('email'));
             $user->save();
         }
-        if($request->has('name')) {
+        if ($request->has('name')) {
             $user->name = $request->get('name');
             $user->save();
         }
-        if($request->has('nickname')) {
+        if ($request->has('nickname')) {
             $user->nickname = Str::lower($request->get('nickname'));
             $user->save();
         }
-        if($request->has('phonenumber')) {
+        if ($request->has('phonenumber')) {
             $user->setMetadata(['phonenumber' => $request->get('phonenumber')]);
         }
 
@@ -276,8 +275,7 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function restoreUser($id)
-    {
+    public function restoreUser($id) {
         $user = auth()->user();
         if (!$user->can('users_roles_delete')) {
             return response()->json([
@@ -299,7 +297,7 @@ class UserController extends Controller
 
     public function patchRole(Request $request, $id) {
         $user = auth()->user();
-        if(!$user->can('users_roles_write')) {
+        if (!$user->can('users_roles_write')) {
             return response()->json([
                 'error' => 'You do not have the permission to set role permissions'
             ], 403);
@@ -310,19 +308,19 @@ class UserController extends Controller
             'description' => 'string'
         ]);
 
-        if(!$this->hasInput($request)) {
+        if (!$this->hasInput($request)) {
             return response()->json(null, 204);
         }
 
         try {
             $role = Role::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This role does not exist'
             ], 400);
         }
 
-        if($request->has('permissions')) {
+        if ($request->has('permissions')) {
             $role->permissions()->detach();
             $perms = $request->get('permissions');
             $role->syncPermissions($perms);
@@ -330,10 +328,10 @@ class UserController extends Controller
             // Update updated_at column
             $role->touch();
         }
-        if($request->has('display_name')) {
+        if ($request->has('display_name')) {
             $role->display_name = $request->get('display_name');
         }
-        if($request->has('description')) {
+        if ($request->has('description')) {
             $role->description = $request->get('description');
         }
         $role->save();
@@ -347,7 +345,7 @@ class UserController extends Controller
 
     public function deleteUser($id) {
         $user = auth()->user();
-        if(!$user->can('users_roles_delete')) {
+        if (!$user->can('users_roles_delete')) {
             return response()->json([
                 'error' => __('You do not have the permission to delete users')
             ], 403);
@@ -355,7 +353,7 @@ class UserController extends Controller
 
         try {
             $delUser = User::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => __('This user does not exist')
             ], 400);
@@ -367,7 +365,7 @@ class UserController extends Controller
 
     public function deleteRole($id) {
         $user = auth()->user();
-        if(!$user->can('users_roles_delete')) {
+        if (!$user->can('users_roles_delete')) {
             return response()->json([
                 'error' => __('You do not have the permission to delete roles')
             ], 403);
@@ -375,7 +373,7 @@ class UserController extends Controller
 
         try {
             $delRole = Role::findOrFail($id);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => __('This role does not exist')
             ], 400);
@@ -390,7 +388,7 @@ class UserController extends Controller
 
         try {
             $user = User::findOrFail($user->id);
-        } catch(ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => __('This user does not exist')
             ], 400);

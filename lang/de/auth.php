@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'failed' => 'Invalid username or password. Please try again.',
-    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'failed' => 'Nutzername oder Passwort ist ungültig. Bitte versuchen Sie es erneut.',
+    'throttle' => 'Zu viele Anmeldeversuche. Bitte versuchen Sie es in :seconds Sekunden erneut.',
 
 ];
