@@ -1,39 +1,65 @@
 <template>
     <div class="input-group">
-        <input type="text"
-        autocomplete="off"
-        class="form-control"
-        v-model="query"
-        :placeholder="$t(placeholder)"
-        @input="debounce"
-        @keydown.down="down"
-        @keydown.enter="hit"
-        @keydown.esc="reset"
-        @keydown.up="up"/>
+        <input
+            type="text"
+            autocomplete="off"
+            class="form-control"
+            v-model="query"
+            :placeholder="$t(placeholder)"
+            @input="debounce"
+            @keydown.down="down"
+            @keydown.enter="hit"
+            @keydown.esc="reset"
+            @keydown.up="up"
+        />
         <div class="input-group-append">
-            <span class="input-group-text clickable" @click="clearItem">
+            <span
+                class="input-group-text clickable"
+                @click="clearItem"
+            >
                 <i class="fas fa-fw fa-times"></i>
             </span>
             <span class="input-group-text multiselect-search">
-                <i class="fas fa-spinner fa-spin" v-if="loading"></i>
+                <LoadingSpinner v-if="true" />
                 <template v-else>
                     <i class="fas fa-fw fa-search"></i>
                 </template>
             </span>
         </div>
 
-        <div class="dropdown-menu" style="display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto;" v-show="hasItems || hasAddNewOption">
-            <a href="#" class="dropdown-item px-1" v-for="(item, k) in items" :class="activeClass(k)" @click.prevent="hit" @mousemove="setActive(k)">
+        <div
+            class="dropdown-menu"
+            style="display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto;"
+            v-show="hasItems || hasAddNewOption"
+        >
+            <a
+                href="#"
+                class="dropdown-item px-1"
+                v-for="(item, k) in items"
+                :class="activeClass(k)"
+                @click.prevent="hit"
+                @mousemove="setActive(k)"
+            >
                 {{ item.selectedLabel }}
                 <ol class="breadcrumb mb-0 p-0 pb-1 bg-none small">
-                    <li class="breadcrumb-item" v-for="p in item.parents">
+                    <li
+                        class="breadcrumb-item"
+                        v-for="p in item.parents"
+                    >
                         <span>
                             {{ p.selectedLabel }}
                         </span>
                     </li>
                 </ol>
             </a>
-            <a v-if="addNew" href="#" class="dropdown-item px-1" :class="activeClass(items.length)" @click.prevent="newItem(query)" @mousemove="setActive(items.length)">
+            <a
+                v-if="addNew"
+                href="#"
+                class="dropdown-item px-1"
+                :class="activeClass(items.length)"
+                @click.prevent="newItem(query)"
+                @mousemove="setActive(items.length)"
+            >
                 {{ query }} (Add new)
             </a>
         </div>
@@ -42,8 +68,12 @@
 
 <script>
     import VueTypeahead from 'vue-typeahead';
+    import LoadingSpinner from './LoadingSpinner.vue';
 
     export default {
+        components: {
+            LoadingSpinner
+        },
         extends: VueTypeahead,
         props: {
             placeholder: {
@@ -72,7 +102,7 @@
         },
         methods: {
             // override fetch to return queued request
-            fetch () {
+            fetch() {
                 if (!this.$http) {
                     return util.warn('You need to provide a HTTP client', this)
                 }
@@ -97,12 +127,12 @@
             update() {
                 this.cancel();
 
-                if(!this.query) {
+                if (!this.query) {
                     return this.reset();
                 }
 
-                if(this.minChars) {
-                    if(this.query.length < this.minChars) {
+                if (this.minChars) {
+                    if (this.query.length < this.minChars) {
                         return;
                     }
                 }
@@ -110,14 +140,14 @@
                 this.loading = true;
 
                 this.fetch().then((response) => {
-                    if(response && this.query) {
+                    if (response && this.query) {
                         let data = response.data;
                         data = this.prepareResponseData ? this.prepareResponseData(data) : data;
                         this.items = data;
                         this.current = -1;
                         this.loading = false;
 
-                        if(this.selectFirst) {
+                        if (this.selectFirst) {
                             this.down();
                         }
                     }
@@ -125,13 +155,13 @@
             },
             prepareResponseData(data) {
                 let newData = data.filter(c => {
-                    if(c.id == this.concept.id) {
+                    if (c.id == this.concept.id) {
                         return false;
                     }
-                    if(this.broaderIds.includes(c.id)) {
+                    if (this.broaderIds.includes(c.id)) {
                         return false;
                     }
-                    if(this.narrowerIds.includes(c.id)) {
+                    if (this.narrowerIds.includes(c.id)) {
                         return false;
                     }
 
@@ -146,7 +176,7 @@
                 return newData;
             },
             onHit(item) {
-                if(item) {
+                if (item) {
                     this.query = item.name;
                 } else {
                     this.query = '';
@@ -172,7 +202,7 @@
                 this.reset();
             }
         },
-        data () {
+        data() {
             return {
                 src: 'search/concept',
                 minChars: 3,
