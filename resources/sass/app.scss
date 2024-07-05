@@ -1,5 +1,6 @@
 // Variables
 @import 'variables';
+@import "bootstrap-overrides";
 
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
@@ -25,3 +26,5 @@
 
 // Spacialist specific
 @import "style";
+
+

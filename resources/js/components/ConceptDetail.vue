@@ -1,6 +1,6 @@
 <template>
     <div
-        class="h-100 d-flex flex-column overflow-hidden"
+        class="h-100 d-flex flex-column"
         v-if="state.initialized && state.concept"
     >
         <header class="title-header space-below d-flex justify-content-between">
@@ -16,7 +16,7 @@
                 </small>
             </h4>
 
-            <div class="d-flex flex-row justify-content-start flex-fill overflow-hidden ms-5">
+            <div class="d-flex flex-row justify-content-start flex-fill ms-5">
                 <code
                     id="concept-url"
                     class="normal text-end text-black-50 "
@@ -33,7 +33,7 @@
 
         <div class="row flex-grow-1 overflow-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2 overflow-hidden">
+                <div class="col px-0 d-flex flex-column mb-2">
                     <h5>
                         {{ t('detail.broader.title') }}
                     </h5>

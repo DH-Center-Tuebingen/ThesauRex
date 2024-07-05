@@ -21,3 +21,5 @@ npm-debug.log
 yarn-error.log
 yarn.lock
 .env
+.env.*
+!.env.example

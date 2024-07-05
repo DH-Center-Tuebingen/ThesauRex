@@ -112,7 +112,7 @@ class PreferenceController extends Controller {
                 $userPref->save();
             } else {
                 $pref->default_value = $encodedValue;
-                $allowOverride = $c['allow_override'];
+                $allowOverride = $c['allow_override'] ?? false;
                 if($allowOverride === true || $allowOverride === false) {
                     $removeUserPrefs = $pref->allow_override && !$allowOverride;
                     $pref->allow_override = $allowOverride;

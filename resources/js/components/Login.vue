@@ -6,7 +6,7 @@
         <div class="login-header my-5">
 
             <img
-                src="img/logo.png"
+                src="img/logo.svg"
                 width="100"
             />
             <h1 class="mt-4 fw-bold">ThesauRex</h1>

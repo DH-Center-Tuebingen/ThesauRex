@@ -3,8 +3,10 @@
         <div class="container-fluid">
             <!-- Branding Image -->
             <router-link :to="{ name: 'home' }" class="navbar-brand">
-                <img src="favicon.png" class="logo" alt="spacialist logo" />
-                {{ getPreference('prefs.project-name') }}
+                <img src="favicon.png" class="logo me-3 bb-1" alt="spacialist logo" />
+                <span>
+                    {{ getPreference('prefs.project-name') }}
+                </span>
             </router-link>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,7 +110,7 @@ import {
 
 import {
     router,
-} from "@/bootstrap/router.js";
+} from '@/bootstrap/router.js';
 
 import {
     getPreference,
