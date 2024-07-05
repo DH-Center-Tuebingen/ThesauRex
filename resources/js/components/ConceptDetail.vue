@@ -1,6 +1,6 @@
 <template>
     <div
-        class="h-100 d-flex flex-column of-hidden"
+        class="h-100 d-flex flex-column overflow-hidden"
         v-if="state.initialized && state.concept"
     >
         <header class="title-header space-below d-flex justify-content-between">
@@ -31,9 +31,9 @@
             </div>
         </header>
 
-        <div class="row flex-grow-1 of-hidden">
+        <div class="row flex-grow-1 overflow-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="col px-0 d-flex flex-column mb-2 overflow-hidden">
                     <h5>
                         {{ t('detail.broader.title') }}
                     </h5>
@@ -135,7 +135,7 @@
                         {{ t('detail.broader.empty') }}
                     </p> -->
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="col px-0 d-flex flex-column mb-2 overflow-hidden">
                     <h5>
                         {{ t('detail.narrower.title') }}
                     </h5>
@@ -189,7 +189,7 @@
                 </div>
             </div>
             <div class="col-md-6 h-100 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="col px-0 d-flex flex-column mb-2 overflow-hidden">
                     <header class="d-flex justify-content-between">
                         <h5>
                             {{ t('detail.label.title') }}
@@ -228,7 +228,7 @@
                         </LocalizedInput>
                     </form>
                     <ul
-                        class="list-group list-group-xs col of-hidden pe-0 scroll-y-auto"
+                        class="list-group list-group-xs col overflow-hidden pe-0 scroll-y-auto"
                         v-if="state.hasLabels"
                     >
                         <li
@@ -297,7 +297,7 @@
                         {{ t('detail.label.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="col px-0 d-flex flex-column mb-2 overflow-hidden">
                     <h5>
                         {{ t('detail.note.title') }}
                     </h5>
@@ -325,7 +325,7 @@
 
                     </form>
                     <ul
-                        class="list-group list-group-xs col of-hidden pe-0 scroll-y-auto"
+                        class="list-group list-group-xs col overflow-hidden pe-0 scroll-y-auto"
                         v-if="state.hasNotes"
                     >
                         <li

@@ -114,7 +114,7 @@
             </div>
         </div>
         <div
-            class="position-absolute top-0 start-0 h-100 w-100 bg-light bg-opacity-50"
+            class="position-absolute end-0 start-0 h-100 w-100 bg-light bg-opacity-50"
             style="z-index: 9999;"
             v-show="state.isUploading"
         >

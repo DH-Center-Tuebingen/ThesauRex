@@ -8,17 +8,17 @@
                 <i style="font-size:1.1rem" class="fa-fw fa-solid fa-file-circle-plus"></i>
             </span>
         </div>
-        <div class="row h-100 of-hidden flex-grow-1">
+        <div class="row h-100 overflow-hidden flex-grow-1">
 
             <div class="sandbox-view h-100 col-md-3 d-flex flex-column fade-in" v-if="state.showSandbox">
-                <concept-tree class="flex-grow-1 of-hidden" :drag-target="state.dragTarget"
+                <concept-tree class="flex-grow-1 overflow-hidden" :drag-target="state.dragTarget"
                     :tree-data="state.sandboxConcepts" :tree-name="'sandbox'" @added="addConceptTo('sandbox')"
                     @change-drag-target="changeDragTarget">
 
                     <template #title>
-                        <h4>
+                        <h2>
                             {{ t('tree.sandbox.title') }}
-                        </h4>
+                        </h2>
                     </template>
 
                 </concept-tree>
@@ -27,7 +27,7 @@
                 <div class="row h-100">
                     <div class="col-md-4 h-100 d-flex flex-column">
 
-                        <concept-tree class="flex-grow-1 of-hidden" :drag-target="state.dragTarget"
+                        <concept-tree class="flex-grow-1 overflow-hidden" :drag-target="state.dragTarget"
                             :tree-data="state.projectConcepts" :tree-name="'project'" @added="addConceptTo('project')"
                             @change-drag-target="changeDragTarget">
 
