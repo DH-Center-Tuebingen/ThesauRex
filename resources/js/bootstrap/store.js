@@ -14,6 +14,7 @@ import {
 import {
     getConceptParentIds,
 } from '@/api.js';
+import contextStore from './store/context-store';
 
 export const store = createStore({
     modules: {
@@ -675,6 +676,7 @@ export const store = createStore({
                 isStandalone: (state) => state.standalone,
             },
         },
+        contextMenu: contextStore
     },
 });
 

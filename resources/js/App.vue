@@ -1,7 +1,7 @@
 <template>
     <div class="d-flex flex-column h-100">
         <Navigation />
-        <div class="container-fluid my-3 col overflow-hidden">
+        <div class="container-fluid my-3 col">
             <template v-if="state.init">
                 <router-view></router-view>
             </template>
@@ -14,6 +14,7 @@
         <importing-info-modal></importing-info-modal>
         <modals-container></modals-container>
         <div class="toast-container ps-3 pb-3" id="toast-container"></div>
+        <ContextMenu v-if="store.getters['contextMenu/active']" />
     </div>
 </template>
 
@@ -37,9 +38,11 @@ import {
 
 import LoadingSpinner from './components/LoadingSpinner.vue';
 import Navigation from './components/Navigation.vue';
+import ContextMenu from './components/ContextMenu.vue';
 
 export default {
     components: {
+        ContextMenu,
         LoadingSpinner,
         Navigation,
     },
@@ -87,6 +90,7 @@ export default {
             // PROPS
             // STATE
             state,
+            store,
         };
     }
 }
