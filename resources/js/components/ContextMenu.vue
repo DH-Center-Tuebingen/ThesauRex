@@ -1,7 +1,7 @@
 <template>
     <div ref="contextMenuRef" class="context-menu" :style="contextPositioning">
         <div class="red">
-
+            {{ component }}
         </div>
         <component :is="component"></component>
     </div>
@@ -14,12 +14,6 @@ import { onMounted } from 'vue';
 import store from '../bootstrap/store';
 
 export default {
-    props: {
-        component: {
-            type: String,
-            required: true,
-        }
-    },
     setup() {
         const contextMenuRef = ref(null);
 
@@ -39,6 +33,7 @@ export default {
         });
 
         return {
+            component: store.getters['contextMenu/component'],
             contextMenuRef,
             contextPositioning: {
                 position: 'absolute',

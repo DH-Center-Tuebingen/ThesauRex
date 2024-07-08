@@ -1,5 +1,3 @@
-import { set } from 'lodash';
-
 export default {
     namespaced: true,
     state: {

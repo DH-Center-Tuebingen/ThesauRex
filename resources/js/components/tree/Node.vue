@@ -54,7 +54,9 @@ export default {
 
         // FUNCTIONS
         const openContextMenu = _ => {
-            store.dispatch('contextMenu/toggleActive');
+            store.commit('contextMenu/set', {
+                component: 'NodeContextContent',
+            });
         };
 
         const onDragEnter = _ => {

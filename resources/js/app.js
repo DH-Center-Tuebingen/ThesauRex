@@ -44,6 +44,7 @@ import '@/bootstrap/font.js';
 
 // Components
 import App from './App.vue';
+import registerContextComponents from './globals/context-components';
 
 const app = createApp(App);
 app.use(i18n);
@@ -51,6 +52,8 @@ app.use(router);
 app.use(store);
 app.use(vueAuth);
 app.use(VueFinalModal());
+
+registerContextComponents(app);
 
 // Directives
 app.directive('dcan', {
