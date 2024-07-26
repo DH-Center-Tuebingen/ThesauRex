@@ -3,11 +3,11 @@
 @import "bootstrap-overrides";
 
 // Bootstrap
-@import '~bootstrap/scss/bootstrap';
+@import "/node_modules/bootstrap/scss/bootstrap";
 @import "bootstrap";
 
 // tree component
-@import "~tree-component/dist/tree.min.css";
+@import "/node_modules/tree-component/dist/tree.min.css";
 @import "tree";
 
 // vue-upload-component
@@ -15,7 +15,7 @@
 
 
 // multiselect
-@import "~@vueform/multiselect/themes/default";
+@import "/node_modules/@vueform/multiselect/themes/default";
 @import "multiselect";
 
 // v-modal

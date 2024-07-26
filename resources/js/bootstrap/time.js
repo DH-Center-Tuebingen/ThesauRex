@@ -1,7 +1,7 @@
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import utc from 'dayjs/plugin/utc';
 
-const relativeTime = require('dayjs/plugin/relativeTime');
-const utc = require('dayjs/plugin/utc')
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
 

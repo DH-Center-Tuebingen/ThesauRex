@@ -12,16 +12,15 @@
     <title>ThesauRex - {{ $p['prefs.project-name'] }}</title>
 
     <!-- Styles -->
-    <link href="css/app.css" rel="stylesheet">
+    @vite([
+        'resources/js/app.js',
+        'resources/sass/app.scss',
+    ])
 </head>
 <body>
     <div id="app" class="d-flex flex-column">
         @yield('content')
     </div>
 
-    <!-- Scripts -->
-    <script src="js/manifest.js"></script>
-    <script src="js/vendor.js"></script>
-    <script src="js/app.js"></script>
 </body>
 </html>
