@@ -7,7 +7,7 @@
 
             <img
                 src="img/logo.svg"
-                width="100"
+                width="128"
             />
             <h1 class="mt-4 fw-bold">ThesauRex</h1>
         </div>
