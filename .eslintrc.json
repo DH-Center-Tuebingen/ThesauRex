@@ -17,6 +17,7 @@
         "no-unused-vars": "off",
         "no-extra-boolean-cast": "off",
         "no-extra-semi": "warn",
+        "vue/no-v-model-argument": "off",
         "quotes": [
             "warn",
             "single",

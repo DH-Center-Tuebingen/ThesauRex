@@ -10,98 +10,23 @@
                 width="128"
             />
             <h1 class="mt-4 fw-bold">ThesauRex</h1>
+
+            <Login 
+                :loading="state.loading"
+                :disabled="state.disabled"
+                v-model:username="state.user.email"
+                v-model:password="state.user.password"
+                @login="login"
+                :error="state.error"
+                :errorMessage="state.errorMessage"
+                :passwordLabel="{text: 'Password', icon: 'fas fa-lock'}"
+                :userLabel="{text: 'Email or Nickname', icon: 'fas fa-lock'}"
+                :submitText="'Login'"
+                :stayLoggedIn="{text: 'Stay logged in', }"
+
+            />
         </div>
-        <div class="card p-3">
-            <div class="card-body">
-                <h2 class="fw-bold card-title mb-4">
-                    {{ t('global.login_title') }}
-                </h2>
-
-
-
-                <p class="card-text">
-                <form
-                    @submit.prevent="login"
-                    class="d-flex flex-column gap-2"
-                >
-                    <div class="mb-2">
-                        <label
-                            for="email"
-                            class="mb-2"
-                        >
-                            <i class="text-muted fas fa-fw fa-user me-2"></i>
-                            {{ t('global.email_or_nick') }}
-                        </label>
-
-                        <input
-                            id="email"
-                            type="text"
-                            class="form-control"
-                            :class="getValidClass(state.error, 'email|nickname|global')"
-                            v-model="state.user.email"
-                            name="email"
-                            autocomplete="username"
-                            required
-                            autofocus
-                        >
-                    </div>
-
-                    <div>
-                        <label
-                            for="password"
-                            class="mb-2"
-                        >
-                            <i class="text-muted fas fa-fw fa-unlock-alt me-2"></i>
-                            {{ t('global.password') }}
-                        </label>
-
-                        <input
-                            id="password"
-                            type="password"
-                            class="form-control"
-                            :class="getValidClass(state.error, 'password|global')"
-                            v-model="state.user.password"
-                            name="password"
-                            autocomplete="current-password"
-                            required
-                        >
-                    </div>
-
-                    <div class="mt-3">
-                        <Alert
-                            v-if="state.error.global"
-                            type="error"
-                            :message="state.error.global"
-                            :noicon="false"
-                        />
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="checkbox">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="remember"
-                                        v-model="state.user.remember"
-                                    > {{ t('global.remember_me') }}
-                                </label>
-                            </div>
-                        </div>
-
-                        <LoadingButton
-                            class="btn btn-primary"
-                            :loading="state.loading"
-                        >
-                            {{ t('global.login') }}
-                        </LoadingButton>
-                    </div>
-
-
-                </form>
-                </p>
-            </div>
-        </div>
+      
     </div>
 </template>
 
@@ -112,6 +37,8 @@
         reactive,
         onMounted,
     } from 'vue';
+
+    import Login from 'dhc-components/Login'
 
     import { useI18n } from 'vue-i18n';
     import { useRoute } from 'vue-router';
@@ -124,31 +51,36 @@
         getValidClass
     } from '@/helpers/helpers.js';
 
-    import LoadingButton from '@/components/form/LoadingButton.vue';
-    import Alert from './Alert.vue';
+    // import Alert from './Alert.vue';
 
     export default {
         components: {
-            Alert,
-            LoadingButton,
+            Login,
         },
         setup() {
             const { t, locale } = useI18n();
             // DATA
             const state = reactive({
-                user: {},
+                user: {
+                    email: '',
+                    password: '',
+                },
                 disabled: computed(_ => !state.user.email || !state.user.password),
                 loading: false,
                 redirect: {
                     name: 'home'
                 },
-                error: {},
+                error: false,
+                errorMessage: {
+                    type: '',
+                    message: '',
+                }
             });
 
             // FUNCTIONS
             const login = async _ => {
                 state.loading = true;
-                state.error = {};
+                state.error = false;
 
                 let data = {
                     password: state.user.password
@@ -170,7 +102,12 @@
                     })
                     initApp(locale)
                 } catch (e) {
-                    state.error = getErrorMessages(e);
+                    state.error = true;
+                    const errorObject = getErrorMessages(e);
+                    state.errorMessage = {
+                        type: 'error',
+                        text: Object.values(errorObject).join(' ::: ')
+                    }; 
                 }
                 state.loading = false;
             };
