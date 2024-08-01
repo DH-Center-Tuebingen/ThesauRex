@@ -7,91 +7,94 @@
             </template>
             <template v-else>
                 <div class="h-100 d-flex flex-column justify-content-center align-items-center">
-                    <LoadingSpinner />
+                    <LoadingSpinner size="3x" />
                 </div>
             </template>
         </div>
         <importing-info-modal></importing-info-modal>
         <modals-container></modals-container>
-        <div class="toast-container ps-3 pb-3" id="toast-container"></div>
+        <div
+            class="toast-container ps-3 pb-3"
+            id="toast-container"
+        ></div>
         <ContextMenu v-if="store.getters['contextMenu/active']" />
     </div>
 </template>
 
 <script>
-import {
-    reactive,
-    computed,
-    inject,
-    onMounted,
-} from 'vue';
+    import {
+        reactive,
+        computed,
+        inject,
+        onMounted,
+    } from 'vue';
 
 
-import store from '@/bootstrap/store.js';
-import { useI18n } from 'vue-i18n';
-import { provideToast, useToast } from '@/plugins/toast.js';
+    import store from '@/bootstrap/store.js';
+    import { useI18n } from 'vue-i18n';
+    import { provideToast, useToast } from '@/plugins/toast.js';
 
-import {
-    initApp,
-    throwError,
-} from '@/helpers/helpers.js';
+    import {
+        initApp,
+        throwError,
+    } from '@/helpers/helpers.js';
 
-import LoadingSpinner from './components/LoadingSpinner.vue';
-import Navigation from './components/Navigation.vue';
-import ContextMenu from './components/ContextMenu.vue';
+    import { LoadingSpinner } from 'dhc-components';
+    import Navigation from './components/Navigation.vue';
+    import ContextMenu from './components/ContextMenu.vue';
 
-export default {
-    components: {
-        ContextMenu,
-        LoadingSpinner,
-        Navigation,
-    },
-    setup(props) {
-        const { t, locale } = useI18n();
-        store.dispatch('setModalInstance', inject('$vfm'));
+    export default {
+        components: {
+            ContextMenu,
+            LoadingSpinner,
+            Navigation,
+        },
+        setup(props) {
+            const { t, locale } = useI18n();
+            store.dispatch('setModalInstance', inject('$vfm'));
 
-        // FETCH
-        initApp(locale).then(_ => {
-            store.dispatch('setAppState', true);
-        }).catch(e => {
-            if (e.response.status == 401) {
+            // FETCH
+            initApp(locale).then(_ => {
                 store.dispatch('setAppState', true);
-            } else {
-                throwError(e);
-            }
-        });
-
-        // DATA
-        const state = reactive({
-            init: computed(_ => store.getters.appInitialized),
-        });
-
-
-
-        // ON MOUNTED
-        onMounted(_ => {
-            provideToast({
-                duration: 2500,
-                autohide: true,
-                channel: 'success',
-                icon: true,
-                simple: false,
-                is_tag: false,
-                container: 'toast-container',
+            }).catch(e => {
+                if(e.response.status == 401) {
+                    store.dispatch('setAppState', true);
+                } else {
+                    throwError(e);
+                }
             });
-            useToast();
-        });
 
-        // RETURN
-        return {
-            t,
-            // HELPERS
-            // LOCAL
-            // PROPS
-            // STATE
-            state,
-            store,
-        };
+            // DATA
+            const state = reactive({
+                init: computed(_ => store.getters.appInitialized),
+            });
+
+
+
+            // ON MOUNTED
+            onMounted(_ => {
+                provideToast({
+                    duration: 2500,
+                    autohide: true,
+                    channel: 'success',
+                    icon: true,
+                    simple: false,
+                    is_tag: false,
+                    container: 'toast-container',
+                });
+                useToast();
+            });
+
+            // RETURN
+            return {
+                t,
+                // HELPERS
+                // LOCAL
+                // PROPS
+                // STATE
+                state,
+                store,
+            };
+        }
     }
-}
 </script>

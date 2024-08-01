@@ -68,7 +68,7 @@
 
 <script>
     import VueTypeahead from 'vue-typeahead';
-    import LoadingSpinner from './LoadingSpinner.vue';
+    import { LoadingSpinner } from 'dhc-components';
 
     export default {
         components: {
@@ -103,11 +103,11 @@
         methods: {
             // override fetch to return queued request
             fetch() {
-                if (!this.$http) {
+                if(!this.$http) {
                     return util.warn('You need to provide a HTTP client', this)
                 }
 
-                if (!this.src) {
+                if(!this.src) {
                     return util.warn('You need to set the `src` property', this)
                 }
 
@@ -127,12 +127,12 @@
             update() {
                 this.cancel();
 
-                if (!this.query) {
+                if(!this.query) {
                     return this.reset();
                 }
 
-                if (this.minChars) {
-                    if (this.query.length < this.minChars) {
+                if(this.minChars) {
+                    if(this.query.length < this.minChars) {
                         return;
                     }
                 }
@@ -140,14 +140,14 @@
                 this.loading = true;
 
                 this.fetch().then((response) => {
-                    if (response && this.query) {
+                    if(response && this.query) {
                         let data = response.data;
                         data = this.prepareResponseData ? this.prepareResponseData(data) : data;
                         this.items = data;
                         this.current = -1;
                         this.loading = false;
 
-                        if (this.selectFirst) {
+                        if(this.selectFirst) {
                             this.down();
                         }
                     }
@@ -155,13 +155,13 @@
             },
             prepareResponseData(data) {
                 let newData = data.filter(c => {
-                    if (c.id == this.concept.id) {
+                    if(c.id == this.concept.id) {
                         return false;
                     }
-                    if (this.broaderIds.includes(c.id)) {
+                    if(this.broaderIds.includes(c.id)) {
                         return false;
                     }
-                    if (this.narrowerIds.includes(c.id)) {
+                    if(this.narrowerIds.includes(c.id)) {
                         return false;
                     }
 
@@ -176,7 +176,7 @@
                 return newData;
             },
             onHit(item) {
-                if (item) {
+                if(item) {
                     this.query = item.name;
                 } else {
                     this.query = '';

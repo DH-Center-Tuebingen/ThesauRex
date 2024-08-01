@@ -22,7 +22,7 @@
 </template>
 
 <script>
-    import LoadingSpinner from '../LoadingSpinner.vue';
+    import { LoadingSpinner } from 'dhc-components';
 
     export default {
         components: {
