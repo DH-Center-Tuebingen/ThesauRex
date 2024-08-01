@@ -2,7 +2,13 @@
     <div class="row">
         <label class="col-md-2 form-label"></label>
         <div class="col-md-10">
-            <input class="form-control" type="text" v-model="data" :readonly="readonly" @input="onChange" />
+            <input
+                class="form-control"
+                type="text"
+                v-model="data"
+                :readonly="readonly"
+                @input="onChange"
+            />
         </div>
     </div>
 </template>
@@ -13,7 +19,7 @@
     } from 'vue';
 
     import {
-        _debounce
+        debounce
     } from '@/helpers/helpers.js';
 
     export default {
@@ -36,7 +42,7 @@
             } = toRefs(props);
 
             // FUNCTIONS
-            const onChange = _debounce(e => {
+            const onChange = debounce(e => {
                 if(readonly.value) return;
                 context.emit('changed', {
                     value: e.target.value

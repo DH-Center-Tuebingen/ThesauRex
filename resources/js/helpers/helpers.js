@@ -19,15 +19,8 @@ import {
     showError,
 } from '@/helpers/modal.js';
 
-export const cloneDeep = import('lodash/cloneDeep');
-export const debounce = import('lodash/debounce');
-export const throttle = import('lodash/throttle');
-export const orderBy = import('lodash/orderBy');
-
-export const _cloneDeep = cloneDeep
-export const _debounce = debounce
-export const _throttle = throttle
-export const _orderBy = orderBy
+export { default as cloneDeep } from 'lodash/cloneDeep';
+export { default as debounce } from 'lodash/debounce';
 
 export const multiselectResetClasslist = { clear: 'multiselect-clear multiselect-clear-reset' };
 
@@ -45,13 +38,13 @@ export async function initApp(locale) {
 export function can(permissionString, oneOf) {
     oneOf = oneOf || false;
     const user = store.getters.user;
-    if (!user) return false;
+    if(!user) return false;
     const permissions = permissionString.split('|');
     const hasPermission = permission => {
         return user.permissions[permission] === 1;
     };
 
-    if (oneOf) {
+    if(oneOf) {
         return permissions.some(hasPermission);
     } else {
         return permissions.every(hasPermission);
@@ -61,13 +54,13 @@ export function can(permissionString, oneOf) {
 export function getErrorMessages(error, suffix = '') {
     let msgObject = {};
     const r = error.response;
-    if (r.status == 422) {
-        if (r.data.errors) {
-            for (let k in r.data.errors) {
+    if(r.status == 422) {
+        if(r.data.errors) {
+            for(let k in r.data.errors) {
                 msgObject[`${k}${suffix}`] = r.data.errors[k];
             }
         }
-    } else if (r.status == 400) {
+    } else if(r.status == 400) {
         msgObject.global = r.data.error;
     }
     return msgObject;
@@ -80,7 +73,7 @@ export function getTs() {
 
 export function hasPreference(prefKey, prop) {
     const ps = store.getters.preferenceByKey(prefKey);
-    if (ps) {
+    if(ps) {
         return ps[prop] || ps;
     }
 }
@@ -163,7 +156,7 @@ export function slugify(s, delimiter = '-') {
     };
 
     // Transliterate characters to ASCII
-    for (var k in char_map) {
+    for(var k in char_map) {
         s = s.replace(RegExp(k, 'g'), char_map[k]);
     }
 
@@ -183,7 +176,7 @@ export function slugify(s, delimiter = '-') {
 export function createDownloadLink(content, filename, base64 = false, contentType = 'text/plain') {
     var link = document.createElement('a');
     let url;
-    if (base64) {
+    if(base64) {
         url = `data:${contentType};base64,${content}`;
     } else {
         url = window.URL.createObjectURL(new Blob([content]));
@@ -209,7 +202,7 @@ export function userId() {
 
 export function getUsers() {
     const fallback = [];
-    if (isLoggedIn()) {
+    if(isLoggedIn()) {
         return store.getters.users || fallback;
     } else {
         return fallback;
@@ -218,7 +211,7 @@ export function getUsers() {
 
 export function getRoles(withPermissions = false) {
     const fallback = [];
-    if (isLoggedIn()) {
+    if(isLoggedIn()) {
         return store.getters.roles(!withPermissions) || fallback;
     } else {
         return fallback;
@@ -226,10 +219,10 @@ export function getRoles(withPermissions = false) {
 }
 
 export function getUserBy(value, attr = 'id') {
-    if (isLoggedIn()) {
+    if(isLoggedIn()) {
         const isNum = !isNaN(value);
         const lValue = isNum ? value : value.toLowerCase();
-        if (attr == 'id' && value == userId()) {
+        if(attr == 'id' && value == userId()) {
             return getUser();
         } else {
             return getUsers().find(u => isNum ? (u[attr] == lValue) : (u[attr].toLowerCase() == lValue));
@@ -240,7 +233,7 @@ export function getUserBy(value, attr = 'id') {
 }
 
 export function getRoleBy(value, attr = 'id', withPermissions = false) {
-    if (isLoggedIn()) {
+    if(isLoggedIn()) {
         const isNum = !isNaN(value);
         const lValue = isNum ? value : value.toLowerCase();
         return getRoles(withPermissions).find(r => isNum ? (r[attr] == lValue) : (r[attr].toLowerCase() == lValue));
@@ -254,7 +247,7 @@ export function isStandalone() {
 }
 
 export function throwError(error) {
-    if (error.response) {
+    if(error.response) {
         const r = error.response;
         const req = {
             status: r.status,
@@ -262,7 +255,7 @@ export function throwError(error) {
             method: r.config.method.toUpperCase()
         };
         showErrorModal(r.data, r.headers, req);
-    } else if (error.request) {
+    } else if(error.request) {
         showErrorModal(error.request);
     } else {
         showErrorModal(error.message || error);
@@ -309,11 +302,11 @@ export function firstOrPlain(value) {
 
 export function getValidClass(msgObject, field) {
     // TODO remove if
-    if (!msgObject) return;
+    if(!msgObject) return;
 
     let isInvalid = false;
     field.split('|').forEach(f => {
-        if (!!msgObject[f]) {
+        if(!!msgObject[f]) {
             isInvalid = true;
         }
     });
@@ -332,7 +325,7 @@ export function getClassByValidation(errorList) {
 }
 
 export function emojiFlag(code) {
-    if (code == 'en') {
+    if(code == 'en') {
         code = 'gb';
     }
     return flag(code)
@@ -344,7 +337,7 @@ export function getLanguage(id) {
 
 export function languageList() {
     const list = [];
-    for (let k in countries) {
+    for(let k in countries) {
         list.push({
             id: list.length + 1,
             code: k.toLowerCase(),

@@ -1,41 +1,81 @@
 <template>
-    <div class="row mb-3" :title="t('settings.preference.tooltip.missing_labels')">
+    <div
+        class="row mb-3"
+        :title="t('settings.preference.tooltip.missing_labels')"
+    >
         <label class="col-md-2 form-label text-end">
             {{ t('settings.preference.key.import_keys.ignore_missing_labels') }}
         </label>
         <div class="col-md-10">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" v-model="state.ignoreLabels" :readonly="readonly" :disabled="readonly || state.skipLabels" @input="onChange" >
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="state.ignoreLabels"
+                    :readonly="readonly"
+                    :disabled="readonly || state.skipLabels"
+                    @input="onChange"
+                >
             </div>
         </div>
     </div>
-    <div class="row mb-3" :title="t('settings.preference.tooltip.skip_labels')">
+    <div
+        class="row mb-3"
+        :title="t('settings.preference.tooltip.skip_labels')"
+    >
         <label class="col-md-2 form-label text-end">
             {{ t('settings.preference.key.import_keys.skip_missing_labels') }}
         </label>
         <div class="col-md-10">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" v-model="state.skipLabels" :readonly="readonly" :disabled="readonly" @input="onChange" >
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="state.skipLabels"
+                    :readonly="readonly"
+                    :disabled="readonly"
+                    @input="onChange"
+                >
             </div>
         </div>
     </div>
-    <div class="row mb-3" :title="t('settings.preference.tooltip.missing_languages')">
+    <div
+        class="row mb-3"
+        :title="t('settings.preference.tooltip.missing_languages')"
+    >
         <label class="col-md-2 form-label text-end">
             {{ t('settings.preference.key.import_keys.ignore_missing_languages') }}
         </label>
         <div class="col-md-10">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" v-model="state.ignoreLanguages" :readonly="readonly" :disabled="readonly" @input="onChange" >
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="state.ignoreLanguages"
+                    :readonly="readonly"
+                    :disabled="readonly"
+                    @input="onChange"
+                >
             </div>
         </div>
     </div>
-    <div class="row" :title="t('settings.preference.tooltip.missing_relations')">
+    <div
+        class="row"
+        :title="t('settings.preference.tooltip.missing_relations')"
+    >
         <label class="col-md-2 form-label text-end">
             {{ t('settings.preference.key.import_keys.ignore_missing_relations') }}
         </label>
         <div class="col-md-10">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" v-model="state.ignoreRelations" :readonly="readonly" :disabled="readonly" @input="onChange" >
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="state.ignoreRelations"
+                    :readonly="readonly"
+                    :disabled="readonly"
+                    @input="onChange"
+                >
             </div>
         </div>
     </div>
@@ -50,7 +90,7 @@
     import { useI18n } from 'vue-i18n';
 
     import {
-        _debounce
+        debounce
     } from '@/helpers/helpers.js';
 
     export default {
@@ -68,14 +108,10 @@
         emits: ['changed'],
         setup(props, context) {
             const { t } = useI18n();
-            const {
-                data,
-                readonly,
-            } = toRefs(props);
 
             // FUNCTIONS
-            const onChange = _debounce(e => {
-                if(readonly.value) return;
+            const onChange = debounce(e => {
+                if(props.readonly) return;
                 context.emit('changed', {
                     value: {
                         skip_missing_labels: state.skipLabels,
@@ -88,10 +124,10 @@
 
             // DATA
             const state = reactive({
-                skipLabels: data.value.skip_missing_labels,
-                ignoreLabels: data.value.ignore_missing_labels,
-                ignoreLanguages: data.value.ignore_missing_languages,
-                ignoreRelations: data.value.ignore_missing_relations,
+                skipLabels: props.data.skip_missing_labels,
+                ignoreLabels: props.data.ignore_missing_labels,
+                ignoreLanguages: props.data.ignore_missing_languages,
+                ignoreRelations: props.data.ignore_missing_relations,
             });
 
             // RETURN
@@ -99,9 +135,6 @@
                 t,
                 // LOCAL
                 onChange,
-                // PROPS
-                data,
-                readonly,
                 // STATE
                 state,
             };

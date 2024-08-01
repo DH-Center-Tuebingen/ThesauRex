@@ -10,11 +10,20 @@
                 :directory="false"
                 :drop="true"
                 :multiple="false"
-                @input-file="inputFile">
-                    <user-avatar :user="state.avatarUser" class="d-flex justify-content-center"></user-avatar>
+                @input-file="inputFile"
+            >
+                <user-avatar
+                    :user="state.avatarUser"
+                    class="d-flex justify-content-center"
+                ></user-avatar>
             </file-upload>
             <div class="text-center mt-3">
-                <button type="button" class="btn btn-outline-danger" :disabled="!state.avatarUser.avatar" @click="deleteAvatar()">
+                <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    :disabled="!state.avatarUser.avatar"
+                    @click="deleteAvatar()"
+                >
                     {{ t('global.delete') }}
                 </button>
             </div>
@@ -26,32 +35,63 @@
                     {{ t('global.user.info_title') }}
                 </h3>
                 <div>
-                    <button type="submit" class="btn btn-outline-success" form="profile-user-info-form">
+                    <button
+                        type="submit"
+                        class="btn btn-outline-success"
+                        form="profile-user-info-form"
+                    >
                         <i class="fas fa-fw fa-save"></i>
                         {{ t('global.save') }}
                     </button>
-                    <button type="button" class="btn btn-outline-warning ms-3" :disabled="!state.isDirty" @click="resetUserInfo()">
+                    <button
+                        type="button"
+                        class="btn btn-outline-warning ms-3"
+                        :disabled="!state.isDirty"
+                        @click="resetUserInfo()"
+                    >
                         <i class="fas fa-fw fa-undo"></i>
                         {{ t('global.reset') }}
                     </button>
                 </div>
             </div>
-            <form id="profile-user-info-form" name="profile-user-info-form" class="row mt-3" role="form" @submit.prevent="updateUserInformation()">
+            <form
+                id="profile-user-info-form"
+                name="profile-user-info-form"
+                class="row mt-3"
+                role="form"
+                @submit.prevent="updateUserInformation()"
+            >
                 <div class="col-6">
                     <h4>
                         {{ t('global.user.personal_info_title') }}
                     </h4>
                     <div class="mb-2">
-                        <label class="fw-bold" for="profile-user-info-name">
+                        <label
+                            class="fw-bold"
+                            for="profile-user-info-name"
+                        >
                             {{ t('global.name') }}:
                         </label>
-                        <input type="text" class="form-control" id="profile-user-info-name" v-model="state.localUser.name" />
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="profile-user-info-name"
+                            v-model="state.localUser.name"
+                        />
                     </div>
                     <div>
-                        <label class="fw-bold" for="profile-user-info-nickname">
+                        <label
+                            class="fw-bold"
+                            for="profile-user-info-nickname"
+                        >
                             {{ t('global.nickname') }}:
                         </label>
-                        <input type="text" class="form-control" id="profile-user-info-nickname" v-model="state.localUser.nickname" />
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="profile-user-info-nickname"
+                            v-model="state.localUser.nickname"
+                        />
                     </div>
                 </div>
                 <div class="col-6">
@@ -59,16 +99,32 @@
                         {{ t('global.user.contact') }}
                     </h4>
                     <div class="mb-2">
-                        <label class="fw-bold" for="profile-user-contact-email">
+                        <label
+                            class="fw-bold"
+                            for="profile-user-contact-email"
+                        >
                             <i class="fas fa-fw fa-envelope"></i> {{ t('global.email') }}:
                         </label>
-                        <input type="email" class="form-control" id="profile-user-contact-email" v-model="state.localUser.email" />
+                        <input
+                            type="email"
+                            class="form-control"
+                            id="profile-user-contact-email"
+                            v-model="state.localUser.email"
+                        />
                     </div>
                     <div class="mb-2">
-                        <label class="fw-bold" for="profile-user-contact-phonenumber">
+                        <label
+                            class="fw-bold"
+                            for="profile-user-contact-phonenumber"
+                        >
                             <i class="fas fa-fw fa-mobile-alt"></i> {{ t('global.phonenumber') }}:
                         </label>
-                        <input type="tel" class="form-control" id="profile-user-contact-phonenumber" v-model="state.localUser.metadata.phonenumber" />
+                        <input
+                            type="tel"
+                            class="form-control"
+                            id="profile-user-contact-phonenumber"
+                            v-model="state.localUser.metadata.phonenumber"
+                        />
                     </div>
                 </div>
             </form>
@@ -90,7 +146,7 @@
 
     import {
         getUser,
-        _cloneDeep,
+        cloneDeep,
     } from '@/helpers/helpers.js';
 
     import {
@@ -159,9 +215,6 @@
                 });
             };
             const inputFile = (newFile, oldFile) => {
-                // Wait for response
-                if(newFile && oldFile && newFile.success && !oldFile.success) {
-                }
 
                 // Enable automatic upload
                 if(!!newFile && (Boolean(newFile) !== Boolean(oldFile) || oldFile.error !== newFile.error)) {
@@ -171,8 +224,8 @@
                 }
             };
             const appliedMetadata = u => {
-                const nu = _cloneDeep(u)
-                return u.metadata ? nu : {...nu, ...{metadata: {}}};
+                const nu = cloneDeep(u)
+                return u.metadata ? nu : { ...nu, ...{ metadata: {} } };
             };
 
             // DATA

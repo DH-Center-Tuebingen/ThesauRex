@@ -170,7 +170,7 @@
     import store from '@/bootstrap/store.js';
 
     import ConceptSearch from '@/components/tree/Search.vue';
-    import LoadingSpinner from '../LoadingSpinner.vue';
+    import { LoadingSpinner } from 'dhc-components';
 
     const DropPosition = {
         empty: 0,
@@ -218,7 +218,7 @@
 
             // FUNCTIONS
             const itemClick = (item) => {
-                if (state.isFromTree && state.concept.data.id == item.data.id) {
+                if(state.isFromTree && state.concept.data.id == item.data.id) {
                     router.push({
                         append: true,
                         name: 'home',
@@ -240,7 +240,7 @@
                 toggleTreeNode(eventData.data, treeName.value);
             };
             const itemDrop = eventData => {
-                if (!dropAllowed(eventData)) {
+                if(!dropAllowed(eventData)) {
                     return;
                 }
 
@@ -248,7 +248,7 @@
                 const tgtNode = eventData.targetData;
 
                 let parentNode;
-                if (tgtNode.state.dropPosition == DropPosition.inside) {
+                if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
                     parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), eventData.targetPath.slice(0, eventData.targetPath.length - 1));
@@ -258,7 +258,7 @@
 
                 const isFromOtherTree = srcNode.tree != tgtNode.tree;
 
-                if (isFromOtherTree) {
+                if(isFromOtherTree) {
                     cloneAcrossTree(nid, bid, srcNode.tree, tgtNode.tree);
                 } else {
                     addRelation(nid, bid, srcNode.tree);
@@ -274,18 +274,18 @@
                 uploadRef.value.$el.children.file.click();
             };
             const inputFile = (newFile, oldFile) => {
-                if (!can('thesaurus_write|thesaurus_create')) return;
+                if(!can('thesaurus_write|thesaurus_create')) return;
 
                 // Enable automatic upload
-                if (!!newFile && (Boolean(newFile) !== Boolean(oldFile) || oldFile.error !== newFile.error)) {
-                    if (!newFile.active) {
+                if(!!newFile && (Boolean(newFile) !== Boolean(oldFile) || oldFile.error !== newFile.error)) {
+                    if(!newFile.active) {
                         newFile.active = true
                     }
                 }
             };
             const importFile = (file, component) => {
                 state.isUploading = true;
-                if (state.isFromTree) {
+                if(state.isFromTree) {
                     router.push({
                         append: true,
                         name: 'home',
@@ -295,7 +295,6 @@
                     state.uploadType = '';
                     state.isUploading = false;
                 }).catch(e => {
-                    console.log("error occurred", e);
                     state.uploadType = '';
                     state.isUploading = false;
                 });
@@ -304,17 +303,17 @@
                 exportTree();
             };
             const onAddTopConcept = _ => {
-                if (!can('thesaurus_write')) return;
+                if(!can('thesaurus_write')) return;
                 showCreateConcept(treeName.value);
             };
             const dropAllowed = dropData => {
-                if (!can('thesaurus_write')) return false;
+                if(!can('thesaurus_write')) return false;
 
                 const srcNode = dropData.sourceData;
                 const tgtNode = dropData.targetData;
 
                 let parentNode;
-                if (tgtNode.state.dropPosition == DropPosition.inside) {
+                if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
                     parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.targetPath.slice(0, dropData.targetPath.length - 1));
@@ -323,25 +322,25 @@
                 const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
 
                 // Cancel drop if from same tree and ...
-                if (!isFromOtherTree) {
+                if(!isFromOtherTree) {
                     // ... target is same node or ...
-                    if (nid == tgtNode.id) return false;
+                    if(nid == tgtNode.id) return false;
                     // ... source is a parent of target (would result in circle) or ...
-                    if (dropData.targetPath.length > dropData.sourcePath.length) {
+                    if(dropData.targetPath.length > dropData.sourcePath.length) {
                         let srcIsParent = true;
-                        for (let i = 0; i < dropData.sourcePath.length; i++) {
+                        for(let i = 0; i < dropData.sourcePath.length; i++) {
                             const p = dropData.sourcePath[i];
                             const pt = dropData.targetPath[i];
-                            if (p !== pt) {
+                            if(p !== pt) {
                                 srcIsParent = false;
                                 break;
                             }
                         }
-                        if (srcIsParent) return false;
+                        if(srcIsParent) return false;
                     }
                     // ... source is added on same level (as child of parent/target)
                     const srcParentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
-                    if ((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
+                    if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
                         return false;
                     }
                 }
@@ -364,7 +363,7 @@
 
             // ON MOUNTED
             onMounted(_ => {
-                console.log("concept tree component mounted");
+                console.log('concept tree component mounted');
             });
 
             return {

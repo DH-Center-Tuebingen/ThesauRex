@@ -69,6 +69,7 @@
 <script>
     import VueTypeahead from 'vue-typeahead';
     import { LoadingSpinner } from 'dhc-components';
+    import { debounce } from '@/helpers/helpers.js'
 
     export default {
         components: {
@@ -211,7 +212,7 @@
         },
         computed: {
             debounce() {
-                return _debounce(this.update, 250);
+                return debounce(this.update, 250);
             },
             broaderIds() {
                 return this.concept.broaders.map(b => {
