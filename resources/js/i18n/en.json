@@ -371,5 +371,8 @@
                 "project_lead_former": "Former Project Lead"
             }
         }
+    },
+    "validation": {
+        "field_is_required": "This field is required."
     }
 }
