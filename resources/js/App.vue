@@ -12,49 +12,53 @@
             </template>
         </div>
         <importing-info-modal></importing-info-modal>
-        <modals-container></modals-container>
-        <div class="toast-container ps-3 pb-3" id="toast-container"></div>
+        <ModalsContainer />
+        <div
+            class="toast-container ps-3 pb-3"
+            id="toast-container"
+        >
+        </div>
         <ContextMenu v-if="store.getters['contextMenu/active']" />
     </div>
 </template>
 
 <script>
-import {
-    reactive,
-    computed,
-    inject,
-    onMounted,
-} from 'vue';
+    import {
+        reactive,
+        computed,
+        onMounted,
+    } from 'vue';
 
-
-import store from '@/bootstrap/store.js';
-import { useI18n } from 'vue-i18n';
-import { provideToast, useToast } from '@/plugins/toast.js';
+    import store from '@/bootstrap/store.js';
+    import { useI18n } from 'vue-i18n';
+    import { provideToast, useToast } from '@/plugins/toast.js';
 
 import {
     initApp,
     throwError,
 } from '@/helpers/helpers.js';
 
-import LoadingSpinner from './components/LoadingSpinner.vue';
-import Navigation from './components/Navigation.vue';
-import ContextMenu from './components/ContextMenu.vue';
+    import LoadingSpinner from './components/LoadingSpinner.vue';
+    import Navigation from './components/Navigation.vue';
+    import ContextMenu from './components/ContextMenu.vue';
+    import { showCreateConcept } from './helpers/modal';
+    import { ModalsContainer } from 'vue-final-modal';
 
-export default {
-    components: {
-        ContextMenu,
-        LoadingSpinner,
-        Navigation,
-    },
-    setup(props) {
-        const { t, locale } = useI18n();
-        store.dispatch('setModalInstance', inject('$vfm'));
+    export default {
+        components: {
+            ContextMenu,
+            LoadingSpinner,
+            Navigation,
+            ModalsContainer,
+        },
+        setup(props) {
+            const { t, locale } = useI18n();
 
         // FETCH
         initApp(locale).then(_ => {
             store.dispatch('setAppState', true);
         }).catch(e => {
-            if (e.response.status == 401) {
+            if(e.response.status == 401) {
                 store.dispatch('setAppState', true);
             } else {
                 throwError(e);

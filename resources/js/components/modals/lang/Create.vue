@@ -1,55 +1,89 @@
 <template>
-  <vue-final-modal
-    classes="modal-container modal"
-    content-class="sp-modal-content sp-modal-content-xs"
-    v-model="state.show"
-    name="add-role-modal">
-    <div class="modal-header">
-        <h5 class="modal-title">
-            {{
-                t('modals.language.add.title')
-            }}
-        </h5>
-        <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
-        </button>
-    </div>
-    <div class="modal-body nonscrollable">
-        <form id="add-language-form" name="add-language-form" role="form" @submit.prevent="onAdd()">
-            <div class="mb-3">
-                <label class="col-form-label col-12" for="display_name">
-                    {{ t('global.display_name') }}
-                    <span class="text-danger">*</span>:
-                </label>
-                <div class="col-12">
-                    <input class="form-control" :class="getClassByValidation(v.fields.display_name.errors)" type="text" id="display_name" v-model="v.fields.display_name.value" @input="v.fields.display_name.handleInput" required />
+    <vue-final-modal
+        classes="modal-container modal"
+        content-class="sp-modal-content sp-modal-content-xs"
+        v-model="state.show"
+        name="add-role-modal"
+    >
+        <div class="modal-header">
+            <h5 class="modal-title">
+                {{
+                    t('modals.language.add.title')
+                }}
+            </h5>
+            <button
+                type="button"
+                class="btn-close"
+                aria-label="Close"
+                data-bs-dismiss="modal"
+                @click="closeModal()"
+            >
+            </button>
+        </div>
+        <div class="modal-body nonscrollable">
+            <form
+                id="add-language-form"
+                name="add-language-form"
+                role="form"
+            >
+                <div class="mb-3">
+                    <label
+                        class="col-form-label col-12"
+                        for="display_name"
+                    >
+                        {{ t('global.display_name') }}
+                        <span class="text-danger">*</span>:
+                    </label>
+                    <div class="col-12">
+                        <input
+                            class="form-control"
+                            :class="getClassByValidation(v.fields.display_name.errors)"
+                            ref="focusedInputRef"
+                            type="text"
+                            id="display_name"
+                            v-model="v.fields.display_name.value"
+                            @input="v.fields.display_name.handleInput"
+                            @submit.prevent="onAdd()"
+                            required
+                        />
 
-                    <div class="invalid-feedback">
-                        <span v-for="(msg, i) in v.fields.display_name.errors" :key="i">
-                            {{ msg }}
-                        </span>
+                        <div class="invalid-feedback">
+                            <span
+                                v-for="(msg, i) in v.fields.display_name.errors"
+                                :key="i"
+                            >
+                                {{ msg }}
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="col-form-label col-12" for="add-language-selection">
-                    {{ t('global.short_name') }}
-                    <span class="text-danger">*</span>:
-                </label>
-                <div class="col-12">
-                    <multiselect
-                        id="add-language-selection"
-                        v-model="v.fields.short_name.value"
-                        :classes="multiselectResetClasslist"
-                        :object="true"
-                        :label="'name'"
-                        :track-by="'id'"
-                        :valueProp="'id'"
-                        :mode="'single'"
-                        :searchable="true"
-                        :filterResults="false"
-                        :options="state.selectableLanguages"
-                        :placeholder="t('modals.language.add.placeholder')"
-                        @search-change="searchList">
+                <div
+                    class="mb-3"
+                    @keydown.enter.prevent.stop="onAdd()"
+                >
+                    <label
+                        class="col-form-label col-12"
+                        for="add-language-selection"
+                    >
+                        {{ t('global.short_name') }}
+                        <span class="text-danger">*</span>:
+                    </label>
+                    <div class="col-12">
+                        <multiselect
+                            id="add-language-selection"
+                            v-model="v.fields.short_name.value"
+                            :classes="multiselectResetClasslist"
+                            :object="true"
+                            :label="'name'"
+                            :track-by="'id'"
+                            :valueProp="'id'"
+                            :mode="'single'"
+                            :searchable="true"
+                            :filterResults="false"
+                            :options="state.selectableLanguages"
+                            :placeholder="t('modals.language.add.placeholder')"
+                            @search-change="searchList"
+                        >
                             <template v-slot:option="{ option }">
                                 <div class="d-flex gap-2">
                                     {{ emojiFlag(option.code) }}
@@ -70,20 +104,30 @@
                                     </span>
                                 </div>
                             </template>
-                    </multiselect>
+                        </multiselect>
+                    </div>
                 </div>
-            </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button type="submit" class="btn btn-outline-success" :disabled="!isValidated()" form="add-language-form">
-            <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
-            <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
-        </button>
-    </div>
-  </vue-final-modal>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button
+                type="submit"
+                class="btn btn-outline-success"
+                :disabled="!isValidated()"
+                form="add-language-form"
+            >
+                <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
+            </button>
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-bs-dismiss="modal"
+                @click="closeModal()"
+            >
+                <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
+            </button>
+        </div>
+    </vue-final-modal>
 </template>
 
 <script>
@@ -91,6 +135,7 @@
         computed,
         onMounted,
         reactive,
+        ref,
     } from 'vue';
 
     import { useI18n } from 'vue-i18n';
@@ -108,6 +153,7 @@
         multiselectResetClasslist,
         emojiFlag,
     } from '@/helpers/helpers.js';
+    import useForceFocus from '@/composables/useForceFocus';
 
     export default {
         props: {
@@ -195,20 +241,23 @@
                 state.show = true;
             });
 
+            const { focusedInputRef } = useForceFocus();
+
             // RETURN
             return {
                 t,
                 // HELPERS
+                emojiFlag,
                 getClassByValidation,
                 multiselectResetClasslist,
-                emojiFlag,
                 // PROPS
                 // LOCAL
-                isValidated,
                 closeModal,
+                isValidated,
                 onAdd,
                 searchList,
                 // STATE
+                focusedInputRef,
                 state,
                 v,
             };

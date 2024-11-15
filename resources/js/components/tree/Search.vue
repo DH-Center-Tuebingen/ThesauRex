@@ -13,7 +13,7 @@
         :filterResults="false"
         :resolveOnLoad="false"
         :clearOnSearch="true"
-        :clearOnSelect="true"
+        :clearOnSelect="false"
         :caret="false"
         :minChars="0"
         :searchable="true"
@@ -22,6 +22,7 @@
         :ref="el => msRef = el"
         :placeholder="t('tree.search.placeholder')"
         @select="optionSelected"
+        @keyup.enter="selectCurrentOrCreateNew"
     >
         <template v-slot:singlelabel="{ value }">
             <div class="multiselect-single-label">
@@ -33,16 +34,26 @@
                 <span class="fw-bold">
                     {{ getLabel(option, true) }}
                 </span>
-                <div class="d-flex align-items-center pb-1 ms-2" :class="{'numbered-list': option.parents.length > 1}" v-for="(parList, i) in sortParents(option.parents)"
-                    :key="`search-result-multiselect-tree-search-${treeName}-list-${i}`">
+                <div
+                    class="d-flex align-items-center pb-1 ms-2"
+                    :class="{ 'numbered-list': option.parents.length > 1 }"
+                    v-for="(parList, i) in sortParents(option.parents)"
+                    :key="`search-result-multiselect-tree-search-${treeName}-list-${i}`"
+                >
                     <ol class="breadcrumb m-0 ms-1 p-0 bg-none small">
-                        <li class=" breadcrumb-item text-muted small" v-for="p in parList"
-                            :key="`search-result-multiselect-tree-search-${treeName}-${p.id}`">
+                        <li
+                            class=" breadcrumb-item text-muted small"
+                            v-for="p in parList"
+                            :key="`search-result-multiselect-tree-search-${treeName}-${p.id}`"
+                        >
                             <span>
                                 {{ getLabel(p, true) }}
                             </span>
                         </li>
-                        <li class=" breadcrumb-item text-muted small fst-italic" v-if="parList.length == 0">
+                        <li
+                            class=" breadcrumb-item text-muted small fst-italic"
+                            v-if="parList.length == 0"
+                        >
                             <span>
                                 {{ t('tree.search.is_top_level') }}
                             </span>
@@ -51,9 +62,15 @@
                 </div>
             </div>
         </template>
-        <template v-slot:beforelist="{}" v-if="addOption && state.query.length > 0">
+        <template
+            v-slot:beforelist="{}"
+            v-if="addOption && state.query.length > 0"
+        >
             <div class="d-flex flex-column py-2 px-2-5 fs-6">
-                <span class="" @click="addOptionSelected()">
+                <span
+                    class=""
+                    @click="addOptionSelected()"
+                >
                     Add new concept <span class="fw-bold">{{ state.query }}</span>
                 </span>
             </div>
@@ -61,8 +78,15 @@
         <template v-slot:nooptions="{}">
             <div v-if="addOption"></div>
             <div v-else>
-                <div class="p-2" v-if="!!state.query" v-html="t('tree.search.no_results', {term: state.query})" />
-                <div class="p-1 text-muted" v-else>
+                <div
+                    class="p-2"
+                    v-if="!!state.query"
+                    v-html="t('tree.search.no_results', { term: state.query })"
+                />
+                <div
+                    class="p-1 text-muted"
+                    v-else
+                >
                     {{ t('tree.search.empty_term_info') }}
                 </div>
             </div>
@@ -165,6 +189,14 @@
                 });
             };
 
+            const selectCurrentOrCreateNew = _ => {
+                if(state.entry?.id) {
+                    optionSelected(state.entry);
+                } else {
+                    addOptionSelected();
+                }
+            };
+
             // DATA
             const msRef = ref({});
             const state = reactive({
@@ -173,12 +205,18 @@
                 query: '',
             });
 
+            const focus = _ => {
+                msRef.value.focus();
+            }
+
             // RETURN
             return {
                 t,
                 // HELPER
                 getLabel,
                 sortParents,
+                // EXTERNAL
+                focus,
                 // LOCAL
                 search,
                 optionSelected,
@@ -188,6 +226,7 @@
                 treeName,
                 addOption,
                 addOptionSelected,
+                selectCurrentOrCreateNew,
                 // STATE
                 msRef,
                 state,

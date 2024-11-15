@@ -5,12 +5,19 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Added eslint, stylelint and vscode workspace
+- Added an active language option 
 
 ### Changed
 - Updated tree icons to be more prominent
 - Moved the sandbox inside a collapsed side panel
 - Slightly improved styling of the 'language-fields'
 - Improved concept details styling
+- Improved focus
+  - Set focus on create Modal
+  - Set focus back to narrower after modal was closed.
+- Improved keyboard integration
+  - Enter on Narrower concepts
+  - Enter in Create Modal
 
 ## 0.9.3
 ### Added

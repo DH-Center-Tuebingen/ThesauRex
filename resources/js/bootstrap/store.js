@@ -45,6 +45,7 @@ export const store = createStore({
                     },
                     deletedUsers: [],
                     standalone: true,
+                    activeLanguage: {},
                     languages: [],
                     permissions: [],
                     preferences: {},
@@ -70,7 +71,7 @@ export const store = createStore({
                 },
                 updateUser(state, data) {
                     const index = state.users.findIndex((u) => u.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         const cleanData = only(data, [
                             'email',
                             'roles',
@@ -86,7 +87,7 @@ export const store = createStore({
                 },
                 deactivateUser(state, data) {
                     const index = state.users.findIndex((u) => u.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         const delUser = state.users.splice(index, 1)[0];
                         delUser.deleted_at = data.deleted_at;
                         state.deletedUsers.push(delUser);
@@ -96,7 +97,7 @@ export const store = createStore({
                     const index = state.deletedUsers.findIndex(
                         (u) => u.id == data
                     );
-                    if (index > -1) {
+                    if(index > -1) {
                         const reacUser = state.deletedUsers.splice(index, 1)[0];
                         state.users.push(reacUser);
                     }
@@ -106,7 +107,7 @@ export const store = createStore({
                 },
                 updateRole(state, data) {
                     const index = state.roles.findIndex((r) => r.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         const cleanData = only(data, [
                             'display_name',
                             'description',
@@ -123,7 +124,7 @@ export const store = createStore({
                 },
                 deleteRole(state, data) {
                     const index = state.roles.findIndex((r) => r.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         state.roles.splice(index, 1);
                     }
                 },
@@ -138,7 +139,7 @@ export const store = createStore({
                     }
                     state.conceptReferences[data.tree][n.nid].push(n.id);
                     let added = false;
-                    for(let i=0; i<n.path.length; i++) {
+                    for(let i = 0; i < n.path.length; i++) {
                         const path = n.path[i];
                         // second element in path is always direct parent (first is self)
                         const parentId = path[1];
@@ -236,7 +237,7 @@ export const store = createStore({
                     });
                 },
                 setSelectedConcept(state, data) {
-                    if (!data) {
+                    if(!data) {
                         state.concept.from = null;
                         state.concept.data = {};
                     } else {
@@ -323,14 +324,14 @@ export const store = createStore({
                                 state.concepts[data.tree].push(node);
                                 sortTree(state.concepts[data.tree]);
 
-                                for(let i=0; i<narrowerList.length; i++) {
+                                for(let i = 0; i < narrowerList.length; i++) {
                                     const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
                                     if(narrowerConcept) {
                                         narrowerConcept.is_top_concept = true;
                                     }
                                 }
                             } else {
-                                for(let i=0; i<broaderList.length; i++) {
+                                for(let i = 0; i < broaderList.length; i++) {
                                     const broaderConcept = state.conceptMap[data.tree][broaderList[i]];
                                     if(broaderConcept) {
                                         if(broaderConcept.children) {
@@ -349,7 +350,7 @@ export const store = createStore({
                                         broaderConcept.state.openable = true;
                                     }
                                 }
-                                for(let i=0; i<narrowerList.length; i++) {
+                                for(let i = 0; i < narrowerList.length; i++) {
                                     const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
                                     if(narrowerConcept) {
                                         if(narrowerConcept.broaders) {
@@ -377,14 +378,14 @@ export const store = createStore({
                                     state.concepts[data.tree].splice(idx, 1);
                                 }
 
-                                for(let i=0; i<narrowerList.length; i++) {
+                                for(let i = 0; i < narrowerList.length; i++) {
                                     const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
                                     if(narrowerConcept) {
                                         narrowerConcept.is_top_concept = false;
                                     }
                                 }
                             } else {
-                                for(let i=0; i<broaderList.length; i++) {
+                                for(let i = 0; i < broaderList.length; i++) {
                                     const broaderConcept = state.conceptMap[data.tree][broaderList[i]];
                                     if(broaderConcept) {
                                         if(broaderConcept.children) {
@@ -403,7 +404,7 @@ export const store = createStore({
                                         broaderConcept.state.openable = broaderConcept.children_count != 0;
                                     }
                                 }
-                                for(let i=0; i<narrowerList.length; i++) {
+                                for(let i = 0; i < narrowerList.length; i++) {
                                     const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
                                     if(narrowerConcept) {
                                         if(narrowerConcept.broaders) {
@@ -450,7 +451,7 @@ export const store = createStore({
                     const idx = state.languages.findIndex(
                         (l) => l.id == data.language_id
                     );
-                    if (idx > -1) {
+                    if(idx > -1) {
                         state.languages.splice(idx, 1);
                     }
                 },
@@ -462,6 +463,10 @@ export const store = createStore({
                 },
             },
             actions: {
+                setActiveLanguage({ state }, data) {
+                    console.log(data);
+                    state.activeLanguage = data;
+                },
                 setAppState({ commit }, data) {
                     commit('setAppInitialized', data);
                 },
@@ -555,28 +560,28 @@ export const store = createStore({
                     });
                     commit('deleteConceptReferences', data);
                 },
-                addLabel({commit}, data) {
+                addLabel({ commit }, data) {
                     commit('addLabel', data);
                 },
-                updateLabel({commit}, data) {
+                updateLabel({ commit }, data) {
                     commit('updateLabel', data);
                 },
-                deleteLabel({commit}, data) {
+                deleteLabel({ commit }, data) {
                     commit('deleteLabel', data);
                 },
-                addNote({commit}, data) {
+                addNote({ commit }, data) {
                     commit('addNote', data);
                 },
-                updateNote({commit}, data) {
+                updateNote({ commit }, data) {
                     commit('updateNote', data);
                 },
-                deleteNote({commit}, data) {
+                deleteNote({ commit }, data) {
                     commit('deleteNote', data);
                 },
-                addRelation({commit}, data) {
+                addRelation({ commit }, data) {
                     commit('addRelation', data);
                 },
-                removeRelation({commit}, data) {
+                removeRelation({ commit }, data) {
                     commit('removeRelation', data);
                 },
                 unsetSelectedConcept({ commit }, data) {
@@ -586,7 +591,7 @@ export const store = createStore({
                     let concept = state.conceptMap[data.tree][data.concept_id];
                     if(!concept) {
                         const ids = await getConceptParentIds(data.concept_id, data.tree);
-                        for(let i=0; i<ids.length; i++) {
+                        for(let i = 0; i < ids.length; i++) {
                             const path = ids[i];
                             await openPath(path, data.tree);
                         }
@@ -642,6 +647,7 @@ export const store = createStore({
             },
             getters: {
                 appInitialized: (state) => state.appInitialized,
+                activeLanguage: (state) => state.activeLanguage,
                 concepts: (state) => state.concepts,
                 projectConcepts: (state) => state.concepts.project,
                 sandboxConcepts: (state) => state.concepts.sandbox,
@@ -656,10 +662,10 @@ export const store = createStore({
                 roles: (state) => (noPerms) => {
                     return noPerms
                         ? state.roles.map((r) => {
-                              // Remove permissions from role
-                              let { permissions, ...role } = r;
-                              return role;
-                          })
+                            // Remove permissions from role
+                            let { permissions, ...role } = r;
+                            return role;
+                        })
                         : state.roles;
                 },
                 rolePresets: (state) => state.rolePresets,

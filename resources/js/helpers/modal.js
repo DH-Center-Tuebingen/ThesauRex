@@ -1,7 +1,7 @@
 import store from '@/bootstrap/store.js';
 import i18n from '@/bootstrap/i18n.js';
 
-import { addToast } from '@/plugins/toast.js';
+import {addToast} from '@/plugins/toast.js';
 
 import {
     addUser,
@@ -35,97 +35,104 @@ import DeleteConcept from '@/components/modals/concept/Delete.vue';
 import AddLanguage from '@/components/modals/lang/Create.vue';
 import DeleteLanguage from '@/components/modals/lang/Delete.vue';
 import router from '../bootstrap/router';
+import {useModal} from 'vue-final-modal';
+
 
 export function showAbout() {
     const uid = `AboutModal-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: About,
-        bind: {
+        attrs: {
             name: uid,
         },
-        on: {
+        listeners: {
             closing(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showDiscard(target, resetData, onBeforeConfirm) {
-    const pushRoute = _ => {
-        store.getters.vfm.hide(uid);
-        resetData();
-        router.push(target);
-    };
     const uid = `Discard-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: Discard,
-        bind: {
+        attrs: {
             name: uid,
         },
-        on: {
+        listeners: {
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             },
             confirm(e) {
-                pushRoute();
+                close(uid);
+                resetData();
+                router.push(target);
             },
             saveConfirm(e) {
                 if(!!onBeforeConfirm) {
                     onBeforeConfirm().then(_ => {
-                        pushRoute();
+                        close(uid);
+                        resetData();
+                        router.push(target);
                     }).catch(e => {
-                        store.getters.vfm.hide(uid);
+                        close(uid);
                         return false;
                     });
                 } else {
-                    pushRoute();
+                    close(uid);
+                    resetData();
+                    router.push(target);
                 }
             },
         }
     });
+    open();
 }
 
 export function showError(data) {
     const uid = `ErrorModal-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: Error,
-        bind: {
+        attrs: {
             data: data,
             name: uid,
         },
-        on: {
+        listeners: {
             closing(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showUserInfo(user) {
     const uid = `UserInfoModal-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: UserInfo,
-        bind: {
+        attrs: {
             name: uid,
             user: user,
         },
-        on: {
+        listeners: {
             closing(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showAddUser(onAdded) {
     const uid = `AddUser-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: AddUser,
-        bind: {
+        attrs: {
             name: uid,
         },
-        on: {
+        listeners: {
             add(e) {
                 if(!can('users_roles_create')) return;
                 addUser(e).then(user => {
@@ -133,28 +140,29 @@ export function showAddUser(onAdded) {
                         onAdded();
                     }
                     store.dispatch('addUser', user);
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showDeactivateUser(user, onDeactivated) {
     const uid = `DeactiveUser-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: DeactiveUser,
-        bind: {
+        attrs: {
             name: uid,
             user: user,
         },
-        on: {
+        listeners: {
             deactivate(e) {
                 if(!can('users_roles_delete')) {
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                     return;
                 }
                 deactivateUser(user.id).then(data => {
@@ -162,25 +170,26 @@ export function showDeactivateUser(user, onDeactivated) {
                         onDeactivated();
                     }
                     store.dispatch('deactivateUser', data);
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 })
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showAccessControlModal(roleId) {
     const uid = `AccessControl-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: AccessControl,
-        bind: {
+        attrs: {
             name: uid,
             roleId: roleId,
         },
-        on: {
+        listeners: {
             save(e) {
                 const data = {
                     permissions: e,
@@ -201,20 +210,21 @@ export function showAccessControlModal(roleId) {
                 })
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showAddRole(onAdded) {
     const uid = `AddRole-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: AddRole,
-        bind: {
+        attrs: {
             name: uid,
         },
-        on: {
+        listeners: {
             add(e) {
                 if(!can('users_roles_create')) return;
                 addRole(e).then(role => {
@@ -222,25 +232,26 @@ export function showAddRole(onAdded) {
                         onAdded();
                     }
                     store.dispatch('addRole', role);
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showDeleteRole(role, onDeleted) {
     const uid = `DeleteRole-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: DeleteRole,
-        bind: {
+        attrs: {
             name: uid,
             role: role,
         },
-        on: {
+        listeners: {
             confirm(e) {
                 if(!can('users_roles_delete')) return;
 
@@ -249,106 +260,119 @@ export function showDeleteRole(role, onDeleted) {
                         onDeleted();
                     }
                     store.dispatch('deleteRole', role);
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
-export function showCreateConcept(tree, pid, initValue = '') {
+export async function showCreateConcept(tree, pid, initValue = '', onClose = () => { }) {
+    console.log('showCreateConcept')
     const uid = `CreateConcept-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: CreateConcept,
-        bind: {
-            name: uid,
+        attrs: {
+            modalName: uid,
             tree: tree,
             parentId: pid,
             initialValue: initValue,
-        },
-        on: {
-            add(concept) {
+            onSubmit: (concept) => {
                 if(!can('thesaurus_create')) return;
 
                 addConcept(concept, tree, pid).then(_ => {
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
-            cancel(e) {
-                store.getters.vfm.hide(uid);
+            onCloseRequest: () => {
+                close()
+            },
+            onDestroyed: () => {
+                onClose()
             }
         }
     });
+
+    try {
+        await open();
+    } catch(error) {
+        console.error('Failed to open modal:', error);
+        // Optionally show an error message to the user
+    }
 }
 
 export function showDeleteConcept(tree, conceptId) {
     const uid = `DeleteConcept-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: DeleteConcept,
-        bind: {
+        attrs: {
             name: uid,
             tree: tree,
             conceptId: conceptId,
         },
-        on: {
+        listeners: {
             confirm(e) {
                 if(!can('thesaurus_delete')) return;
 
                 deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showAddLanguage() {
     const uid = `AddLanguage-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: AddLanguage,
-        bind: {
+        attrs: {
             name: uid,
         },
-        on: {
+        listeners: {
             add(e) {
                 if(!can('thesaurus_create')) return;
 
                 addLanguage(e).then(_ => {
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }
 
 export function showDeleteLanguage(languageId) {
     const uid = `DeleteLanguage-${getTs()}`;
-    store.getters.vfm.show({
+    const {open, close} = useModal({
         component: DeleteLanguage,
-        bind: {
+        attrs: {
             name: uid,
             languageId: languageId,
         },
-        on: {
+        listeners: {
             delete(e) {
                 if(!can('thesaurus_delete')) return;
 
                 deleteLanguage(languageId).then(_ => {
-                    store.getters.vfm.hide(uid);
+                    close(uid);
                 });
             },
             cancel(e) {
-                store.getters.vfm.hide(uid);
+                close(uid);
             }
         }
     });
+    open();
 }

@@ -1,9 +1,6 @@
+import 'vue-final-modal/style.css'
+
 import { createApp } from 'vue';
-
-// Third-Party Libs
-import PQueue from 'p-queue';
-
-// Helpers/Filter
 
 // Reusable Components
 import ConceptTree from './components/tree/Concept.vue';
@@ -23,7 +20,8 @@ import Multiselect from '@vueform/multiselect';
 import VueUploadComponent from 'vue-upload-component';
 import draggable from 'vuedraggable';
 import { Tree, Node, } from 'tree-vue-component';
-import VueFinalModal from 'vue-final-modal';
+import { createVfm, VueFinalModal } from 'vue-final-modal';
+
 
 // Init required libs
 import {
@@ -42,6 +40,7 @@ import i18n from '@/bootstrap/i18n.js';
 // Font Awesome
 import '@/bootstrap/font.js';
 
+
 // Components
 import App from './App.vue';
 
@@ -50,7 +49,7 @@ app.use(i18n);
 app.use(router);
 app.use(store);
 app.use(vueAuth);
-app.use(VueFinalModal());
+app.use(createVfm());
 
 // Directives
 app.directive('dcan', {
@@ -96,6 +95,7 @@ app.component('file-upload', VueUploadComponent);
 app.component('draggable', draggable);
 app.component('node', Node);
 app.component('tree', Tree);
+app.component('vue-final-modal', VueFinalModal);
 
 // Mount Vue
 app.mount('#app');

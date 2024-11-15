@@ -4,20 +4,12 @@
         content-class="sp-modal-content sp-modal-content-sm"
         :modalName="modalName"
         v-model="state.show"
-        @closed="destroyed"
     >
         <div class="modal-header">
             <h5 class="modal-title">
-                <span v-if="state.hasParent">
-                    {{
-                        t('modals.new_concept.title_parent', {
-                            name: getLabel(state.parentConcept)
-                        })
-                    }}
-                </span>
-                <span v-else>
-                    {{ t('modals.new_concept.title') }}
-                </span>
+                <slot name="title">
+                    {{ title ?? '' }}
+                </slot>
             </h5>
             <button
                 type="button"
@@ -29,39 +21,26 @@
             </button>
         </div>
         <div class="modal-body nonscrollable">
-            <form
-                role="form"
-                class="mb-2"
-                id="create-concept-form"
-                name="create-concept-form"
-                @submit.prevent="onAdd()"
-            >
-                <LocalizedInput
-                    v-model="state.concept.label"
-                    :modelLanguage="state.concept.language"
-                    @update:modelLanguage="setLanguage"
-                    ref="focusedInputRef"
-                    @blur="e => console.log('blurred', e)"
-                />
-            </form>
+            <slot focusRef="setFocusRef" />
         </div>
         <div class="modal-footer">
-            <button
-                type="submit"
-                class="btn btn-outline-success"
-                :disabled="!state.conceptValidated"
-                form="create-concept-form"
-            >
-                <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
-            </button>
-            <button
-                type="button"
-                class="btn btn-outline-secondary"
-                data-bs-dismiss="modal"
-                @click="closeModal()"
-            >
-                <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
-            </button>
+            <slot name="footer">
+                <button
+                    type="submit"
+                    class="btn btn-outline-success"
+                    :disabled="valid"
+                    form="create-concept-form"
+                >
+                    <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
+                    <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
+                </button>
         </div>
     </vue-final-modal>
 </template>
@@ -72,11 +51,10 @@
         nextTick,
         onMounted,
         reactive,
-        ref,
         toRefs,
     } from 'vue';
 
-    import {useI18n} from 'vue-i18n';
+    import { useI18n } from 'vue-i18n';
 
     import store from '@/bootstrap/store.js';
 
@@ -88,14 +66,14 @@
     import {
         getLabel,
     } from '@/helpers/tree.js';
-    import LocalizedInput from '../../LocalizedInput.vue';
     import useForceFocus from '@/composables/useForceFocus';
 
     export default {
-        components: {
-            LocalizedInput,
-        },
         props: {
+            title: {
+                type: String,
+                required: false,
+            },
             modalName: {
                 type: String,
                 required: true,
@@ -103,6 +81,11 @@
             tree: {
                 type: String,
                 required: true,
+            },
+            valid: {
+                type: Boolean,
+                required: false,
+                default: true,
             },
             parentId: {
                 type: Number,
@@ -113,15 +96,15 @@
                 required: false,
                 default: '',
             },
-            onCloseRequest: {
+            focusRef: {
+                type: Object,
+                required: false,
+            },
+            onClose: {
                 type: Function,
                 required: false,
             },
             onSubmit: {
-                type: Function,
-                required: false,
-            },
-            onDestroyed: {
                 type: Function,
                 required: false,
             },
@@ -132,23 +115,13 @@
                 parentId,
                 initialValue,
             } = toRefs(props);
-            const {t} = useI18n();
-
-
-            const closeCount = ref(0)
-
-            const destroyed = _ => {
-                if(props.onDestroyed)
-                    props.onDestroyed();
-            }
+            const { t } = useI18n();
 
             // FUNCTIONS
             const closeModal = _ => {
-                closeCount.value++;
-                console.log('closeModal', closeCount.value);
                 state.show = false;
-                if(props.onCloseRequest)
-                    props.onCloseRequest();
+                if(props.onClose)
+                    props.onClose();
             };
 
             const onAdd = _ => {
@@ -175,7 +148,7 @@
                 languages: computed(_ => store.getters.languages),
             });
 
-            const {focusedInputRef, forceFocus} = useForceFocus();
+            const { focusedInputRef, forceFocus } = useForceFocus();
 
 
             // ON MOUNTED
@@ -204,6 +177,10 @@
                 });
             });
 
+            const setFocusRef = ref => {
+                focusedInputRef.value = ref;
+            };
+
 
             // RETURN
             return {
@@ -213,10 +190,10 @@
                 getLabel,
                 // PROPS
                 // LOCAL
-                destroyed,
                 closeModal,
                 onAdd,
                 setLanguage,
+                setFocusRef,
                 // STATE
                 state,
                 focusedInputRef,

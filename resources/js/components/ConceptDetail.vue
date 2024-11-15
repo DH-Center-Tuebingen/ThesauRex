@@ -151,6 +151,7 @@
                                 :tree-name="state.tree"
                                 @select="handleAddNarrower"
                                 @add="handleAddNewConcept"
+                                ref="narrowerSearch"
                             />
                         </div>
                     </form>
@@ -396,7 +397,9 @@
 <script>
     import {
         computed,
+        nextTick,
         reactive,
+        ref,
         watch,
     } from 'vue';
 
@@ -457,7 +460,7 @@
             });
             // FUNCTIONS
             const setHoverState = (prop, index, hoverState) => {
-                switch (prop) {
+                switch(prop) {
                     case 'labels':
                     case 'notes':
                     case 'broaders':
@@ -469,20 +472,34 @@
                 state.hoverStates[prop][index] = hoverState;
             };
             const handleAddBroader = e => {
-                if (!e.option)
+                if(!e.option)
                     return;
                 addRelation(state.concept.id, e.option.id, state.tree);
             };
-            const handleAddNarrower = e => {
-                if (!e.option)
+
+            const narrowerSearch = ref(null);
+            const handleAddNarrower = async e => {
+                if(!e.option)
                     return;
-                addRelation(e.option.id, state.concept.id, state.tree);
+                await addRelation(e.option.id, state.concept.id, state.tree, () => {
+                    focusNarrower();
+                });
             };
-            const handleAddNewConcept = e => {
-                showCreateConcept(state.tree, state.concept.id, e.content);
+            const handleAddNewConcept = async e => {
+                await showCreateConcept(state.tree, state.concept.id, e.content, () => {
+                    focusNarrower();
+                });
             };
+            const focusNarrower = _ => {
+                setTimeout(_ => {
+                    console.log('focusNarrower', narrowerSearch.value);
+                    if(narrowerSearch.value)
+                        narrowerSearch.value.focus();
+                }, 100);
+            };
+
             const updateTopLevelState = _ => {
-                if (!state.canDeleteBroader && state.isTopConcept)
+                if(!state.canDeleteBroader && state.isTopConcept)
                     return;
                 state.updatingTopLevelState = true;
                 toggleTopLevelState(state.tree, state.concept.id).then(_ => {
@@ -503,10 +520,10 @@
             };
             const setLanguageFor = (type, lang) => {
                 let property = '';
-                if (type == 'label') {
+                if(type == 'label') {
                     property = 'addLabel';
                 }
-                else if (type == 'note') {
+                else if(type == 'note') {
                     property = 'addNote';
                 }
                 else {
@@ -515,8 +532,8 @@
                 state[property].language = lang;
             };
             const setEditMode = (type, idx, editState) => {
-                if (type == 'label') {
-                    if (editState) {
+                if(type == 'label') {
+                    if(editState) {
                         state.editLabel.index = idx;
                         const label = state.concept.labels[idx];
                         state.editLabel.value = label.label;
@@ -531,8 +548,8 @@
                     }
                     state.editLabel.active = editState;
                 }
-                else if (type == 'note') {
-                    if (editState) {
+                else if(type == 'note') {
+                    if(editState) {
                         state.editNote.index = idx;
                         const note = state.concept.notes[idx];
                         state.editNote.value = note.content;
@@ -563,7 +580,7 @@
             };
             const updateLabel = _ => {
                 const label = state.concept.labels[state.editLabel.index];
-                if (label.label == state.editLabel.value) {
+                if(label.label == state.editLabel.value) {
                     return;
                 }
                 patchLabel(label.id, state.editLabel.value, state.concept.id, state.tree).then(_ => {
@@ -602,7 +619,7 @@
             };
             const updateNote = _ => {
                 const note = state.concept.notes[state.editNote.index];
-                if (note.content == state.editNote.value) {
+                if(note.content == state.editNote.value) {
                     return;
                 }
                 patchNote(note.id, state.editNote.value, state.concept.id, state.tree).then(_ => {
@@ -633,7 +650,7 @@
                 selection.removeAllRanges();
                 selection.addRange(range);
                 try {
-                    document.execCommand("copy");
+                    document.execCommand('copy');
                     selection.removeAllRanges();
                     const title = t('detail.copy_url.title');
                     const msg = t('detail.copy_url.message', {
@@ -644,7 +661,7 @@
                         html: true,
                     });
                 }
-                catch (err) {
+                catch(err) {
                     console.log(err);
                 }
             };
@@ -698,7 +715,7 @@
                 languages: computed(_ => store.getters.languages),
                 labelCount: computed(_ => state.hasLabels ? state.concept.labels.length : 0),
                 prefLabelCount: computed(_ => {
-                    if (!state.hasLabels) {
+                    if(!state.hasLabels) {
                         return 0;
                     }
                     return state.concept.labels.filter(l => {
@@ -706,7 +723,7 @@
                     }).length;
                 }),
                 badgeClass: computed(_ => {
-                    if (state.tree == 'sandbox') {
+                    if(state.tree == 'sandbox') {
                         return 'bg-secondary';
                     }
                     else {
@@ -721,9 +738,9 @@
 
             // WATCHER
             watch(_ => route.params, async (newParams, oldParams) => {
-                if (newParams.id == oldParams.id)
+                if(newParams.id == oldParams.id)
                     return;
-                if (!newParams.id)
+                if(!newParams.id)
                     return;
                 state.initialized = false;
                 store.dispatch('setSelectedConcept', {
@@ -751,6 +768,7 @@
                 handleAddBroader,
                 handleAddNarrower,
                 handleAddNewConcept,
+                narrowerSearch,
                 updateTopLevelState,
                 removeBroader,
                 removeNarrower,

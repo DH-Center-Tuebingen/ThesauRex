@@ -42,15 +42,17 @@ export default ({ mode }) => {
         build: {
             manifest: isOpen ? 'manifest.open.json' : 'manifest.json',
             outDir: `public/${buildDir}`,
+            sourcemap: true,
         },
         resolve: {
             alias: {
                 '@': resolve(_dirname, './resources/js/'),
                 '~': resolve(_dirname, './node_modules/'),
+                '!': resolve(_dirname, './public/'),
                 '%store': resolve(_dirname, './resources/js/bootstrap/store.js'),
                 '%router': resolve(_dirname, './resources/js/bootstrap/router.js'),
             },
-        },
+        }, 
         server: {
             host: 'localhost',
             port: 3000, // Ensure this port is not conflicting with other services
@@ -60,7 +62,7 @@ export default ({ mode }) => {
         },
     };
 
-    if (env.VITE_APP_PATH) {
+    if(env.VITE_APP_PATH) {
         config.base = `${env.VITE_APP_PATH.replace(/\/$/, '')}/${buildDir}/`;
     }
 

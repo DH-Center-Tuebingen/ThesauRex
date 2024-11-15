@@ -17,6 +17,9 @@
         "no-unused-vars": "off",
         "no-extra-boolean-cast": "off",
         "no-extra-semi": "warn",
+        "vue/no-v-model-argument": "off",
+        "vue/no-multiple-template-root": "off",
+        "vue/no-v-for-template-key": "off",
         "quotes": [
             "warn",
             "single",
