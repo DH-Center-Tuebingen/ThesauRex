@@ -1,63 +1,63 @@
 <template>
-  <vue-final-modal
-    classes="modal-container modal"
-    content-class="sp-modal-content sp-modal-content-sm"
-    v-model="state.show"
-    name="add-role-modal">
-    <div class="modal-header">
-        <h5 class="modal-title">
-            <span v-if="state.hasParent">
-                {{
-                    t('modals.new_concept.title_parent', {
-                        name: getLabel(state.parentConcept)
-                    })
-                }}
-            </span>
-            <span v-else>
-                {{ t('modals.new_concept.title') }}
-            </span>
-        </h5>
-        <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
-        </button>
-    </div>
-    <div class="modal-body nonscrollable">
-        <form role="form" class="mb-2" id="create-concept-form" name="create-concept-form" @submit.prevent="onAdd()">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <div class="d-inline-flex gap-2">
-                            <span>
-                                {{ emojiFlag(state.concept.language.short_name) }}
-                            </span>
-                            <span>
-                                {{ state.concept.language.display_name }}
-                            </span>
-                        </div>
-                    </button>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item d-flex gap-2" href="" @click.prevent="setLanguage(language)" v-for="language in state.languages" :key="`create-concept-language-item-${language.short_name}`">
-                            <span>
-                                {{ emojiFlag(language.short_name) }}
-                            </span>
-                            <span>
-                                {{ language.display_name }}
-                            </span>
-                        </a>
-                    </div>
-                </div>
-                <input type="text" class="form-control" v-model="state.concept.label">
+    <vue-final-modal
+        class="modal-container modal"
+        name="create-concept-modal">
+        <div class="sp-modal-content sp-modal-content-sm">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span v-if="state.hasParent">
+                        {{
+                            t('modals.new_concept.title_parent', {
+                                name: getLabel(state.parentConcept)
+                            })
+                        }}
+                    </span>
+                    <span v-else>
+                        {{ t('modals.new_concept.title') }}
+                    </span>
+                </h5>
+                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
+                </button>
             </div>
-        </form>
-    </div>
-    <div class="modal-footer">
-        <button type="submit" class="btn btn-outline-success" :disabled="!state.conceptValidated" form="create-concept-form">
-            <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
-            <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
-        </button>
-    </div>
-  </vue-final-modal>
+            <div class="modal-body nonscrollable">
+                <form role="form" class="mb-2" id="create-concept-form" name="create-concept-form" @submit.prevent="onAdd()">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <div class="d-inline-flex gap-2">
+                                    <span>
+                                        {{ emojiFlag(state.concept.language.short_name) }}
+                                    </span>
+                                    <span>
+                                        {{ state.concept.language.display_name }}
+                                    </span>
+                                </div>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item d-flex gap-2" href="" @click.prevent="setLanguage(language)" v-for="language in state.languages" :key="`create-concept-language-item-${language.short_name}`">
+                                    <span>
+                                        {{ emojiFlag(language.short_name) }}
+                                    </span>
+                                    <span>
+                                        {{ language.display_name }}
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" v-model="state.concept.label">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-outline-success" :disabled="!state.conceptValidated" form="create-concept-form">
+                    <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+                    <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
+                </button>
+            </div>
+        </div>
+    </vue-final-modal>
 </template>
 
 <script>
@@ -74,6 +74,7 @@
 
     import {
         emojiFlag,
+        getPreference,
     } from '@/helpers/helpers.js';
 
     import {
@@ -107,13 +108,11 @@
 
             // FUNCTIONS
             const closeModal = _ => {
-                state.show = false;
                 context.emit('cancel', false);
             };
             const onAdd = _ => {
                 if(!state.conceptValidated) return;
 
-                state.show = false;
                 context.emit('add', state.concept);
             };
             const setLanguage = language => {
@@ -122,7 +121,6 @@
 
             // DATA
             const state = reactive({
-                show: false,
                 concept: {
                     language: {},
                     label: initialValue.value,
@@ -135,7 +133,13 @@
 
             // ON MOUNTED
             onMounted(_ => {
-                state.show = true;
+                const userLanguage = getPreference('prefs.gui-language');
+                const conceptLang = state.languages.find(l => l.short_name == userLanguage);
+                if(conceptLang) {
+                    state.concept.language = conceptLang;
+                } else {
+                    state.concept.language = state.languages[0];
+                }
             });
 
             // RETURN

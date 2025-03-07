@@ -28,7 +28,8 @@ import Multiselect from '@vueform/multiselect';
 import VueUploadComponent from 'vue-upload-component';
 import draggable from 'vuedraggable';
 import { Tree, Node, } from "tree-vue-component";
-import VueFinalModal from 'vue-final-modal';
+// vue-final-modal
+import { createVfm } from 'vue-final-modal';
 
 // Init required libs
 import {
@@ -55,7 +56,7 @@ app.use(i18n);
 app.use(router);
 app.use(store);
 app.use(vueAuth);
-app.use(VueFinalModal());
+app.use(createVfm());
 
 // Directives
 app.directive('dcan', {

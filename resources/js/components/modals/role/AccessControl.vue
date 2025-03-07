@@ -1,110 +1,111 @@
 <template>
-  <vue-final-modal
-    classes="modal-container modal"
-    content-class="sp-modal-content"
-    v-model="state.show"
-    name="access-control-modal">
-    <div class="modal-header">
-        <h5 class="modal-title">
-            {{ t('settings.role.permissions.access_control_title') }}
-            <small>
-                {{ state.role.display_name }}
-            </small>
-        </h5>
-        <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
-        </button>
-    </div>
-    <div class="modal-body" v-if="state.show">
-        <div class="d-flex flex-column gap-2 align-items-start" v-if="state.isDerived">
-            <div class="d-flex flex-row align-items-center gap-2">
-                <span class="text-muted">
-                    {{ t('settings.role.preset.derived_from') }}
-                </span>
-                <span class="badge bg-primary">
-                    <i class="fas fa-fw fa-shield-alt"></i>
-                    {{ t(`settings.role.preset.${state.role.derived.name}`) }}
-                    <a href="#" class="text-decoration-none text-reset" @click.prevent="resetToPreset()" :title="`Reset role to preset`" v-if="state.differsFromPreset">
-                        |
-                        <i class="fas fa-fw fa-undo"></i>
-                    </a>
-                </span>
+    <vue-final-modal
+        class="modal-container modal"
+        name="access-control-modal">
+        <div class="sp-modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ t('settings.role.permissions.access_control_title') }}
+                    <small>
+                        {{ state.role.display_name }}
+                    </small>
+                </h5>
+                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex flex-column gap-2 align-items-start" v-if="state.isDerived">
+                    <div class="d-flex flex-row align-items-center gap-2">
+                        <span class="text-muted">
+                            {{ t('settings.role.preset.derived_from') }}
+                        </span>
+                        <span class="badge bg-primary">
+                            <i class="fas fa-fw fa-shield-alt"></i>
+                            {{ t(`settings.role.preset.${state.role.derived.name}`) }}
+                            <a href="#" class="text-decoration-none text-reset" @click.prevent="resetToPreset()" :title="`Reset role to preset`" v-if="state.differsFromPreset">
+                                |
+                                <i class="fas fa-fw fa-undo"></i>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+                <table class="table table-small table-hover table-striped text-center" v-if="state.permissionsLoaded">
+                    <thead class="text-muted">
+                        <tr>
+                            <th></th>
+                            <th class="fw-normal">
+                                {{ t('settings.role.permissions.types.read') }}
+                            </th>
+                            <th class="fw-normal" :title="`* ${t('settings.role.permissions.types.write_info')}`">
+                                {{ t('settings.role.permissions.types.write') }}
+                                <span class="text-danger">*</span>
+                            </th>
+                            <th class="fw-normal" :title="`* ${t('settings.role.permissions.types.create_info')}`">
+                                {{ t('settings.role.permissions.types.create') }}
+                                <span class="text-danger">*</span>
+                            </th>
+                            <th class="fw-normal">
+                                {{ t('settings.role.permissions.types.delete') }}
+                            </th>
+                            <th class="fw-normal" :title="`* ${t('settings.role.permissions.types.share_info')}`">
+                                {{ t('settings.role.permissions.types.share') }}
+                                <span class="text-danger">*</span>
+                            </th>
+                            <th class="fw-normal">
+                                {{ t('global.select_all') }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(pg, i) in state.permissionGroups" :key="i">
+                            <td class="text-start">
+                                {{ t(`settings.role.permissions.groups.${pg}`) }}
+                            </td>
+                            <td>
+                                <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'read')">
+                                    <acl-state :status="state.permissionStates[pg].read" />
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'write')">
+                                    <acl-state :status="state.permissionStates[pg].write" />
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'create')">
+                                    <acl-state :status="state.permissionStates[pg].create" />
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'delete')">
+                                    <acl-state :status="state.permissionStates[pg].delete" />
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'share')">
+                                    <acl-state :status="state.permissionStates[pg].share" />
+                                </a>
+                            </td>
+                            <td>
+                                <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'all')">
+                                    <acl-state :status="allState(pg)" />
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-outline-success" @click="savePermissions()">
+                    <i class="fas fa-fw fa-save"></i> {{ t('global.save') }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+                    <i class="fas fa-fw fa-times"></i> {{ t('global.close') }}
+                </button>
             </div>
         </div>
-        <table class="table table-small table-hover table-striped text-center">
-            <thead class="text-muted">
-                <tr>
-                    <th></th>
-                    <th class="fw-normal">
-                        {{ t('settings.role.permissions.types.read') }}
-                    </th>
-                    <th class="fw-normal" :title="`* ${t('settings.role.permissions.types.write_info')}`">
-                        {{ t('settings.role.permissions.types.write') }}
-                        <span class="text-danger">*</span>
-                    </th>
-                    <th class="fw-normal" :title="`* ${t('settings.role.permissions.types.create_info')}`">
-                        {{ t('settings.role.permissions.types.create') }}
-                        <span class="text-danger">*</span>
-                    </th>
-                    <th class="fw-normal">
-                        {{ t('settings.role.permissions.types.delete') }}
-                    </th>
-                    <th class="fw-normal" :title="`* ${t('settings.role.permissions.types.share_info')}`">
-                        {{ t('settings.role.permissions.types.share') }}
-                        <span class="text-danger">*</span>
-                    </th>
-                    <th class="fw-normal">
-                        {{ t('global.select_all') }}
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(pg, i) in state.permissionGroups" :key="i">
-                    <td class="text-start">
-                        {{ t(`settings.role.permissions.groups.${pg}`) }}
-                    </td>
-                    <td>
-                        <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'read')">
-                            <acl-state :status="state.permissionStates[pg].read" />
-                        </a>
-                    </td>
-                    <td>
-                        <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'write')">
-                            <acl-state :status="state.permissionStates[pg].write" />
-                        </a>
-                    </td>
-                    <td>
-                        <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'create')">
-                            <acl-state :status="state.permissionStates[pg].create" />
-                        </a>
-                    </td>
-                    <td>
-                        <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'delete')">
-                            <acl-state :status="state.permissionStates[pg].delete" />
-                        </a>
-                    </td>
-                    <td>
-                        <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'share')">
-                            <acl-state :status="state.permissionStates[pg].share" />
-                        </a>
-                    </td>
-                    <td>
-                        <a href="#" class="text-reset text-decoration-none" @click.prevent="changePermissionState(pg, 'all')">
-                            <acl-state :status="allState(pg)" />
-                        </a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="modal-footer">
-        <button type="submit" class="btn btn-outline-success" @click="savePermissions()">
-            <i class="fas fa-fw fa-save"></i> {{ t('global.save') }}
-        </button>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
-            <i class="fas fa-fw fa-times"></i> {{ t('global.close') }}
-        </button>
-    </div>
-  </vue-final-modal>
+    </vue-final-modal>
 </template>
 
 <script>
@@ -202,7 +203,6 @@
                 loadRolePermissions(preset.fullSet);
             };
             const closeModal = _ => {
-                state.show = false;
                 context.emit('cancel', false);
             };
             const savePermissions = _ => {
@@ -222,7 +222,7 @@
 
             // DATA
             const state = reactive({
-                show: false,
+                permissionsLoaded: false,
                 role: computed(_ => getRoleBy(roleId.value, 'id', true) || {}),
                 permissionStates: {},
                 permissionGroups: null,
@@ -247,7 +247,7 @@
             onMounted(async _ => {
                 state.permissionGroups = await getAccessGroups();
                 loadRolePermissions(state.role.permissions);
-                state.show = true;
+                state.permissionsLoaded = true;
             });
 
             // WATCHER

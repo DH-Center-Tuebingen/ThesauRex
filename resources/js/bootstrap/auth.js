@@ -6,6 +6,12 @@ import driverRouterVueRouter from '@websanova/vue-auth/dist/drivers/router/vue-r
 import axios from '@/bootstrap/http.js';
 import router from '@/bootstrap/router.js';
 
+import {
+    slugify
+} from '@/helpers/helpers.js';
+
+const appName = slugify(__APPNAME__, '_');
+
 export const vueAuth = createAuth({
     plugins: {
         http: axios,
@@ -17,6 +23,9 @@ export const vueAuth = createAuth({
         router: driverRouterVueRouter,
     },
     options: {
+        rememberKey: `thesaurex_${appName}_auth_remember`,
+        staySignedInKey: `thesaurex_${appName}_auth_stay_signed_in`,
+        tokenDefaultKey: `thesaurex_${appName}_auth_token`,
         forbiddenRedirect: {
             name: 'home'
         },

@@ -33,6 +33,7 @@ import {
     faEdit,
     faEllipsisH,
     faEnvelope,
+    faExternalLinkAlt,
     faEye,
     faEyeSlash,
     faIdBadge,
@@ -78,6 +79,7 @@ library.add(
     faEdit,
     faEllipsisH,
     faEnvelope,
+    faExternalLinkAlt,
     faEye,
     faEyeSlash,
     faFacebookSquare,
@@ -110,5 +112,5 @@ library.add(
     faUsers,
     faUserTimes,
     faVuejs
-)
+);
 dom.watch();

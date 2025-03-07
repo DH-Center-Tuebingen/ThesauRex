@@ -104,9 +104,9 @@ export function exportTree(tree, rootId) {
     if(rootId) {
         const concept = store.getters.conceptsFromMap(tree)[rootId];
         const label = slugify(getLabel(concept));
-        filename = `thesaurex-${label}-export.rdf`;
+        filename = `thesaurex-${tree}-${label}-export.rdf`;
     } else {
-        filename = `thesaurex-export.rdf`;
+        filename = `thesaurex-${tree}-export.rdf`;
     }
 
     exportTreeApi(tree, rootId).then(response => {

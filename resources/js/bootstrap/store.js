@@ -54,15 +54,11 @@ export const store = createStore({
                     user: {},
                     users: [],
                     version: {},
-                    vfm: {},
                 };
             },
             mutations: {
                 setAppInitialized(state, data) {
                     state.appInitialized = data;
-                },
-                setModalInstance(state, data) {
-                    state.vfm = data;
                 },
                 addUser(state, data) {
                     state.users.push(data);
@@ -341,8 +337,10 @@ export const store = createStore({
                                             sortTree(broaderConcept.children);
                                         }
                                         if(broaderConcept.narrowers) {
-                                            broaderConcept.narrowers.push(narrower);
-                                            sortTree(broaderConcept.narrowers);
+                                            if(!broaderConcept.narrowers.some(n => n.id == narrower.id)) {
+                                                broaderConcept.narrowers.push(narrower);
+                                                sortTree(broaderConcept.narrowers);
+                                            }
                                         }
                                         broaderConcept.children_count++;
                                         broaderConcept.state.openable = true;
@@ -352,8 +350,10 @@ export const store = createStore({
                                     const narrowerConcept = state.conceptMap[data.tree][narrowerList[i]];
                                     if(narrowerConcept) {
                                         if(narrowerConcept.broaders) {
-                                            narrowerConcept.broaders.push(broader);
-                                            sortTree(narrowerConcept.broaders);
+                                            if(!narrowerConcept.broaders.some(b => b.id == broader.id)) {
+                                                narrowerConcept.broaders.push(broader);
+                                                sortTree(narrowerConcept.broaders);
+                                            }
                                         }
                                     }
                                 }
@@ -463,9 +463,6 @@ export const store = createStore({
             actions: {
                 setAppState({ commit }, data) {
                     commit("setAppInitialized", data);
-                },
-                setModalInstance({ commit }, data) {
-                    commit("setModalInstance", data);
                 },
                 setRoles({ commit }, data) {
                     commit("setRoles", data.roles);
@@ -671,7 +668,6 @@ export const store = createStore({
                 user: (state) => state.user,
                 isLoggedIn: (state) => !!state.user,
                 version: (state) => state.version,
-                vfm: (state) => state.vfm,
                 isStandalone: (state) => state.standalone,
             },
         },

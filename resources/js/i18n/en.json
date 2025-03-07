@@ -44,6 +44,7 @@
         "download": "Download",
         "download_name": "Download {name}",
         "upload": "Upload",
+        "spacialist": "Spacialist",
         "settings": {
             "title": "Settings",
             "users": "User Management",
@@ -150,7 +151,8 @@
         },
         "narrower": {
             "title": "Narrower Concepts",
-            "empty": "No narrower concepts available"
+            "empty": "No narrower concepts available",
+            "remove_not_possible": "This relation can not be removed, because this is the last remaining relation for the selected concept. Use the context-menu of the tree to delete this concept."
         },
         "label": {
             "title": "Labels",

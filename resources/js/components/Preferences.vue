@@ -1,19 +1,33 @@
 <template>
-    <div class="h-100 d-flex flex-column" v-dcan="'thesaurus_write'">
+    <div
+        class="h-100 d-flex flex-column"
+        v-dcan="'thesaurus_write'"
+    >
         <h3 class="d-flex flex-row gap-2 align-items-center">
             {{ t('global.preference', 2) }}
-            <button type="button" class="btn btn-outline-success btn-sm" @click="savePreferences()">
-                <i class="fas fa-fw fa-save"></i>
+            <button
+                type="button"
+                class="btn btn-outline-success btn-sm"
+                @click="savePreferences()"
+            >
+                <i class="fas fa-fw fa-save" />
                 {{ t('global.save') }}
             </button>
         </h3>
         <div class="table-responsive scroll-x-hidden">
-            <table class="table table-light table-striped table-hover mb-0" v-if="state.prefsLoaded">
+            <table
+                v-if="state.prefsLoaded"
+                class="table table-light table-striped table-hover mb-0"
+            >
                 <thead class="sticky-top">
                     <tr class="text-nowrap">
                         <th>{{ t('global.preference') }}</th>
-                        <th style="width: 99%;" class="text-end">{{ t('global.value') }}</th>
-                        <th>{{ t('global.allow_override') }}</th>
+                        <th
+                            class="text-end"
+                            style="width: 99%;"
+                        >
+                            {{ t('global.value') }}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,13 +40,8 @@
                         <td>
                             <gui-language-preference
                                 :data="state.preferences['prefs.gui-language'].value"
-                                @changed="e => trackChanges('prefs.gui-language', e)">
-                            </gui-language-preference>
-                        </td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.gui-language'].allow_override" />
-                            </div>
+                                @changed="e => trackChanges('prefs.gui-language', e)"
+                            />
                         </td>
                     </tr>
                     <tr>
@@ -42,13 +51,8 @@
                         <td>
                             <reset-email-preference
                                 :data="state.preferences['prefs.enable-password-reset-link'].value"
-                                @changed="e => trackChanges('prefs.enable-password-reset-link', e)">
-                            </reset-email-preference>
-                        </td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.enable-password-reset-link'].allow_override" />
-                            </div>
+                                @changed="e => trackChanges('prefs.enable-password-reset-link', e)"
+                            />
                         </td>
                     </tr>
                     <tr>
@@ -58,13 +62,8 @@
                         <td>
                             <project-name-preference
                                 :data="state.preferences['prefs.project-name'].value"
-                                @changed="e => trackChanges('prefs.project-name', e)">
-                            </project-name-preference>
-                        </td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.project-name'].allow_override" />
-                            </div>
+                                @changed="e => trackChanges('prefs.project-name', e)"
+                            />
                         </td>
                     </tr>
                     <tr>
@@ -74,13 +73,8 @@
                         <td>
                             <spacialist-link-preference
                                 :data="state.preferences['prefs.link-to-spacialist'].value"
-                                @changed="e => trackChanges('prefs.link-to-spacialist', e)">
-                            </spacialist-link-preference>
-                        </td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.link-to-spacialist'].allow_override" />
-                            </div>
+                                @changed="e => trackChanges('prefs.link-to-spacialist', e)"
+                            />
                         </td>
                     </tr>
                     <tr>
@@ -90,13 +84,8 @@
                         <td>
                             <import-config-preference
                                 :data="state.preferences['prefs.import-config'].value"
-                                @changed="e => trackChanges('prefs.import-config', e)">
-                            </import-config-preference>
-                        </td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.import-config'].allow_override" />
-                            </div>
+                                @changed="e => trackChanges('prefs.import-config', e)"
+                            />
                         </td>
                     </tr>
                 </tbody>
@@ -165,7 +154,6 @@
                     }
                     entries.push({
                         value: dd.value,
-                        allow_override: state.preferences[k].allow_override,
                         label: k,
                     });
                 }

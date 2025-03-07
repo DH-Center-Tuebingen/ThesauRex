@@ -30,6 +30,14 @@
                                 {{ t('global.login') }}
                             </router-link>
                         </li>
+                        <li class="nav-item" v-if="hasPreference('prefs.link-to-spacialist')">
+                            <a :href="getPreference('prefs.link-to-spacialist')" class="nav-link" target="_blank">
+                                {{ t('global.spacialist') }}
+                                <sup>
+                                    <i class="fas fa-fw fa-sm fa-fw fa-external-link-alt"></i>
+                                </sup>
+                            </a>
+                        </li>
                         <li class="nav-item dropdown" v-if="state.loggedIn">
                             <a href="#" class="nav-link dropdown-toggle" id="settings-dropdown" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true">
                                 <i class="fas fa-fw fa-sliders-h"></i>
@@ -65,7 +73,7 @@
                                 {{ state.authUser.name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-dropdown">
-                                <router-link :to="{name: 'userprofile'}" class="dropdown-item">
+                                <router-link :to="{name: 'userprofile'}" class="dropdown-item" v-if="state.isStandalone">
                                     <i class="fas fa-fw fa-id-badge"></i>
                                     {{ t('global.user.profile') }}
                                 </router-link>
@@ -107,10 +115,13 @@
     import {
         reactive,
         computed,
-        inject,
         onMounted,
         watch,
     } from 'vue';
+
+    import {
+        ModalsContainer,
+    } from 'vue-final-modal';
 
     import {
         router,
@@ -137,9 +148,11 @@
     } from '@/helpers/routing.js';
 
     export default {
+        components: {
+            'modals-container': ModalsContainer,
+        },
         setup(props) {
             const { t, locale } = useI18n();
-            store.dispatch('setModalInstance', inject('$vfm'));
 
             // FETCH
             initApp(locale).then(_ => {
