@@ -597,8 +597,10 @@ class TreeController extends Controller
         try {
             if($treeName === 'sandbox') {
                 $concept = ThConceptSandbox::findOrFail($id);
+                $broaderTable = (new ThBroaderSandbox())->getTable();
             } else {
                 $concept = ThConcept::findOrFail($id);
+                $broaderTable = (new ThBroader())->getTable();
             }
         } catch(ModelNotFoundException $e) {
             return response()->json([
@@ -647,7 +649,7 @@ class TreeController extends Controller
         }
 
         // check circles
-        $circles = th_detect_circles();
+        $circles = th_detect_circles($broaderTable);
 
         if(count($circles) > 0) {
             DB::rollBack();
@@ -725,8 +727,8 @@ class TreeController extends Controller
             }
 
             $query->where('broader_id', $bid)
-            ->where('narrower_id', $id)
-            ->delete();
+                ->where('narrower_id', $id)
+                ->delete();
         } else {
             $concept->is_top_concept = false;
             $concept->save();
@@ -765,11 +767,8 @@ class TreeController extends Controller
         // 'rerelate' => add concept given by query param 'p' as parent for descendants
         $action = $request->query('a', 'cascade');
 
-        $conceptTable = th_tree_builder($treeName);
-        $broaderTable = th_broader_builder($treeName);
-
-        $broaders = $broaderTable->where('narrower_id', $id)->pluck('broader_id')->toArray();
-        $narrowers = $broaderTable->where('broader_id', $id)->pluck('narrower_id')->toArray();
+        $broaders = th_broader_builder($treeName)->where('narrower_id', $id)->pluck('broader_id')->toArray();
+        $narrowers = th_broader_builder($treeName)->where('broader_id', $id)->pluck('narrower_id')->toArray();
 
         switch($action) {
             case 'cascade':
@@ -778,15 +777,14 @@ class TreeController extends Controller
                 break;
             case 'level':
                 if($concept->is_top_concept) {
-                    $conceptTable
+                    th_tree_builder($treeName)
                         ->whereIn('id', $narrowers)
                         ->update(['is_top_concept' => true]);
                 }
                 $concept->delete();
                 foreach($broaders as $broaderId) {
                     foreach($narrowers as $narrowerId) {
-                        $broaderTable = th_broader_builder($treeName);
-                        $exists = $broaderTable
+                        $exists = th_broader_builder($treeName)
                             ->where('broader_id', $broaderId)
                             ->where('narrower_id', $narrowerId)
                             ->exists();
@@ -806,7 +804,7 @@ class TreeController extends Controller
                 break;
             case 'top':
                 $concept->delete();
-                $conceptTable
+                th_tree_builder($treeName)
                     ->whereIn('id', $narrowers)
                     ->update(['is_top_concept' => true]);
                 break;
@@ -832,8 +830,7 @@ class TreeController extends Controller
                 }
                 $concept->delete();
                 foreach($narrowers as $narrowerId) {
-                    $broaderTable = th_broader_builder($treeName);
-                    $exists = $broaderTable
+                    $exists = th_broader_builder($treeName)
                         ->where('broader_id', $newParentId)
                         ->where('narrower_id', $narrowerId)
                         ->exists();
@@ -1160,7 +1157,7 @@ class TreeController extends Controller
         }
 
         // check circles
-        $circles = th_detect_circles();
+        $circles = th_detect_circles($thBroader);
 
         if(count($circles) > 0) {
             $circleList = '';
@@ -1589,14 +1586,20 @@ class TreeController extends Controller
         $clonedConcept->save();
 
         if(!$clonedConcept->is_top_concept) {
-            if($srcTree === 'sandbox') {
-                $relation = new ThBroader();
-            } else {
-                $relation = new ThBroaderSandbox();
+            $exists = th_broader_builder($tgtTree)
+                ->where('broader_id', $tgtBroaderId)
+                ->where('narrower_id', $clonedConcept->id)
+                ->exists();
+            if(!$exists) {
+                if($srcTree === 'sandbox') {
+                    $relation = new ThBroader();
+                } else {
+                    $relation = new ThBroaderSandbox();
+                }
+                $relation->broader_id = $tgtBroaderId;
+                $relation->narrower_id = $clonedConcept->id;
+                $relation->save();
             }
-            $relation->broader_id = $tgtBroaderId;
-            $relation->narrower_id = $clonedConcept->id;
-            $relation->save();
         }
 
         $srcLabels = $srcConcept->labels;

@@ -2,12 +2,14 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class ThConcept extends Model
+class ThConcept extends ThConceptBase
 {
     protected $table = 'th_concept';
+    protected $broader = ThBroader::class;
+    protected $appends = ['broaders_count'];
+
     /**
      * The attributes that are assignable.
      *
@@ -16,10 +18,9 @@ class ThConcept extends Model
     protected $fillable = [
         'concept_url',
         'concept_scheme',
+        'is_top_concept',
         'user_id',
     ];
-
-    // protected $appends = ['parents', 'path'];
 
     public static function getMap() {
         $lang = 'de'; // TODO
@@ -78,6 +79,10 @@ class ThConcept extends Model
         return DB::select($query);
     }
 
+    public function getBroadersCountAttribute() {
+        return $this->broaders()->count();
+    }
+
     public function labels() {
         return $this->hasMany('App\ThConceptLabel', 'concept_id');
     }
@@ -92,58 +97,5 @@ class ThConcept extends Model
 
     public function broaders() {
         return $this->belongsToMany('App\ThConcept', 'th_broaders', 'narrower_id', 'broader_id');
-    }
-
-    public function parentIds() {
-        $parents = [];
-
-        // add empty path for root concepts
-        if($this->is_top_concept) {
-            $parents[] = [];
-        }
-
-        $broaders = ThBroader::select('broader_id')
-            ->where('narrower_id', $this->id)
-            ->get();
-
-        foreach($broaders as $broader) {
-            $parentBroaders = ThConcept::find($broader->broader_id)->parentIds();
-            foreach($parentBroaders as $pB) {
-                $parents[] = array_merge($pB, [$broader->broader_id]);
-            }
-        }
-
-        return $parents;
-    }
-
-    public function getParentsAttribute() {
-        $user = auth()->user();
-        $langCode = $user->getLanguage();
-
-        $parents = [];
-        foreach($this->parentIds() as $paths) {
-            $path = [];
-            foreach($paths as $pid) {
-                $parent = ThConcept::with(['labels.language' => function($query) use($langCode) {
-                    $query->orderByRaw("short_name != '$langCode'");
-                }])
-                ->where('id', $pid)
-                ->first();
-                $path[] = $parent;
-            }
-            $parents[] = $path;
-        }
-
-        return $parents;
-    }
-
-    public function getPathAttribute() {
-        $paths = [];
-        foreach($this->parentIds() as $idPath) {
-            $idPath[] = $this->id;
-            $paths[] = array_reverse($idPath);
-        }
-
-        return $paths;
     }
 }

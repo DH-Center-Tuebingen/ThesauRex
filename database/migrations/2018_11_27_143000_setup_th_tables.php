@@ -115,17 +115,17 @@ class SetupThTables extends Migration
                 $table->foreign('concept_id')->references('id')->on('th_concept')->onDelete('cascade');
                 $table->foreign('language_id')->references('id')->on('th_language')->onDelete('cascade');
             });
+            // Create ThNotes
+            Schema::create('th_concept_notes', function (Blueprint $table) {
+                $table->increments('id');
+                $table->text('content');
+                $table->integer('concept_id');
+                $table->integer('language_id');
+                $table->timestamps();
+                $table->foreign('concept_id')->references('id')->on('th_concept')->onDelete('cascade')->onUpdate('cascade');
+                $table->foreign('language_id')->references('id')->on('th_language')->onDelete('cascade')->onUpdate('cascade');
+            });
         }
-        // Create ThNotes
-        Schema::create('th_concept_notes', function (Blueprint $table) {
-            $table->increments('id');
-            $table->text('content');
-            $table->integer('concept_id');
-            $table->integer('language_id');
-            $table->timestamps();
-            $table->foreign('concept_id')->references('id')->on('th_concept')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('language_id')->references('id')->on('th_language')->onDelete('cascade')->onUpdate('cascade');
-        });
     }
 
     private function createSandboxSkosTables() {
@@ -225,7 +225,6 @@ class SetupThTables extends Migration
             $table->increments('id');
             $table->text('label');
             $table->jsonb('default_value');
-            $table->boolean('allow_override')->nullable()->default(false);
             $table->timestamps();
         });
         Schema::create('user_preferences', function (Blueprint $table) {
@@ -242,19 +241,16 @@ class SetupThTables extends Migration
             [
                 'label' => 'prefs.gui-language',
                 'default_value' => json_encode(['language_key' => 'en']),
-                'allow_override' => true
             ],
             [
                 'label' => 'prefs.project-name',
                 'default_value' => json_encode(['name' => 'Spacialist']),
-                'allow_override' => false
             ]
         ];
         foreach($defaultPrefs as $dp) {
             $p = new App\Preference();
             $p->label = $dp['label'];
             $p->default_value = $dp['default_value'];
-            $p->allow_override = $dp['allow_override'];
             $p->save();
         }
     }

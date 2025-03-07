@@ -6,6 +6,18 @@
         "framework",
         "laravel"
     ],
+    "authors": [
+        {
+            "name": "Vinzenz Rosenkranz",
+            "email": "vinzenz.rosenkranz@uni-tuebingen.de",
+            "role": "Developer"
+        },
+        {
+            "name": "Severin Opel",
+            "email": "severin.opel@uni-tuebingen.de",
+            "role": "Developer"
+        }
+    ],
     "license": "MIT",
     "require": {
         "php": ">=8.0.2",

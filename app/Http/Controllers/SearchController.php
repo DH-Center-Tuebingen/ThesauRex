@@ -36,23 +36,36 @@ class SearchController extends Controller
 
         $concepts = $builder->whereHas('labels', function($query) use ($language, $q){
             $query->where('language_id', $language->id)
-                ->where('label', 'ilike', "%$q%");
+                ->where('label', 'ilike', "%$q%")
+                ->orderByRaw("
+                    (CASE
+                    WHEN label           = '{$q}'   THEN 100
+                    WHEN label        ILIKE '{$q}%'  THEN 40
+                    WHEN label        ILIKE '%{$q}%' THEN 20
+                    ELSE 0
+                    END) DESC
+                ");
         })
             ->whereNotIn('id', $excludeList)
+            ->limit(15)
             ->get();
 
         $foreignConcepts = th_tree_builder($tree, $langCode)
-            // ->whereDoesntHave('labels', function($query) use ($language) {
-            //     $query->where('language_id', $language->id);
-            // })
             ->whereHas('labels', function($query) use ($language, $q) {
                 $query->whereNot('language_id', $language->id)
-                    ->where('label', 'ilike', "%$q%");
+                    ->where('label', 'ilike', "%$q%")
+                    ->orderByRaw("
+                        (CASE
+                        WHEN label           = '{$q}'   THEN 100
+                        WHEN label        ILIKE '{$q}%'  THEN 40
+                        WHEN label        ILIKE '%{$q}%' THEN 20
+                        ELSE 0
+                        END) DESC
+                    ");
             })
             ->whereNotIn('id', $excludeList)
+            ->limit(15)
             ->get();
-        // info($concepts);
-        // info($foreignConcepts);
 
         $concepts = $concepts->concat($foreignConcepts);
 

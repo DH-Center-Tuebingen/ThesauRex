@@ -20,7 +20,6 @@ return new class extends Migration
                     $table->increments('id');
                     $table->text('label');
                     $table->jsonb('default_value');
-                    $table->boolean('allow_override')->nullable()->default(false);
                     $table->timestamps();
                 });
             }
@@ -42,22 +41,18 @@ return new class extends Migration
             [
                 'label' => 'prefs.gui-language',
                 'default_value' => json_encode(['language_key' => 'en']),
-                'allow_override' => true
             ],
             [
                 'label' => 'prefs.link-to-spacialist',
                 'default_value' => json_encode(['url' => '']),
-                'allow_override' => false
             ],
             [
                 'label' => 'prefs.project-name',
                 'default_value' => json_encode(['name' => 'ThesauRex']),
-                'allow_override' => false
             ],
             [
                 'label' => 'prefs.enable-password-reset-link',
                 'default_value' => json_encode(['use' => false]),
-                'allow_override' => false
             ],
             [
                 'label' => 'prefs.import-config',
@@ -67,7 +62,6 @@ return new class extends Migration
                     'ignore_missing_languages' => false,
                     'ignore_missing_relations' => false,
                 ]),
-                'allow_override' => false
             ],
         ];
         foreach($defaultPrefs as $dp) {
@@ -76,7 +70,6 @@ return new class extends Migration
                 $p = new Preference();
                 $p->label = $dp['label'];
                 $p->default_value = $dp['default_value'];
-                $p->allow_override = $dp['allow_override'];
                 $p->save();
             }
         }

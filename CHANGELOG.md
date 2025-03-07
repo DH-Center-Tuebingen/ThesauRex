@@ -9,9 +9,14 @@ All notable changes to this project will be documented in this file.
 - More dropdowns in modals
 - Show link to Spacialist if set in preferences
 - Broken avatar if is part of Spacialist
+- Tree export
+- Toggling concepts in sandbox tree no longer show descendants on top level
+- Removing a narrower relation in _Detail View_ of a narrower with only one broader left only removed the relation, but the narrower concept still existed without any broaders
+- Concept search was broken for a vocabulary wit a lot of concepts
 ### Changed
 - No longer show user profile item in dropdown, if is part of Spacialist
 - Auto select user (or first available) language in _Create Concept_ modal
+- Searching for concepts returns only a maximum of 30 results (15 each for matches in user language and all other languages) ordered by exact match
 
 ## 0.9.2
 ### Fixed
@@ -59,6 +64,7 @@ All notable changes to this project will be documented in this file.
 - Ignore uppercase/lowercase letters in login form user names
 - Several problems with removing concepts
 - Adding new top level concept not visible
+- Deleting concept with strategy _Delete & Level Up_ led to orphaned descendant concepts
 
 ## 0.6.2
 ### Changed
