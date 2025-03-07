@@ -20,7 +20,6 @@ return new class extends Migration
                     $table->increments('id');
                     $table->text('label');
                     $table->jsonb('default_value');
-                    $table->boolean('allow_override')->nullable()->default(false);
                     $table->timestamps();
                 });
             }
