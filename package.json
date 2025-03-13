@@ -18,7 +18,8 @@
         "dev": "npx vite",
         "watch": "npm run dev",
         "prod": "npm run production",
-        "production": "npx vite build"
+        "production": "npx vite build",
+        "postinstall": "node scripts/link-modules.js"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.1.2",
@@ -38,7 +39,7 @@
         "sass-loader": "^13.0.2",
         "stylelint": "^15.10.3",
         "vite": "^5.3.5",
-        "vue": "^3.2.37",
+        "vue": "^3.3.4",
         "vue-loader": "^17.0.0",
         "vue-router": "^4.1.4",
         "vuex": "^4.0.2"

@@ -8,7 +8,7 @@
             </button>
         </h3>
         <div class="table-responsive scroll-x-hidden">
-            <table class="table table-light table-striped table-hover mb-0" v-if="state.prefsLoaded">
+            <table class="table table-light table-striped mb-0" v-if="state.prefsLoaded">
                 <thead class="sticky-top">
                     <tr class="text-nowrap">
                         <th>{{ t('global.preference') }}</th>
@@ -24,7 +24,9 @@
                             </strong>
                         </td>
                         <td>
+                            {{ state.preferences['prefs.gui-language'].value }}
                             <gui-language-preference
+                                v-if="state.preferences['prefs.gui-language'].value"
                                 :data="state.preferences['prefs.gui-language'].value"
                                 @changed="e => trackChanges('prefs.gui-language', e)">
                             </gui-language-preference>

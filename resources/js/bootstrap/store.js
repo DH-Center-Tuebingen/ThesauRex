@@ -23,6 +23,10 @@ export const store = createStore({
             state() {
                 return {
                     appInitialized: false,
+                    conceptInitialized: {
+                        project: false,
+                        sandbox: false,
+                    },
                     concepts: {
                         project: [],
                         sandbox: [],
@@ -196,6 +200,7 @@ export const store = createStore({
                     state.conceptParents[data.tree] = {};
                 },
                 setConcepts(state, data) {
+                    state.concepts[data.tree] = [];
                     data.concepts.forEach((c) => {
                         const n = new Node({
                             ...c,
@@ -235,7 +240,7 @@ export const store = createStore({
                             }
                         }
                     });
-                },
+                },               
                 setSelectedConcept(state, data) {
                     if(!data) {
                         state.concept.from = null;
@@ -587,19 +592,23 @@ export const store = createStore({
                 unsetSelectedConcept({ commit }, data) {
                     commit('setSelectedConcept', null);
                 },
-                async setSelectedConcept({ commit, state }, data) {
-                    let concept = state.conceptMap[data.tree][data.concept_id];
+                async setSelectedConcept({ commit, state }, id, tree = 'project') {
+                    let concept = state.conceptMap[tree][id];
+                    
+                    console.log(concept);
                     if(!concept) {
-                        const ids = await getConceptParentIds(data.concept_id, data.tree);
+                        console.log('FETCH DATA')
+                        const ids = await getConceptParentIds(id, tree);
+                        console.log(ids);
                         for(let i = 0; i < ids.length; i++) {
                             const path = ids[i];
-                            await openPath(path, data.tree);
+                            await openPath(path, tree);
                         }
-                        concept = state.conceptMap[data.tree][data.concept_id];
+                        concept = state.conceptMap[tree][id];
                     }
                     commit('setSelectedConcept', {
                         data: concept,
-                        from: data.tree,
+                        from: tree,
                     });
                 },
                 addUser({ commit }, data) {

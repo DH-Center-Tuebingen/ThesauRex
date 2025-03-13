@@ -1,49 +1,91 @@
 <template>
-    <div class="d-flex h-100">
-        <div class="px-2 clickable" @click.prevent="state.showSandbox = !state.showSandbox">
+    <div class="d-flex flex-fill overflow-hidden">
+        <!-- <div
+            class="p-2 clickable"
+            @click.prevent="state.showSandbox = !state.showSandbox"
+        >
             <span v-if="state.showSandbox">
-                <i style="font-size:1.1rem" class="fa-fw fa-solid fa-file-circle-minus"></i>
+                <i
+                    style="font-size:1.1rem"
+                    class="fa-fw fa-solid fa-file-circle-minus" 
+                ></i>
             </span>
             <span v-else>
-                <i style="font-size:1.1rem" class="fa-fw fa-solid fa-file-circle-plus"></i>
+                <i
+                    style="font-size:1.1rem"
+                    class="fa-fw fa-solid fa-file-circle-plus"
+                ></i>
             </span>
-        </div>
+        </div> -->
         <div class="row h-100 overflow-hidden flex-grow-1">
 
-            <div class="sandbox-view h-100 col-md-3 d-flex flex-column fade-in" v-if="state.showSandbox">
-                <concept-tree class="flex-grow-1 overflow-hidden" :drag-target="state.dragTarget"
-                    :tree-data="state.sandboxConcepts" :tree-name="'sandbox'" @added="addConceptTo('sandbox')"
-                    @change-drag-target="changeDragTarget">
+            <!-- <div
+                class="sandbox-view p-3 h-100 col-md-3 d-flex flex-column fade-in"
+                v-if="state.showSandbox"
+            >
+                <concept-tree
+                    class="flex-grow-1 overflow-hidden"
+                    :drag-target="state.dragTarget"
+                    :tree-data="state.sandboxConcepts"
+                    :tree-name="'sandbox'"
+                    @added="addConceptTo('sandbox')"
+                    @change-drag-target="changeDragTarget"
+                >
 
                     <template #title>
-                        <h2>
+                        <h4>
                             {{ t('tree.sandbox.title') }}
-                        </h2>
+                        </h4>
                     </template>
 
-                </concept-tree>
-            </div>
-            <div class="h-100 col-md-9" :class="{ 'col-md-12': !state.showSandbox }">
+</concept-tree>
+</div> -->
+            <div
+                class="col-md-9 h-100"
+                :class="{ 'col-md-12': !state.showSandbox }"
+            >
+
                 <div class="row h-100">
-                    <div class="col-md-4 h-100 d-flex flex-column">
+                    <ResizableColumns v-model="columns">
 
-                        <concept-tree class="flex-grow-1 overflow-hidden" :drag-target="state.dragTarget"
-                            :tree-data="state.projectConcepts" :tree-name="'project'" @added="addConceptTo('project')"
-                            @change-drag-target="changeDragTarget">
+                        <template #tree>
+                            <div class="h-100 d-flex flex-column">
 
-                            <template #title>
-                                <h4>
-                                    {{ t('tree.project.title') }}
-                                </h4>
-                            </template>
-                        </concept-tree>
-                    </div>
-                    <div class="col-md-8 h-100">
-                        <router-view @added="addConceptTo('selection')"></router-view>
-                        <div v-if="!state.conceptSelected" class="alert alert-info">
-                            {{ t('detail.none_selected') }}
-                        </div>
-                    </div>
+                                <concept-tree
+                                    class="flex-grow-1 overflow-y-auto"
+                                    :drag-target="state.dragTarget"
+                                    :tree-data="state.projectConcepts"
+                                    :tree-name="'project'"
+                                    @added="addConceptTo('project')"
+                                    @change-drag-target="changeDragTarget"
+                                >
+
+                                    <template #title>
+                                        <h4>
+                                            {{ t('tree.project.title') }}
+                                        </h4>
+
+
+                                      
+                                    </template>
+                                </concept-tree>
+
+                            </div>
+                        </template>
+
+                        <template #detail>
+                            <div class="flex-fill h-100">
+                                <router-view @added="addConceptTo('selection')"></router-view>
+                                <div
+                                    v-if="!state.conceptSelected"
+                                    class="alert alert-info"
+                                >
+                                    {{ t('detail.none_selected') }}
+                                </div>
+                            </div>
+                        </template>
+
+                    </ResizableColumns>
                 </div>
             </div>
         </div>
@@ -51,150 +93,168 @@
 </template>
 
 <script>
-import {
-    computed,
-    onMounted,
-    reactive,
-} from 'vue';
+    import {
+        computed,
+        onMounted,
+        reactive,
+    } from 'vue';
 
-import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
 
-import store from '@/bootstrap/store.js';
+    import store from '@/bootstrap/store.js';
+    import {fetchTreeData} from '@/api.js';
 
-export default {
-    setup(props, context) {
-        const { t } = useI18n();
+    import {ResizableColumns} from 'dhc-components';
 
-        // FUNCTIONS
-        const changeDragTarget = e => {
-            state.dragTarget = e;
-        };
+    export default {
+        components: {
+            ResizableColumns
+        },
+        setup(props, context) {
+            const {t} = useI18n();
 
-        // DATA
-        const state = reactive({
-            showSandbox: false,
+            // FUNCTIONS
+            const changeDragTarget = e => {
+                state.dragTarget = e;
+            };
 
-            sandboxConcepts: computed(_ => store.getters.sandboxConcepts),
-            projectConcepts: computed(_ => store.getters.projectConcepts),
-            concept: computed(_ => store.getters.selectedConcept),
-            conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
-        });
+            // DATA
+            const state = reactive({
+                showSandbox: false,
+                sandboxConcepts: computed(_ => store.getters.sandboxConcepts),
+                projectConcepts: computed(_ => store.getters.projectConcepts),
+                concept: computed(_ => store.getters.selectedConcept),
+                conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
+            });
 
+            onMounted(_ => {
+                fetchTreeData();
+            })
 
+            const columns = reactive([{
+                name: 'tree',
+                width: 300,
+                minWidth: 100,
+                maxWidth: 500,
+            }, {
+                name: 'detail',
+                width: 700,
+            }])
 
-        // RETURN
-        return {
-            t,
-            // HELPERS
-            // LOCAL
-            changeDragTarget,
-            // PROPS
-            // STATE
-            state,
-        };
-    },
-    // beforeRouteEnter(to, from, next) {
-    //     let projectConcepts, sandboxConcepts;
-    //     $httpQueue.add(() => $http.get('tree?t=').then(response => {
-    //         projectConcepts = response.data;
-    //         return $http.get('tree?t=sandbox');
-    //         }).then(response => {
-    //             sandboxConcepts = response.data
-    //             return $http.get(`language`);
-    //         }).then(response => {
-    //             next(vm => vm.init(projectConcepts, sandboxConcepts, response.data));
-    //         })
-    //     );
-    // },
-    // mounted() {
-    //     this.eventBus.$on('concept-clicked', this.handleConceptClick);
-    // },
-    // methods: {
-    //     changeDragTarget(e) {
-    //         this.dragTarget = e;
-    //     },
-    //     init(projectData, sandboxData, languages) {
-    //         this.languages = [];
-    //         languages.forEach(l => {
-    //             this.languages.push(l);
-    //         });
-    //         this.concepts = [];
-    //         projectData.forEach(d => {
-    //             this.concepts.push(d);
-    //         });
-    //         sandboxData.forEach(d => {
-    //             this.sandbox.concepts.push(d);
-    //         });
-    //         this.dataLoaded = true;
-    //     },
-    //     // openNewConceptModal(e) {
-    //     //     const opts = {
-    //     //         languages: this.languages,
-    //     //         onSubmit: c => this.createNewConceptModal(c)
-    //     //     };
-    //     //     const props = Object.assign({}, e, opts);
-    //     //     this.$modal.show(NewConceptModal, props);
-    //     // },
-    //     // createNewConceptModal(concept) {
-    //     //     let data = {
-    //     //         label: concept.label,
-    //     //         language_id: concept.language.id
-    //     //     };
-    //     //     if(concept.parent) {
-    //     //         data.parent_id = concept.parent.id;
-    //     //     }
-    //     //     $httpQueue.add(() => $http.put(`/tree/concept?t=${concept.tree}`, data).then(response => {
-    //     //         this.eventBus.$emit(`concept-created-${concept.tree}`, {
-    //     //             parent_id: concept.parent ? concept.parent.id : undefined,
-    //     //             concept: response.data
-    //     //         });
-    //     //     }));
-    //     // },
-    //     handleConceptClick(e) {
-    //         this.$router.push({
-    //             name: 'conceptdetail',
-    //             params: {
-    //                 id: e.id
-    //             },
-    //             query: Object.assign({}, this.$route.query, {
-    //                 t: e.from
-    //             })
-    //         });
-    //     }
-    // },
-    // data() {
-    //     return {
-    //         dataLoaded: false,
-    //         concepts: [],
-    //         eventBus: new Vue(),
-    //         languages: [],
-    //         // selectedConcept: {
-    //         //     from: '',
-    //         //     element: {}
-    //         // },
-    //         sandbox: {
-    //             concepts: []
-    //         },
-    //         dragTarget: {}
-    //     }
-    // }
-}
+            // RETURN
+            return {
+                t,
+                // HELPERS
+                // LOCAL
+                changeDragTarget,
+                // PROPS
+                // STATE
+                state,
+                columns,
+            };
+        },
+        // beforeRouteEnter(to, from, next) {
+        //     let projectConcepts, sandboxConcepts;
+        //     $httpQueue.add(() => $http.get('tree?t=').then(response => {
+        //         projectConcepts = response.data;
+        //         return $http.get('tree?t=sandbox');
+        //         }).then(response => {
+        //             sandboxConcepts = response.data
+        //             return $http.get(`language`);
+        //         }).then(response => {
+        //             next(vm => vm.init(projectConcepts, sandboxConcepts, response.data));
+        //         })
+        //     );
+        // },
+        // mounted() {
+        //     this.eventBus.$on('concept-clicked', this.handleConceptClick);
+        // },
+        // methods: {
+        //     changeDragTarget(e) {
+        //         this.dragTarget = e;
+        //     },
+        //     init(projectData, sandboxData, languages) {
+        //         this.languages = [];
+        //         languages.forEach(l => {
+        //             this.languages.push(l);
+        //         });
+        //         this.concepts = [];
+        //         projectData.forEach(d => {
+        //             this.concepts.push(d);
+        //         });
+        //         sandboxData.forEach(d => {
+        //             this.sandbox.concepts.push(d);
+        //         });
+        //         this.dataLoaded = true;
+        //     },
+        //     // openNewConceptModal(e) {
+        //     //     const opts = {
+        //     //         languages: this.languages,
+        //     //         onSubmit: c => this.createNewConceptModal(c)
+        //     //     };
+        //     //     const props = Object.assign({}, e, opts);
+        //     //     this.$modal.show(NewConceptModal, props);
+        //     // },
+        //     // createNewConceptModal(concept) {
+        //     //     let data = {
+        //     //         label: concept.label,
+        //     //         language_id: concept.language.id
+        //     //     };
+        //     //     if(concept.parent) {
+        //     //         data.parent_id = concept.parent.id;
+        //     //     }
+        //     //     $httpQueue.add(() => $http.put(`/tree/concept?t=${concept.tree}`, data).then(response => {
+        //     //         this.eventBus.$emit(`concept-created-${concept.tree}`, {
+        //     //             parent_id: concept.parent ? concept.parent.id : undefined,
+        //     //             concept: response.data
+        //     //         });
+        //     //     }));
+        //     // },
+        //     handleConceptClick(e) {
+        //         this.$router.push({
+        //             name: 'conceptdetail',
+        //             params: {
+        //                 id: e.id
+        //             },
+        //             query: Object.assign({}, this.$route.query, {
+        //                 t: e.from
+        //             })
+        //         });
+        //     }
+        // },
+        // data() {
+        //     return {
+        //         dataLoaded: false,
+        //         concepts: [],
+        //         eventBus: new Vue(),
+        //         languages: [],
+        //         // selectedConcept: {
+        //         //     from: '',
+        //         //     element: {}
+        //         // },
+        //         sandbox: {
+        //             concepts: []
+        //         },
+        //         dragTarget: {}
+        //     }
+        // }
+    }
 </script>
 
 
 <style scoped>
-.fade-in {
-    animation: slide-in 0.5s ease-out;
-}
-
-
-@keyframes slide-in {
-    0% {
-        transform: translateX(-100%);
+    .fade-in {
+        animation: slide-in 0.5s ease-out;
     }
 
-    100% {
-        transform: translateX(0);
+
+    @keyframes slide-in {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        100% {
+            transform: translateX(0);
+        }
     }
-}
 </style>

@@ -7,7 +7,7 @@
                 class="navbar-brand"
             >
                 <img
-                    src="favicon.png"
+                    src="img/logo.svg"
                     class="logo me-3 bb-1"
                     alt="spacialist logo"
                 />
@@ -32,13 +32,14 @@
             >
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <LanguageSelect />
-                    </li>
+
                 </ul>
 
                 <!-- Right Side Of Navbar -->
-                <ul class="nav navbar-nav">
+                <ul class="nav navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <LanguageSelect />
+                    </li>
                     <li class="nav-item">
                         <a
                             class="nav-link"
@@ -59,82 +60,6 @@
                         >
                             {{ t('global.login') }}
                         </router-link>
-                    </li>
-                    <li
-                        class="nav-item"
-                        v-if="hasPreference('prefs.link-to-spacialist')"
-                    >
-                        <a
-                            :href="getPreference('prefs.link-to-spacialist')"
-                            class="nav-link"
-                            target="_blank"
-                        >
-                            {{ t('global.spacialist') }}
-                            <sup>
-                                <i class="fas fa-fw fa-sm fa-fw fa-external-link-alt"></i>
-                            </sup>
-                        </a>
-                    </li>
-                    <li
-                        class="nav-item dropdown"
-                        v-if="state.loggedIn"
-                    >
-                        <a
-                            href="#"
-                            class="nav-link dropdown-toggle"
-                            id="settings-dropdown"
-                            data-bs-toggle="dropdown"
-                            role="button"
-                            aria-expanded="false"
-                            aria-haspopup="true"
-                        >
-                            <i class="fas fa-fw fa-sliders-h"></i>
-                            {{ t('global.settings.title') }}
-                        </a>
-                        <div
-                            class="dropdown-menu"
-                            aria-labelledby="settings-dropdown"
-                        >
-                            <router-link
-                                :to="{ name: 'users' }"
-                                class="dropdown-item"
-                                v-if="state.isStandalone"
-                            >
-                                <i class="fas fa-fw fa-users"></i>
-                                {{ t('global.settings.users') }}
-                            </router-link>
-                            <router-link
-                                :to="{ name: 'roles' }"
-                                class="dropdown-item"
-                                v-if="state.isStandalone"
-                            >
-                                <i class="fas fa-fw fa-shield-alt"></i>
-                                {{ t('global.settings.roles') }}
-                            </router-link>
-                            <router-link
-                                :to="{ name: 'languages' }"
-                                class="dropdown-item"
-                            >
-                                <i class="fas fa-fw fa-language"></i>
-                                {{ t('global.settings.languages') }}
-                            </router-link>
-                            <router-link
-                                :to="{ name: 'preferences' }"
-                                class="dropdown-item"
-                            >
-                                <i class="fas fa-fw fa-cog"></i>
-                                {{ t('global.settings.system') }}
-                            </router-link>
-                            <div class="dropdown-divider"></div>
-                            <a
-                                class="dropdown-item"
-                                href="#"
-                                @click="showAboutModal"
-                            >
-                                <i class="fas fa-fw fa-info-circle"></i>
-                                {{ t('global.settings.about') }}
-                            </a>
-                        </div>
                     </li>
                     <li
                         class="nav-item dropdown"
@@ -169,11 +94,20 @@
                                 {{ t('global.user.profile') }}
                             </router-link>
                             <router-link
+                                :to="{ name: 'userprofile', params: { id: state.authUser.id } }"
+                                class="dropdown-item"
+                                v-if="state.authUser.id"
+                            >
+                                <i class="fas fa-fw fa-user-cog"></i>
+                                {{ t('global.user.profile') }}
+                            </router-link>
+                            <router-link
                                 :to="{ name: 'userpreferences', params: { id: state.authUser.id } }"
                                 class="dropdown-item"
                                 v-if="state.authUser.id"
                             >
                                 <i class="fas fa-fw fa-user-cog"></i>
+
                                 {{ t('global.user.settings') }}
                             </router-link>
                             <a
@@ -208,6 +142,7 @@
     import {
         getPreference,
         hasPreference,
+        getProjectName,
     } from '@/helpers/helpers.js';
 
     import auth from '@/bootstrap/auth.js';
@@ -220,7 +155,7 @@
         searchParamsToObject
     } from '@/helpers/routing.js';
 
-    import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
     import store from '../bootstrap/store';
 
     import LanguageSelect from './form/LanguageSelect.vue';
@@ -231,7 +166,7 @@
         },
         setup() {
 
-            const { t, locale } = useI18n();
+            const {t, locale} = useI18n();
 
             // FUNCTIONS
             const logout = _ => {

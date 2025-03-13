@@ -7,7 +7,7 @@
                 {{ t('settings.language.add_button') }}
             </button>
         </h4>
-        <table class="table table-striped table-hover">
+        <table class="table table-striped">
             <thead class="thead-light">
                 <tr>
                     <th>{{ t('global.short_name') }}</th>

@@ -51,8 +51,8 @@ class User extends Authenticatable implements JWTSubject
     }
 
     public function uploadAvatar($file) {
-        info($this->avatar);
-        Storage::delete($this->avatar);
+        if(isset($this->avatar))
+            Storage::delete($this->avatar);
         $filename = $this->id . "." . $file->getClientOriginalExtension();
         info($filename);
         return $file->storeAs(

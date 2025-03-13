@@ -1,12 +1,12 @@
 <template>
     <div class="d-flex flex-column h-100">
         <Navigation />
-        <div class="container-fluid my-3 col">
+        <div class="container-fluid d-flex flex-column flex-fill overflow-hidden">
             <template v-if="state.init">
                 <router-view></router-view>
             </template>
             <template v-else>
-                <div class="h-100 d-flex flex-column justify-content-center align-items-center">
+                <div v-if="initAndLoggedIn" class="h-100 d-flex flex-column justify-content-center align-items-center">
                     <LoadingSpinner />
                 </div>
             </template>
@@ -58,7 +58,7 @@ import {
         initApp(locale).then(_ => {
             store.dispatch('setAppState', true);
         }).catch(e => {
-            if(e.response.status == 401) {
+            if(e?.response?.status == 401) {
                 store.dispatch('setAppState', true);
             } else {
                 throwError(e);
@@ -68,6 +68,7 @@ import {
         // DATA
         const state = reactive({
             init: computed(_ => store.getters.appInitialized),
+            initAndLoggedIn: computed(_ => store.getters.appInitialized && store.loggedIn),
         });
 
 

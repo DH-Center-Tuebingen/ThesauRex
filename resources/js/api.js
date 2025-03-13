@@ -26,6 +26,7 @@ export async function fetchPreData(locale) {
         store.dispatch('setPreferences', response.data.preferences);
         store.dispatch('setSystemPreferences', response.data.system_preferences);
         store.dispatch('setStandaloneState', response.data.standalone);
+        store.dispatch('setLanguages', response.data.languages);
 
         if(auth.ready()) {
             auth.load().then(_ => {
@@ -81,6 +82,7 @@ export async function fetchUsers() {
     }));
 }
 
+// Moved to pre data
 export async function fetchLanguages() {
     await httpQueue.add(
         () => http.get('/language').then(response => {

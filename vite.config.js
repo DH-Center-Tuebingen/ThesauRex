@@ -1,15 +1,15 @@
-import { defineConfig, loadEnv } from 'vite';
+import {defineConfig, loadEnv} from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import {resolve, dirname} from 'path';
+import {fileURLToPath} from 'url';
 
 const isOpen = process.env.IS_OPEN === 'true';
 const buildDir = isOpen ? 'build_open' : 'build';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
 
-export default ({ mode }) => {
+export default ({mode}) => {
     const env = loadEnv(mode, process.cwd(), 'VITE_');
     const config = {
         plugins: [
@@ -52,7 +52,7 @@ export default ({ mode }) => {
                 '%store': resolve(_dirname, './resources/js/bootstrap/store.js'),
                 '%router': resolve(_dirname, './resources/js/bootstrap/router.js'),
             },
-        }, 
+        },
         server: {
             host: 'localhost',
             port: 3000, // Ensure this port is not conflicting with other services

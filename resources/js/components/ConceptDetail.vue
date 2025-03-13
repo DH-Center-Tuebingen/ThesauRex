@@ -3,35 +3,40 @@
         class="h-100 d-flex flex-column"
         v-if="state.initialized && state.concept"
     >
-        <header class="title-header space-below d-flex justify-content-between">
-            <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
-                {{ state.label }}
-                <small>
-                    <span
-                        class="badge badge-light text-primary"
-                        :class="state.badgeClass"
-                    >
-                        {{ t(`tree.${state.tree}.title`) }}
-                    </span>
-                </small>
-            </h4>
+        <header class="title-header space-below d-flex flex-column justify-content-between gap-1">
+            <div class="d-flex justify-content-between align-items-center">
 
-            <div class="d-flex flex-row justify-content-start flex-fill ms-5">
+                <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
+                    {{ state.label }}
+                    <small>
+                        <span
+                            class="badge badge-light text-primary"
+                            :class="state.badgeClass"
+                        >
+                            {{ t(`tree.${state.tree}.title`) }}
+                        </span>
+                    </small>
+                </h4>
+                <button
+                    class="btn btn-outline-danger"
+                    @click="()=>showDeleteConcept(state.tree, state.concept.id)"
+                >
+                    {{ t('global.delete') }}
+                </button>
+            </div>
+            <div
+                class="d-flex flex-row justify-content-start align-items-center gap-2 clickable text-secondary"
+                @click.prevent="copyToClipboard('concept-url')"
+            >
                 <code
                     id="concept-url"
                     class="normal text-end text-black-50 "
                 >{{ state.concept.concept_url }}</code>
-                <a
-                    href=""
-                    class="ps-2 text-secondary"
-                    @click.prevent="copyToClipboard('concept-url')"
-                >
-                    <i class="fas fa-fw fa-copy"></i>
-                </a>
+                <i class="fas fa-fw fa-copy"></i>
             </div>
         </header>
 
-        <div class="row flex-grow-1 overflow-hidden">
+        <div class="row flex-fill overflow-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
                 <div class="col px-0 d-flex flex-column mb-2">
                     <h5>
@@ -397,7 +402,6 @@
 <script>
     import {
         computed,
-        nextTick,
         reactive,
         ref,
         watch,
@@ -408,11 +412,11 @@
         useRoute,
     } from 'vue-router';
 
-    import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
 
     import store from '@/bootstrap/store.js';
 
-    import { useToast } from '@/plugins/toast.js';
+    import {useToast} from '@/plugins/toast.js';
 
     import {
         putAddLabel,
@@ -439,25 +443,25 @@
         getLabel,
     } from '@/helpers/tree.js';
     import LocalizedInput from './LocalizedInput.vue';
+    import {showDeleteConcept} from '../helpers/modal';
 
     export default {
         components: {
             LocalizedInput,
         },
         setup(props, context) {
-            const { t } = useI18n();
+            const {t} = useI18n();
             const route = useRoute();
             const toast = useToast();
 
-
-
             // FETCH
-            store.dispatch('setSelectedConcept', {
-                concept_id: route.params.id,
-                tree: route.query.t,
-            }).then(_ => {
+            store.dispatch('setSelectedConcept',
+                route.params.id,
+                route.query.t,
+            ).then(_ => {
                 state.initialized = true;
             });
+
             // FUNCTIONS
             const setHoverState = (prop, index, hoverState) => {
                 switch(prop) {
@@ -743,10 +747,10 @@
                 if(!newParams.id)
                     return;
                 state.initialized = false;
-                store.dispatch('setSelectedConcept', {
-                    concept_id: newParams.id,
-                    tree: route.query.t,
-                }).then(_ => {
+                store.dispatch('setSelectedConcept', 
+                    newParams.id,
+                    route.query.t,
+                ).then(_ => {
                     state.initialized = true;
                 });
             });
@@ -772,6 +776,7 @@
                 updateTopLevelState,
                 removeBroader,
                 removeNarrower,
+                showDeleteConcept,
                 setLanguageFor,
                 setEditMode,
                 addLabel,

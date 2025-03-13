@@ -9,7 +9,7 @@
         xmlns:xlink="http://www.w3.org/1999/xlink"
         xml:space="preserve"
         xmlns:serif="http://www.serif.com/"
-        style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;stroke:black;stroke-width:8.33px;fill:none;">
+        style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;stroke:white;stroke-width:8.33px;fill:none;">
         <g id="Regular"><path d="M133.333,5.091l111.058,64.119l0,128.239l-111.058,64.119l-111.057,-64.119l-0,-128.239l111.057,-64.119Z" 
         />
         <path d="M133.333,5.091l-111.057,63.922l-0,128.633l73.898,-42.534" />

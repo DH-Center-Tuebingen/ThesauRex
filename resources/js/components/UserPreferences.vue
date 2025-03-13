@@ -11,7 +11,7 @@
             </button>
         </h3>
         <div class="table-responsive scroll-x-hidden">
-            <table class="table table-light table-striped table-hover mb-0" v-if="state.prefsLoaded" v-dcan="'thesaurus_write'">
+            <table class="table table-light table-striped mb-0" v-if="state.prefsLoaded" v-dcan="'thesaurus_write'">
                 <thead class="sticky-top">
                     <tr class="text-nowrap">
                         <th>{{ t('global.preference') }}</th>

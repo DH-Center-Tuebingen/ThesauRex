@@ -68,14 +68,10 @@
         emits: ['changed'],
         setup(props, context) {
             const { t } = useI18n();
-            const {
-                data,
-                readonly,
-            } = toRefs(props);
 
             // FUNCTIONS
             const onChange = _debounce(e => {
-                if(readonly.value) return;
+                if(props.readonly) return;
                 context.emit('changed', {
                     value: {
                         skip_missing_labels: state.skipLabels,
@@ -88,10 +84,10 @@
 
             // DATA
             const state = reactive({
-                skipLabels: data.value.skip_missing_labels,
-                ignoreLabels: data.value.ignore_missing_labels,
-                ignoreLanguages: data.value.ignore_missing_languages,
-                ignoreRelations: data.value.ignore_missing_relations,
+                skipLabels: props.data?.skip_missing_labels,
+                ignoreLabels: props.data?.ignore_missing_labels,
+                ignoreLanguages: props.data?.ignore_missing_languages,
+                ignoreRelations: props.data?.ignore_missing_relations,
             });
 
             // RETURN
@@ -99,9 +95,6 @@
                 t,
                 // LOCAL
                 onChange,
-                // PROPS
-                data,
-                readonly,
                 // STATE
                 state,
             };

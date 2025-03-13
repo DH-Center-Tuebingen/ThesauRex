@@ -190,9 +190,7 @@
             };
 
             const selectCurrentOrCreateNew = _ => {
-                if(state.entry?.id) {
-                    optionSelected(state.entry);
-                } else {
+                if(msRef.value.filteredOptions.length == 0) {                    
                     addOptionSelected();
                 }
             };
@@ -221,10 +219,6 @@
                 search,
                 optionSelected,
                 // PROPS
-                delay,
-                limit,
-                treeName,
-                addOption,
                 addOptionSelected,
                 selectCurrentOrCreateNew,
                 // STATE

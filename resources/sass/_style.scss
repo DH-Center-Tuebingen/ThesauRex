@@ -64,6 +64,9 @@ code.normal {
     }
 }
 
+.navbar {
+    background-color: $white;
+}
 
 /**
     TODO: Move below to components
@@ -79,12 +82,12 @@ code.normal {
 }
 
 .title-header code {
-    flex: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
     align-items: flex-end;
+    max-width: 400px;
 
     direction: rtl;
 }

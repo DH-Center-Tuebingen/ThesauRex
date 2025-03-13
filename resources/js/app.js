@@ -1,5 +1,7 @@
 import 'vue-final-modal/style.css'
 
+import 'dhc-components/css';
+
 import { createApp } from 'vue';
 
 // Reusable Components

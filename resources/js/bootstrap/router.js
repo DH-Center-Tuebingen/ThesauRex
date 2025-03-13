@@ -8,7 +8,8 @@ import {
 } from '@/helpers/helpers.js';
 
 // Pages
-import Login from '@/components/Login.vue';
+// import Login from '@/components/Login.vue';
+import Login from '@/components/view/LoginView.vue';
 import MainView from '@/components/MainView.vue';
 import ConceptDetail from '@/components/ConceptDetail.vue';
 // Settings

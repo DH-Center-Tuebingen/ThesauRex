@@ -7,38 +7,25 @@ import {
     countries,
 } from 'country-emoji';
 
-import {
-    fetchPreData,
-    fetchTreeData,
-    fetchUsers,
-    fetchLanguages,
-    fetchVersion,
-} from '@/api.js';
+import {showError} from '@/helpers/modal.js';
+import {fetchPreData} from '@/api.js';
 
-import {
-    showError,
-} from '@/helpers/modal.js';
+import cloneDeep from 'lodash/cloneDeep';
+import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
+import orderBy from 'lodash/orderBy';
 
-export const cloneDeep = import('lodash/cloneDeep');
-export const debounce = import('lodash/debounce');
-export const throttle = import('lodash/throttle');
-export const orderBy = import('lodash/orderBy');
+export const _cloneDeep = cloneDeep;
+export const _debounce = debounce;
+export const _throttle = throttle;
+export const _orderBy = orderBy;
 
-export const _cloneDeep = cloneDeep
-export const _debounce = debounce
-export const _throttle = throttle
-export const _orderBy = orderBy
-
-export const multiselectResetClasslist = { clear: 'multiselect-clear multiselect-clear-reset' };
+export const multiselectResetClasslist = {clear: 'multiselect-clear multiselect-clear-reset'};
 
 export async function initApp(locale) {
     store.dispatch('setAppState', false);
     await fetchPreData(locale);
-    await fetchTreeData();
-    await fetchUsers();
-    await fetchLanguages();
     determineActiveLanguage();
-    await fetchVersion();
     store.dispatch('setAppState', true);
     return new Promise(r => r(null));
 }
@@ -367,7 +354,7 @@ export function languageList() {
 }
 
 export function gotoConcept(id, tree = null) {
-    const query = tree ? { ...router.currentRoute.value.query, t: tree } : router.currentRoute.value.query;
+    const query = tree ? {...router.currentRoute.value.query, t: tree} : router.currentRoute.value.query;
     router.push({
         name: 'conceptdetail',
         params: {

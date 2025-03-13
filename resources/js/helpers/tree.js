@@ -117,6 +117,11 @@ export function exportTree(tree, rootId) {
 export async function openPath(ids, tree = 'project') {
     const index = ids.pop();
     const elem = store.getters.conceptsFromMap(tree)[index];
+    
+    if(!elem) {
+        return [];
+    }
+    
     if(ids.length == 0) {
         return elem;
     }
