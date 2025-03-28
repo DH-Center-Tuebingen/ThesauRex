@@ -1,18 +1,20 @@
 <template>
-    <div class="h-100 d-flex flex-column" v-dcan="'thesaurus_write'">
-        <h3 class="d-flex flex-row gap-2 align-items-center">
-            {{ t('global.preference', 2) }}
-            <button type="button" class="btn btn-outline-success btn-sm" @click="savePreferences()">
-                <i class="fas fa-fw fa-save"></i>
-                {{ t('global.save') }}
-            </button>
-        </h3>
+    <SavableLayout
+        :title="t('global.settings.system', 2)"
+        :save="savePreferences"
+        v-dcan="'thesaurus_write'"
+    >
         <div class="table-responsive scroll-x-hidden">
-            <table class="table table-light table-striped mb-0" v-if="state.prefsLoaded">
+            <table
+                class="table table-striped table-bordered mb-0"
+                v-if="state.prefsLoaded"
+            >
                 <thead class="sticky-top">
                     <tr class="text-nowrap">
                         <th>{{ t('global.preference') }}</th>
-                        <th style="width: 99%;" class="text-end">{{ t('global.value') }}</th>
+                        <th
+                            style="width: 99%;"
+                        >{{ t('global.value') }}</th>
                         <th>{{ t('global.allow_override') }}</th>
                     </tr>
                 </thead>
@@ -28,12 +30,17 @@
                             <gui-language-preference
                                 v-if="state.preferences['prefs.gui-language'].value"
                                 :data="state.preferences['prefs.gui-language'].value"
-                                @changed="e => trackChanges('prefs.gui-language', e)">
+                                @changed="e => trackChanges('prefs.gui-language', e)"
+                            >
                             </gui-language-preference>
                         </td>
                         <td>
                             <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.gui-language'].allow_override" />
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    v-model="state.preferences['prefs.gui-language'].allow_override"
+                                />
                             </div>
                         </td>
                     </tr>
@@ -44,12 +51,17 @@
                         <td>
                             <reset-email-preference
                                 :data="state.preferences['prefs.enable-password-reset-link'].value"
-                                @changed="e => trackChanges('prefs.enable-password-reset-link', e)">
+                                @changed="e => trackChanges('prefs.enable-password-reset-link', e)"
+                            >
                             </reset-email-preference>
                         </td>
                         <td>
                             <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.enable-password-reset-link'].allow_override" />
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    v-model="state.preferences['prefs.enable-password-reset-link'].allow_override"
+                                />
                             </div>
                         </td>
                     </tr>
@@ -60,12 +72,17 @@
                         <td>
                             <project-name-preference
                                 :data="state.preferences['prefs.project-name'].value"
-                                @changed="e => trackChanges('prefs.project-name', e)">
+                                @changed="e => trackChanges('prefs.project-name', e)"
+                            >
                             </project-name-preference>
                         </td>
                         <td>
                             <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.project-name'].allow_override" />
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    v-model="state.preferences['prefs.project-name'].allow_override"
+                                />
                             </div>
                         </td>
                     </tr>
@@ -76,12 +93,17 @@
                         <td>
                             <spacialist-link-preference
                                 :data="state.preferences['prefs.link-to-spacialist'].value"
-                                @changed="e => trackChanges('prefs.link-to-spacialist', e)">
+                                @changed="e => trackChanges('prefs.link-to-spacialist', e)"
+                            >
                             </spacialist-link-preference>
                         </td>
                         <td>
                             <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.link-to-spacialist'].allow_override" />
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    v-model="state.preferences['prefs.link-to-spacialist'].allow_override"
+                                />
                             </div>
                         </td>
                     </tr>
@@ -92,19 +114,24 @@
                         <td>
                             <import-config-preference
                                 :data="state.preferences['prefs.import-config'].value"
-                                @changed="e => trackChanges('prefs.import-config', e)">
+                                @changed="e => trackChanges('prefs.import-config', e)"
+                            >
                             </import-config-preference>
                         </td>
                         <td>
                             <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.import-config'].allow_override" />
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    v-model="state.preferences['prefs.import-config'].allow_override"
+                                />
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-    </div>
+    </SavableLayout>
 </template>
 
 <script>
@@ -113,13 +140,13 @@
         reactive,
     } from 'vue';
 
-    import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
 
     import store from '@/bootstrap/store.js';
 
-    import { useToast } from '@/plugins/toast.js';
+    import {useToast} from '@/plugins/toast.js';
 
-    import { patchPreferences } from '@/api.js';
+    import {patchPreferences} from '@/api.js';
 
     import {
         can,
@@ -130,9 +157,11 @@
     import ProjectName from './preferences/ProjectName.vue';
     import SpacialistLink from './preferences/SpacialistLink.vue';
     import ImportConfig from './preferences/ImportConfig.vue';
+    import SavableLayout from './layout/SavableLayout.vue';
 
     export default {
         components: {
+            SavableLayout,
             'gui-language-preference': GuiLanguage,
             'reset-email-preference': ResetEmail,
             'project-name-preference': ProjectName,
@@ -140,7 +169,7 @@
             'import-config-preference': ImportConfig,
         },
         setup(props, context) {
-            const { t } = useI18n();
+            const {t} = useI18n();
             const toast = useToast();
 
             // FUNCTIONS

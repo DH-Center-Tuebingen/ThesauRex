@@ -1,7 +1,7 @@
 <template>
-    <div class="language-dropdown">
+    <div class="language-dropdown d-flex">
         <button
-            class="btn btn-outline-secondary dropdown-toggle"
+            class="btn btn-outline-secondary dropdown-toggle flex-fill"
             type="button"
             data-bs-toggle="dropdown"
             aria-haspopup="true"
@@ -11,7 +11,7 @@
                 <span>
                     {{ emojiFlag(shortName) }}
                 </span>
-                <span>
+                <span style="overflow: hidden; text-overflow: ellipsis;">
                     {{ displayName }}
                 </span>
             </div>

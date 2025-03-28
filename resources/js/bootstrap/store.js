@@ -1,4 +1,4 @@
-import { createStore } from 'vuex';
+import {createStore} from 'vuex';
 
 import {
     Node,
@@ -14,7 +14,6 @@ import {
 import {
     getConceptParentIds,
 } from '@/api.js';
-import contextStore from './store/context-store';
 
 export const store = createStore({
     modules: {
@@ -23,6 +22,8 @@ export const store = createStore({
             state() {
                 return {
                     appInitialized: false,
+                    darkMode: true, 
+                    contextMenu: null,
                     conceptInitialized: {
                         project: false,
                         sandbox: false,
@@ -240,15 +241,19 @@ export const store = createStore({
                             }
                         }
                     });
-                },               
+                },
                 setSelectedConcept(state, data) {
-                    if(!data) {
+                    if(!data || !data.data) {
                         state.concept.from = null;
                         state.concept.data = {};
                     } else {
                         state.concept.from = data.from;
                         state.concept.data = data.data;
                     }
+                },
+                toggleMode(state) {
+                    state.darkMode = !state.darkMode;
+                    document.documentElement.setAttribute('data-bs-theme', state.darkMode ? 'dark' : 'light');
                 },
                 addLabel(state, data) {
                     const concept = state.conceptMap[data.tree][data.concept_id];
@@ -468,28 +473,28 @@ export const store = createStore({
                 },
             },
             actions: {
-                setActiveLanguage({ state }, data) {
+                setActiveLanguage({state}, data) {
                     console.log(data);
                     state.activeLanguage = data;
                 },
-                setAppState({ commit }, data) {
+                setAppState({commit}, data) {
                     commit('setAppInitialized', data);
                 },
-                setModalInstance({ commit }, data) {
+                setModalInstance({commit}, data) {
                     commit('setModalInstance', data);
                 },
-                setRoles({ commit }, data) {
+                setRoles({commit}, data) {
                     commit('setRoles', data.roles);
                     commit('setPermissions', data.permissions);
                     commit('setRolePresets', data.presets);
                 },
-                setUser({ commit }, data) {
+                setUser({commit}, data) {
                     commit('setUser', data);
                 },
-                setUsers({ commit }, data) {
+                setUsers({commit}, data) {
                     commit('setUsers', data);
                 },
-                addConcept({ commit }, data) {
+                addConcept({commit}, data) {
                     const n = new Node({
                         ...data.concept,
                         tree: data.tree,
@@ -499,7 +504,7 @@ export const store = createStore({
                         node: n,
                     });
                 },
-                addConcepts({ commit }, data) {
+                addConcepts({commit}, data) {
                     const nodes = [];
                     data.concepts.forEach((c) => {
                         const n = new Node({
@@ -518,13 +523,13 @@ export const store = createStore({
                     });
                     return nodes;
                 },
-                resetConcepts({ commit }, data) {
+                resetConcepts({commit}, data) {
                     commit('resetConcepts', data);
                 },
-                setConcepts({ commit }, data) {
+                setConcepts({commit}, data) {
                     commit('setConcepts', data);
                 },
-                deleteConcept({ commit }, data) {
+                deleteConcept({commit}, data) {
                     const nid = data.id;
                     const tree = data.tree;
                     const action = data.action;
@@ -565,41 +570,39 @@ export const store = createStore({
                     });
                     commit('deleteConceptReferences', data);
                 },
-                addLabel({ commit }, data) {
+                addLabel({commit}, data) {
                     commit('addLabel', data);
                 },
-                updateLabel({ commit }, data) {
+                updateLabel({commit}, data) {
                     commit('updateLabel', data);
                 },
-                deleteLabel({ commit }, data) {
+                deleteLabel({commit}, data) {
                     commit('deleteLabel', data);
                 },
-                addNote({ commit }, data) {
+                addNote({commit}, data) {
                     commit('addNote', data);
                 },
-                updateNote({ commit }, data) {
+                updateNote({commit}, data) {
                     commit('updateNote', data);
                 },
-                deleteNote({ commit }, data) {
+                deleteNote({commit}, data) {
                     commit('deleteNote', data);
                 },
-                addRelation({ commit }, data) {
+                addRelation({commit}, data) {
                     commit('addRelation', data);
                 },
-                removeRelation({ commit }, data) {
+                removeRelation({commit}, data) {
                     commit('removeRelation', data);
                 },
-                unsetSelectedConcept({ commit }, data) {
+                unsetSelectedConcept({commit}, data) {
                     commit('setSelectedConcept', null);
                 },
-                async setSelectedConcept({ commit, state }, id, tree = 'project') {
+                async setSelectedConcept({commit, state}, {id, tree} = {}) {
                     let concept = state.conceptMap[tree][id];
-                    
-                    console.log(concept);
+
                     if(!concept) {
                         console.log('FETCH DATA')
                         const ids = await getConceptParentIds(id, tree);
-                        console.log(ids);
                         for(let i = 0; i < ids.length; i++) {
                             const path = ids[i];
                             await openPath(path, tree);
@@ -611,53 +614,60 @@ export const store = createStore({
                         from: tree,
                     });
                 },
-                addUser({ commit }, data) {
+                addUser({commit}, data) {
                     commit('addUser', data);
                 },
-                updateUser({ commit }, data) {
+                updateUser({commit}, data) {
                     commit('updateUser', data);
                 },
-                deactivateUser({ commit }, data) {
+                deactivateUser({commit}, data) {
                     commit('deactivateUser', data);
                 },
-                reactivateUser({ commit }, data) {
+                reactivateUser({commit}, data) {
                     commit('reactivateUser', data);
                 },
-                setPreferences({ commit }, data) {
+                setPreferences({commit}, data) {
                     commit('setPreferences', data);
                 },
-                setSystemPreferences({ commit }, data) {
+                setSystemPreferences({commit}, data) {
                     commit('setSystemPreferences', data);
                 },
-                addRole({ commit }, data) {
+                addRole({commit}, data) {
                     commit('addRole', data);
                 },
-                updateRole({ commit }, data) {
+                updateRole({commit}, data) {
                     commit('updateRole', data);
                 },
-                deleteRole({ commit }, data) {
+                deleteRole({commit}, data) {
                     commit('deleteRole', data);
                 },
-                setVersion({ commit }, data) {
+                setVersion({commit}, data) {
                     commit('setVersion', data);
                 },
-                addLanguage({ commit }, data) {
+                addLanguage({commit}, data) {
                     commit('addLanguage', data);
                 },
-                removeLanguage({ commit }, data) {
+                removeLanguage({commit}, data) {
                     commit('removeLanguage', data);
                 },
-                setLanguages({ commit }, data) {
+                setLanguages({commit}, data) {
                     commit('setLanguages', data);
                 },
-                setStandaloneState({ commit }, data) {
+                setStandaloneState({commit}, data) {
                     commit('setStandaloneState', data);
                 },
+                openContextMenu({state}, data) {
+                    if(state.contextMenu){
+                        state.contextMenu.close();
+                    }
+                    state.contextMenu = data;
+                }
             },
             getters: {
                 appInitialized: (state) => state.appInitialized,
                 activeLanguage: (state) => state.activeLanguage,
                 concepts: (state) => state.concepts,
+                darkMode: (state) => state.darkMode,
                 projectConcepts: (state) => state.concepts.project,
                 sandboxConcepts: (state) => state.concepts.sandbox,
                 conceptsFromTree: (state) => (tree) => state.concepts[tree],
@@ -672,7 +682,7 @@ export const store = createStore({
                     return noPerms
                         ? state.roles.map((r) => {
                             // Remove permissions from role
-                            let { permissions, ...role } = r;
+                            let {permissions, ...role} = r;
                             return role;
                         })
                         : state.roles;
@@ -690,8 +700,7 @@ export const store = createStore({
                 vfm: (state) => state.vfm,
                 isStandalone: (state) => state.standalone,
             },
-        },
-        contextMenu: contextStore
+        }
     },
 });
 

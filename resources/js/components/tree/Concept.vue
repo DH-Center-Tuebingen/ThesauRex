@@ -4,6 +4,9 @@
             <slot name="title">
             </slot>
 
+            <div class="d-flex gap-2 align-items-center">
+                <slot name="actions">
+                </slot>
             <div>
                 <div
                     class="px-2 clickable"
@@ -13,58 +16,58 @@
                     <i class="fa-solid fa-ellipsis-vertical"></i>
                 </div>
 
-                <file-upload
-                    class="d-none"
-                    accept="application/rdf+xml,application/xml"
-                    extensions="xml,rdf"
-                    v-model="state.files"
-                    :ref="el => uploadRef = el"
-                    :custom-action="importFile"
-                    :directory="false"
-                    :disabled="!can('thesaurus_write|thesaurus_create')"
-                    :multiple="false"
-                    :drop="true"
-                    @input-file="inputFile"
-                >
-                </file-upload>
+                    <file-upload
+                        class="d-none"
+                        accept="application/rdf+xml,application/xml"
+                        extensions="xml,rdf"
+                        v-model="state.files"
+                        :ref="el => uploadRef = el"
+                        :custom-action="importFile"
+                        :directory="false"
+                        :disabled="!can('thesaurus_write|thesaurus_create')"
+                        :multiple="false"
+                        :drop="true"
+                        @input-file="inputFile"
+                    >
+                    </file-upload>
 
-                <div
-                    class="dropdown-menu"
-                    :aria-labelledby="`import-tree-btn-dropdown-${treeName}`"
-                >
-                    <a
-                        class="dropdown-item"
-                        href="#"
-                        @click.prevent="triggerFileUpload('extend')"
+                    <div
+                        class="dropdown-menu"
+                        :aria-labelledby="`import-tree-btn-dropdown-${treeName}`"
                     >
-                        {{ t('tree.import.extend') }}
-                    </a>
-                    <a
-                        class="dropdown-item"
-                        href="#"
-                        @click.prevent="triggerFileUpload('update_extend')"
-                    >
-                        {{ t('tree.import.update_extend') }}
-                    </a>
-                    <a
-                        class="dropdown-item"
-                        href="#"
-                        @click.prevent="triggerFileUpload('replace')"
-                    >
-                        {{ t('tree.import.replace') }}
-                    </a>
-                    <template v-if="can('thesaurus_share')">
-                        <div class="dropdown-divider"></div>
                         <a
                             class="dropdown-item"
                             href="#"
-                            @click.prevent="onExport()"
+                            @click.prevent="triggerFileUpload('extend')"
                         >
-                            {{ t('tree.export.label') }}
+                            {{ t('tree.import.extend') }}
                         </a>
-                    </template>
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            @click.prevent="triggerFileUpload('update_extend')"
+                        >
+                            {{ t('tree.import.update_extend') }}
+                        </a>
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            @click.prevent="triggerFileUpload('replace')"
+                        >
+                            {{ t('tree.import.replace') }}
+                        </a>
+                        <template v-if="can('thesaurus_share')">
+                            <div class="dropdown-divider"></div>
+                            <a
+                                class="dropdown-item"
+                                href="#"
+                                @click.prevent="onExport()"
+                            >
+                                {{ t('tree.export.label') }}
+                            </a>
+                        </template>
+                    </div>
                 </div>
-
             </div>
         </header>
 

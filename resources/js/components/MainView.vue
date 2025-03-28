@@ -1,78 +1,58 @@
 <template>
     <div class="d-flex flex-fill overflow-hidden">
-        <!-- <div
-            class="p-2 clickable"
-            @click.prevent="state.showSandbox = !state.showSandbox"
-        >
-            <span v-if="state.showSandbox">
-                <i
-                    style="font-size:1.1rem"
-                    class="fa-fw fa-solid fa-file-circle-minus" 
-                ></i>
-            </span>
-            <span v-else>
-                <i
-                    style="font-size:1.1rem"
-                    class="fa-fw fa-solid fa-file-circle-plus"
-                ></i>
-            </span>
-        </div> -->
         <div class="row h-100 overflow-hidden flex-grow-1">
-
-            <!-- <div
-                class="sandbox-view p-3 h-100 col-md-3 d-flex flex-column fade-in"
-                v-if="state.showSandbox"
-            >
-                <concept-tree
-                    class="flex-grow-1 overflow-hidden"
-                    :drag-target="state.dragTarget"
-                    :tree-data="state.sandboxConcepts"
-                    :tree-name="'sandbox'"
-                    @added="addConceptTo('sandbox')"
-                    @change-drag-target="changeDragTarget"
-                >
-
-                    <template #title>
-                        <h4>
-                            {{ t('tree.sandbox.title') }}
-                        </h4>
-                    </template>
-
-</concept-tree>
-</div> -->
-            <div
-                class="col-md-9 h-100"
-                :class="{ 'col-md-12': !state.showSandbox }"
-            >
+            <div class="col-md-12 h-100">
 
                 <div class="row h-100">
                     <ResizableColumns v-model="columns">
-
+                        <!-- Left Column -->
                         <template #tree>
-                            <div class="h-100 d-flex flex-column">
-
+                            <div class="h-100 d-flex flex-row gap-4">
                                 <concept-tree
+                                    v-for="(tree, index) in state.activeTrees"
+                                    :key="tree"
                                     class="flex-grow-1 overflow-y-auto"
                                     :drag-target="state.dragTarget"
-                                    :tree-data="state.projectConcepts"
-                                    :tree-name="'project'"
-                                    @added="addConceptTo('project')"
+                                    :tree-data="tree === 'sandbox' ? state.sandboxConcepts : state.projectConcepts"
+                                    :tree-name="tree"
+                                    @added="addConceptTo(tree)"
                                     @change-drag-target="changeDragTarget"
                                 >
-
+                                    <template #actions>
+                                        <div
+                                            v-if="!state.isColumns || index === 0"
+                                            class="btn btn-sm"
+                                            @click="state.isSandbox = !state.isSandbox"
+                                            :class="(state.isSandbox) ? 'btn-primary' : 'btn-secondary-outline'"
+                                        >
+                                            <span v-if="state.isColumns">
+                                                <i class="fas fa-fw fa-right-left" />
+                                            </span>
+                                            <span v-else>
+                                                <i class="fas fa-fw fa-umbrella-beach" />
+                                            </span>
+                                        </div>
+                                        <div
+                                            v-if="!state.isColumns || index === 1"
+                                            class="btn btn-sm"
+                                            @click="state.isColumns = !state.isColumns"
+                                            :class="(state.isColumns) ? 'btn-primary' : 'btn-secondary-outline'"
+                                        >
+                                            <span>
+                                                <i class="fas fa-fw fa-table-columns"></i>
+                                            </span>
+                                        </div>
+                                    </template>
                                     <template #title>
                                         <h4>
-                                            {{ t('tree.project.title') }}
+                                            {{ t(`tree.${tree}.title`) }}
                                         </h4>
-
-
-                                      
                                     </template>
                                 </concept-tree>
-
                             </div>
                         </template>
 
+                        <!-- Right Column -->
                         <template #detail>
                             <div class="flex-fill h-100">
                                 <router-view @added="addConceptTo('selection')"></router-view>
@@ -120,7 +100,15 @@
 
             // DATA
             const state = reactive({
-                showSandbox: false,
+                isColumns: false,
+                isSandbox: false,
+                activeTrees: computed(_ => {
+                    let columns = ['project', 'sandbox'];
+                    if(state.isSandbox) {
+                        columns.reverse();
+                    }
+                    return (state.isColumns) ? columns : [columns[0]];
+                }),
                 sandboxConcepts: computed(_ => store.getters.sandboxConcepts),
                 projectConcepts: computed(_ => store.getters.projectConcepts),
                 concept: computed(_ => store.getters.selectedConcept),

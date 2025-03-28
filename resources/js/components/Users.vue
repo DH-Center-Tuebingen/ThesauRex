@@ -7,7 +7,7 @@
             </button>
         </h4>
         <div class="table-responsive flex-grow-1">
-            <table class="table table-striped table-hover table-light" v-dcan="'users_roles_read'" v-if="state.dataInitialized">
+            <table class="table table-striped table-hover" v-dcan="'users_roles_read'" v-if="state.dataInitialized">
                 <thead class="sticky-top">
                     <tr>
                         <th>{{ t('global.name') }}</th>
@@ -107,7 +107,7 @@
             {{ t('settings.user.deactivated_users') }}
         </h4>
         <div class="table-responsive flex-grow-1" v-if="state.deletedUserList.length > 0">
-            <table class="table table-striped table-hover table-light" v-dcan="'users_roles_read'">
+            <table class="table table-striped table-hover" v-dcan="'users_roles_read'">
                 <thead class="sticky-top">
                     <tr>
                         <th>{{ t('global.name') }}</th>

@@ -2,7 +2,7 @@ body {
     font-family: $font-family-sans-serif;
     font-size: $font-size-base;
     line-height: $line-height-base;
-    color: $body-color;
+    // color: $body-color;
     // background-color: #f5f8fa;
 }
 
@@ -64,10 +64,6 @@ code.normal {
     }
 }
 
-.navbar {
-    background-color: $white;
-}
-
 /**
     TODO: Move below to components
 */
@@ -103,5 +99,30 @@ code.normal {
 }
 
 .navbar {
-    border-bottom: 1px solid #e6e6e6;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.localized-input {
+    
+    height: 42px;
+    box-sizing: border-box;
+
+    .language-dropdown > button,
+    .input-group-append > .btn {
+        height: 100%;
+    }
+}
+
+.dropdown-item:hover {
+    background-color: var(--bs-primary);
+}
+
+.column-separator .column-separator-line {
+    background-color: var(--bs-border-color) !important;
+}
+
+[data-bs-theme='dark'] {
+    img.thesaurex-logo {
+        filter: invert(1);
+    }
 }

@@ -8,7 +8,7 @@
             >
                 <img
                     src="img/logo.svg"
-                    class="logo me-3 bb-1"
+                    class="thesaurex-logo logo me-3 bb-1"
                     alt="spacialist logo"
                 />
                 <span>
@@ -39,6 +39,16 @@
                 <ul class="nav navbar-nav align-items-center">
                     <li class="nav-item">
                         <LanguageSelect />
+                    </li>
+                    <li>
+                        <div class="btn" @click="toggleMode">
+                            <span v-if="state.isDarkMode">
+                                <i class="fas fa-fw fa-moon"></i>
+                            </span>
+                            <span v-else>
+                                <i class="far fa-fw fa-sun"></i>
+                            </span>
+                        </div>
                     </li>
                     <li class="nav-item">
                         <a
@@ -94,12 +104,13 @@
                                 {{ t('global.user.profile') }}
                             </router-link>
                             <router-link
-                                :to="{ name: 'userprofile', params: { id: state.authUser.id } }"
+                                :to="{ name: 'preferences', params: { id: state.authUser.id } }"
                                 class="dropdown-item"
                                 v-if="state.authUser.id"
                             >
-                                <i class="fas fa-fw fa-user-cog"></i>
-                                {{ t('global.user.profile') }}
+                                <i class="fas fa-fw fa-gear"></i>
+
+                                {{ t('global.settings.system') }}
                             </router-link>
                             <router-link
                                 :to="{ name: 'userpreferences', params: { id: state.authUser.id } }"
@@ -110,8 +121,23 @@
 
                                 {{ t('global.user.settings') }}
                             </router-link>
+                            <router-link :to="{name: 'languages'}" class="dropdown-item">
+                                    <i class="fas fa-fw fa-language"></i>
+                                    {{ t('global.settings.languages') }}
+                                </router-link>
+                            <div class="dropdown-divider"></div>
                             <a
                                 class="dropdown-item"
+                                href="#"
+                                @click="showAboutModal"
+                            >
+                                <i class="fas fa-fw fa-info-circle"></i>
+                                {{ t('global.settings.about') }}
+                            </a>
+                            <div class="dropdown-divider"></div>
+
+                            <a
+                                class="dropdown-item danger"
                                 href="#"
                                 @click="logout"
                             >
@@ -178,6 +204,10 @@
             const showAboutModal = _ => {
                 showAbout();
             };
+            
+            const toggleMode = _ => {
+                store.commit('toggleMode');
+            };
 
             const state = reactive({
                 auth: auth,
@@ -186,6 +216,7 @@
                 loggedIn: computed(_ => store.getters.isLoggedIn),
                 authUser: computed(_ => store.getters.user),
                 isStandalone: computed(_ => store.getters.isStandalone),
+                isDarkMode: computed(_ => store.getters.darkMode),
             });
 
             // WATCHER
@@ -214,6 +245,7 @@
                 state,
                 getPreference,
                 hasPreference,
+                toggleMode,
                 logout,
                 showAboutModal,
             }

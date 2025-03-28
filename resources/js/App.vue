@@ -18,7 +18,6 @@
             id="toast-container"
         >
         </div>
-        <ContextMenu v-if="store.getters['contextMenu/active']" />
     </div>
 </template>
 
@@ -40,13 +39,11 @@ import {
 
     import LoadingSpinner from './components/LoadingSpinner.vue';
     import Navigation from './components/Navigation.vue';
-    import ContextMenu from './components/ContextMenu.vue';
     import { showCreateConcept } from './helpers/modal';
     import { ModalsContainer } from 'vue-final-modal';
 
     export default {
         components: {
-            ContextMenu,
             LoadingSpinner,
             Navigation,
             ModalsContainer,

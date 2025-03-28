@@ -1,6 +1,6 @@
 <template>
     <vue-final-modal
-        classes="modal-container modal"
+        class="modal-container modal"
         content-class="sp-modal-content sp-modal-content-sm"
         v-model="state.show"
         name="about-modal">
@@ -16,7 +16,7 @@
         <div class="modal-body">
             <div class="d-flex">
                 <div class="flex-shrink-0">
-                    <img class="me-3" src="/img/logo.svg" alt="spacialist logo" width="64" />
+                    <img class="thesaurex-logo me-3" src="/img/logo.svg" alt="spacialist logo" width="64" />
                 </div>
                 <div class="flex-grow-1 ps-3">
                     <h4>ThesauRex</h4>

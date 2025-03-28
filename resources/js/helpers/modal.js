@@ -44,9 +44,7 @@ export function showAbout() {
         component: About,
         attrs: {
             name: uid,
-        },
-        listeners: {
-            closing(e) {
+            onClosing(e) {
                 close(uid);
             }
         }
@@ -60,17 +58,15 @@ export function showDiscard(target, resetData, onBeforeConfirm) {
         component: Discard,
         attrs: {
             name: uid,
-        },
-        listeners: {
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             },
-            confirm(e) {
+            onConfirm(e) {
                 close(uid);
                 resetData();
                 router.push(target);
             },
-            saveConfirm(e) {
+            onSaveConfirm(e) {
                 if(!!onBeforeConfirm) {
                     onBeforeConfirm().then(_ => {
                         close(uid);
@@ -98,9 +94,7 @@ export function showError(data) {
         attrs: {
             data: data,
             name: uid,
-        },
-        listeners: {
-            closing(e) {
+            onClosing(e) {
                 close(uid);
             }
         }
@@ -115,9 +109,7 @@ export function showUserInfo(user) {
         attrs: {
             name: uid,
             user: user,
-        },
-        listeners: {
-            closing(e) {
+            onClosing(e) {
                 close(uid);
             }
         }
@@ -131,9 +123,7 @@ export function showAddUser(onAdded) {
         component: AddUser,
         attrs: {
             name: uid,
-        },
-        listeners: {
-            add(e) {
+            onAdd(e) {
                 if(!can('users_roles_create')) return;
                 addUser(e).then(user => {
                     if(!!onAdded) {
@@ -143,7 +133,7 @@ export function showAddUser(onAdded) {
                     close(uid);
                 });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -158,9 +148,7 @@ export function showDeactivateUser(user, onDeactivated) {
         attrs: {
             name: uid,
             user: user,
-        },
-        listeners: {
-            deactivate(e) {
+            onDeactivate(e) {
                 if(!can('users_roles_delete')) {
                     close(uid);
                     return;
@@ -171,9 +159,9 @@ export function showDeactivateUser(user, onDeactivated) {
                     }
                     store.dispatch('deactivateUser', data);
                     close(uid);
-                })
+                });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -188,9 +176,7 @@ export function showAccessControlModal(roleId) {
         attrs: {
             name: uid,
             roleId: roleId,
-        },
-        listeners: {
-            save(e) {
+            onSave(e) {
                 const data = {
                     permissions: e,
                 };
@@ -207,9 +193,9 @@ export function showAccessControlModal(roleId) {
                     addToast(msg, title, {
                         channel: 'success',
                     });
-                })
+                });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -223,9 +209,7 @@ export function showAddRole(onAdded) {
         component: AddRole,
         attrs: {
             name: uid,
-        },
-        listeners: {
-            add(e) {
+            onAdd(e) {
                 if(!can('users_roles_create')) return;
                 addRole(e).then(role => {
                     if(!!onAdded) {
@@ -235,7 +219,7 @@ export function showAddRole(onAdded) {
                     close(uid);
                 });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -250,9 +234,7 @@ export function showDeleteRole(role, onDeleted) {
         attrs: {
             name: uid,
             role: role,
-        },
-        listeners: {
-            confirm(e) {
+            onConfirm(e) {
                 if(!can('users_roles_delete')) return;
 
                 deleteRole(role.id).then(_ => {
@@ -263,7 +245,7 @@ export function showDeleteRole(role, onDeleted) {
                     close(uid);
                 });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -272,7 +254,7 @@ export function showDeleteRole(role, onDeleted) {
 }
 
 export async function showCreateConcept(tree, pid, initValue = '', onClose = () => { }) {
-    console.log('showCreateConcept')
+    console.log('showCreateConcept');
     const uid = `CreateConcept-${getTs()}`;
     const {open, close} = useModal({
         component: CreateConcept,
@@ -281,18 +263,18 @@ export async function showCreateConcept(tree, pid, initValue = '', onClose = () 
             tree: tree,
             parentId: pid,
             initialValue: initValue,
-            onSubmit: (concept) => {
+            onSubmit(concept) {
                 if(!can('thesaurus_create')) return;
 
                 addConcept(concept, tree, pid).then(_ => {
                     close(uid);
                 });
             },
-            onCloseRequest: () => {
-                close()
+            onCloseRequest() {
+                close();
             },
-            onDestroyed: () => {
-                onClose()
+            onDestroyed() {
+                onClose();
             }
         }
     });
@@ -313,16 +295,14 @@ export function showDeleteConcept(tree, conceptId) {
             name: uid,
             tree: tree,
             conceptId: conceptId,
-        },
-        listeners: {
-            confirm(e) {
+            onConfirm(e) {
                 if(!can('thesaurus_delete')) return;
 
                 deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
                     close(uid);
                 });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -336,16 +316,14 @@ export function showAddLanguage() {
         component: AddLanguage,
         attrs: {
             name: uid,
-        },
-        listeners: {
-            add(e) {
+            onAdd(e) {
                 if(!can('thesaurus_create')) return;
 
                 addLanguage(e).then(_ => {
                     close(uid);
                 });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }
@@ -360,16 +338,14 @@ export function showDeleteLanguage(languageId) {
         attrs: {
             name: uid,
             languageId: languageId,
-        },
-        listeners: {
-            delete(e) {
+            onDelete(e) {
                 if(!can('thesaurus_delete')) return;
 
                 deleteLanguage(languageId).then(_ => {
                     close(uid);
                 });
             },
-            cancel(e) {
+            onCancel(e) {
                 close(uid);
             }
         }

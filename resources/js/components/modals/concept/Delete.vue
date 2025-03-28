@@ -1,7 +1,7 @@
 <template>
     <vue-final-modal
-        classes="modal-container modal"
-        content-class="sp-modal-content"
+        class="modal-container modal"
+        content-class="sp-modal-content sp-modal-content-sm"
         v-model="state.show"
         name="add-role-modal"
     >
@@ -101,7 +101,7 @@
                         />
                     </label>
                 </div>
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input
                         class="form-check-input"
                         type="radio"
@@ -159,27 +159,26 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button
-                        type="submit"
-                        class="btn btn-outline-danger"
-                        :disabled="!state.isValid"
-                        form="delete-concept-form"
-                    >
-                        <i class="fas fa-fw fa-trash"></i> {{ t('global.delete') }}
-                    </button>
-                    <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        data-bs-dismiss="modal"
-                        @click="closeModal()"
-                    >
-                        <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
-                    </button>
-                </div>
             </form>
         </div>
-
+        <div class="modal-footer">
+            <button
+                type="submit"
+                class="btn btn-outline-danger"
+                :disabled="!state.isValid"
+                form="delete-concept-form"
+            >
+                <i class="fas fa-fw fa-trash"></i> {{ t('global.delete') }}
+            </button>
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-bs-dismiss="modal"
+                @click="closeModal()"
+            >
+                <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
+            </button>
+        </div>
     </vue-final-modal>
 </template>
 

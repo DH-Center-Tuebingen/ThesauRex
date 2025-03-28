@@ -44,3 +44,21 @@ $panel-default-heading-bg: #fff;
 // Breadcrumbs
 $breadcrumb-item-padding: .25rem;
 $breadcrumb-divider: quote(">");
+
+
+:root {
+    --ms-bg: var(--bs-body-bg);
+    --ms-text-color: var(--bs-body-color);
+    --ms-border-color: var(--bs-border-color);;
+    --ms-dropdown-bg: var(--bs-body-bg);
+    --ms-dropdown-border-color: var(--bs-border-color);
+    
+    --ms-group-label-bg: var(--bs-body-bg);
+    --ms-group-label-color: var(--bs-body-color);
+    
+    --ms-group-label-bg-pointed: var(--bs-primary);
+    --ms-group-label-color-pointed: var(--bs-white);
+    
+    --ms-option-bg-pointed: var(--bs-primary);
+    --ms-option-color-pointed: var(--bs-white);
+}

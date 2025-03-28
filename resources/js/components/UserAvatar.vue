@@ -1,7 +1,20 @@
 <template>
     <span style="display: inline-flex;">
-        <img v-if="user.avatar" :src="user.avatar_url" alt="user avatar" :width="size" :height="size" :class="state.styles" class="object-fit-cover" />
-        <div v-else :style="state.initialsStyles.container" :class="state.styles" class="d-flex justify-content-center align-items-center">
+        <img
+            v-if="user.avatar"
+            :src="user.avatar_url"
+            alt="user avatar"
+            :width="size"
+            :height="size"
+            :class="state.styles"
+            class="object-fit-cover"
+        />
+        <div
+            v-else
+            :style="state.initialsStyles.container"
+            :class="state.styles"
+            class="d-flex justify-content-center align-items-center"
+        >
             <span :style="state.initialsStyles.text">
                 {{ state.initials }}
             </span>
@@ -34,7 +47,7 @@
             }
         },
         setup(props) {
-            const { user, size, round } = toRefs(props);
+            const {user, size, round} = toRefs(props);
             const state = reactive({
                 styles: computed(_ => {
                     return {
@@ -45,7 +58,7 @@
                 color: computed(_ => {
                     if(!user.value.name) return;
                     let hue = 0;
-                    for(let i=0; i < user.value.name.length; i++) {
+                    for(let i = 0; i < user.value.name.length; i++) {
                         hue = user.value.name.charCodeAt(i) + ((hue << 5) - hue);
                     }
 
@@ -73,7 +86,7 @@
                     let names = user.value.name.split(' ');
                     initials += names[0].charAt(0).toUpperCase();
                     if(names.length > 1) {
-                        initials += names[names.length-1].charAt(0).toUpperCase();
+                        initials += names[names.length - 1].charAt(0).toUpperCase();
                     }
                     return initials;
                 })

@@ -1,8 +1,8 @@
 <template>
-    <div class="input-group">
+    <div class="localized-input input-group">
         <LanguageDropdown
             class="input-group-prepend"
-            :modelValue="computedLanguage"
+            :modelValue="modelLanguage"
             @update:modelValue="(value) => $emit('update:modelLanguage', value)"
         />
         <input
@@ -42,13 +42,6 @@
         },
         setup(props, context) {
 
-            const computedLanguage = computed(() => {
-                if(props.modelLanguage.short_name === '') {
-                    return store.getters.activeLanguage;
-                }
-                return props.modelLanguage;
-            });
-
             const {
                 focus,
                 focusTarget,
@@ -57,7 +50,6 @@
             return {
                 // State
                 store,
-                computedLanguage,
                 focusTarget,
                 // External
                 focus,

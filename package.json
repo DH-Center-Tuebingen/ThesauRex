@@ -18,8 +18,7 @@
         "dev": "npx vite",
         "watch": "npm run dev",
         "prod": "npm run production",
-        "production": "npx vite build",
-        "postinstall": "node scripts/link-modules.js"
+        "production": "npx vite build"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.1.2",
@@ -53,6 +52,7 @@
         "bootstrap": "^5.3.3",
         "country-emoji": "^1.5.6",
         "dayjs": "^1.11.5",
+        "dhc-components": "github:DH-Center-Tuebingen/dhc-components",
         "lodash": "^4.17.21",
         "p-queue": "^7.3.0",
         "tree-vue-component": "^6.0.2",

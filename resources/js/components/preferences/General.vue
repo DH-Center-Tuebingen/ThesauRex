@@ -1,15 +1,19 @@
 <template>
-    
-    <SavableLayout
-        :title="t('global.preference', 2)"
-        @save="savePreferences()"
-    >
+    <div class="h-100 d-flex flex-column" v-dcan="'thesaurus_write'">
+        <h3 class="d-flex flex-row gap-2 align-items-center">
+            {{ t('global.preference', 2) }}
+            <button type="button" class="btn btn-outline-success btn-sm" @click="savePreferences()">
+                <i class="fas fa-fw fa-save"></i>
+                {{ t('global.save') }}
+            </button>
+        </h3>
         <div class="table-responsive scroll-x-hidden">
-            <table class="table table-striped table-bordered mb-0" v-if="state.prefsLoaded" v-dcan="'thesaurus_write'">
+            <table class="table table-striped mb-0" v-if="state.prefsLoaded">
                 <thead class="sticky-top">
                     <tr class="text-nowrap">
                         <th>{{ t('global.preference') }}</th>
-                        <th style="width: 99%;">{{ t('global.value') }}</th>
+                        <th style="width: 99%;" class="text-end">{{ t('global.value') }}</th>
+                        <th>{{ t('global.allow_override') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -20,12 +24,17 @@
                             </strong>
                         </td>
                         <td>
+                            {{ state.preferences['prefs.gui-language'].value }}
                             <gui-language-preference
-                                :data="state.preferences['prefs.gui-language']"
-                                :readonly="!state.overrides['prefs.gui-language']"
-                                :browser-default="true"
+                                v-if="state.preferences['prefs.gui-language'].value"
+                                :data="state.preferences['prefs.gui-language'].value"
                                 @changed="e => trackChanges('prefs.gui-language', e)">
                             </gui-language-preference>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.gui-language'].allow_override" />
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -34,10 +43,14 @@
                         </td>
                         <td>
                             <reset-email-preference
-                                :data="state.preferences['prefs.enable-password-reset-link']"
-                                :readonly="!state.overrides['prefs.enable-password-reset-link']"
+                                :data="state.preferences['prefs.enable-password-reset-link'].value"
                                 @changed="e => trackChanges('prefs.enable-password-reset-link', e)">
                             </reset-email-preference>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.enable-password-reset-link'].allow_override" />
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -46,10 +59,14 @@
                         </td>
                         <td>
                             <project-name-preference
-                                :data="state.preferences['prefs.project-name']"
-                                :readonly="!state.overrides['prefs.project-name']"
+                                :data="state.preferences['prefs.project-name'].value"
                                 @changed="e => trackChanges('prefs.project-name', e)">
                             </project-name-preference>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.project-name'].allow_override" />
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -58,10 +75,14 @@
                         </td>
                         <td>
                             <spacialist-link-preference
-                                :data="state.preferences['prefs.link-to-spacialist']"
-                                :readonly="!state.overrides['prefs.link-to-spacialist']"
+                                :data="state.preferences['prefs.link-to-spacialist'].value"
                                 @changed="e => trackChanges('prefs.link-to-spacialist', e)">
                             </spacialist-link-preference>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.link-to-spacialist'].allow_override" />
+                            </div>
                         </td>
                     </tr>
                     <tr>
@@ -70,16 +91,20 @@
                         </td>
                         <td>
                             <import-config-preference
-                                :data="state.preferences['prefs.import-config']"
-                                :readonly="!state.overrides['prefs.import-config']"
+                                :data="state.preferences['prefs.import-config'].value"
                                 @changed="e => trackChanges('prefs.import-config', e)">
                             </import-config-preference>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" v-model="state.preferences['prefs.import-config'].allow_override" />
+                            </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-    </SavableLayout>
+    </div>
 </template>
 
 <script>
@@ -87,10 +112,6 @@
         computed,
         reactive,
     } from 'vue';
-
-    import {
-        useRoute,
-    } from 'vue-router';
 
     import { useI18n } from 'vue-i18n';
 
@@ -102,7 +123,6 @@
 
     import {
         can,
-        getUser,
     } from '@/helpers/helpers.js';
 
     import GuiLanguage from './preferences/GuiLanguage.vue';
@@ -110,11 +130,9 @@
     import ProjectName from './preferences/ProjectName.vue';
     import SpacialistLink from './preferences/SpacialistLink.vue';
     import ImportConfig from './preferences/ImportConfig.vue';
-    import SavableLayout from './layout/SavableLayout.vue';
 
     export default {
         components: {
-            SavableLayout,
             'gui-language-preference': GuiLanguage,
             'reset-email-preference': ResetEmail,
             'project-name-preference': ProjectName,
@@ -122,13 +140,11 @@
             'import-config-preference': ImportConfig,
         },
         setup(props, context) {
-            const { t, locale } = useI18n();
-            const route = useRoute();
+            const { t } = useI18n();
             const toast = useToast();
 
             // FUNCTIONS
             const trackChanges = (label, data) => {
-                state.preferences[label] = data.value;
                 state.dirtyData[label] = {
                     value: data.value,
                 };
@@ -141,17 +157,24 @@
                 for(let k in state.dirtyData) {
                     const dd = state.dirtyData[k];
                     if(k == 'prefs.gui-language') {
-                        updatedLanguage = dd.value;
+                        const userLang = store.getters.preferenceByKey('prefs.gui-language');
+                        const sysLang = state.preferences['prefs.gui-language'];
+                        // if user pref language does not differ from sys pref language
+                        if(userLang === sysLang) {
+                            // update current language in Spacialist
+                            updatedLanguage = dd.value;
+                        }
                     }
                     entries.push({
                         value: dd.value,
+                        allow_override: state.preferences[k].allow_override,
                         label: k,
                     });
                 }
                 const data = {
                     changes: entries,
                 };
-                patchPreferences(data, route.params.id).then(data => {
+                patchPreferences(data).then(data => {
                     // Update language if value has changed
                     if(!!updatedLanguage) {
                         locale.value = updatedLanguage;
@@ -170,17 +193,8 @@
             const state = reactive({
                 dirtyData: {},
                 hasDirtyData: computed(_ => Object.keys(state.dirtyData).length > 0),
-                preferences: computed(_ => store.getters.preferences),
-                overrides: computed(_ => {
-                    const sysPrefs = store.getters.systemPreferences;
-                    const overrideList = {};
-                    for(let k in sysPrefs) {
-                        overrideList[k] = sysPrefs[k].allow_override;
-                    }
-                    return overrideList;
-                }),
+                preferences: computed(_ => store.getters.systemPreferences),
                 prefsLoaded: computed(_ => !!state.preferences),
-                browserLanguage: navigator.language ? navigator.language.split('-')[0] : 'en',
             });
 
             // RETURN
@@ -188,7 +202,6 @@
                 t,
                 // HELPERS
                 can,
-                getUser,
                 // LOCAL
                 trackChanges,
                 savePreferences,

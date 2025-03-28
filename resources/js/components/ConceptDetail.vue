@@ -1,9 +1,9 @@
 <template>
     <div
         class="h-100 d-flex flex-column"
-        v-if="state.initialized && state.concept"
+        v-if="state.initialized && state.concept && Object.keys(state.concept).length > 0"
     >
-        <header class="title-header space-below d-flex flex-column justify-content-between gap-1">
+        <header class="title-header space-below d-flex flex-column justify-content-between gap-1 flex-shrink-0">
             <div class="d-flex justify-content-between align-items-center">
 
                 <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
@@ -17,12 +17,6 @@
                         </span>
                     </small>
                 </h4>
-                <button
-                    class="btn btn-outline-danger"
-                    @click="()=>showDeleteConcept(state.tree, state.concept.id)"
-                >
-                    {{ t('global.delete') }}
-                </button>
             </div>
             <div
                 class="d-flex flex-row justify-content-start align-items-center gap-2 clickable text-secondary"
@@ -30,7 +24,7 @@
             >
                 <code
                     id="concept-url"
-                    class="normal text-end text-black-50 "
+                    class="normal text-end text-secondary"
                 >{{ state.concept.concept_url }}</code>
                 <i class="fas fa-fw fa-copy"></i>
             </div>
@@ -223,7 +217,7 @@
                             <template #after>
                                 <div class="input-group-append">
                                     <button
-                                        class="btn btn-success"
+                                        class="btn btn-outline-success"
                                         type="submit"
                                         :disabled="!state.addLabelValidated"
                                     >
@@ -319,7 +313,7 @@
                             <template #after>
                                 <div class="input-group-append">
                                     <button
-                                        class="btn btn-success"
+                                        class="btn btn-outline-success"
                                         type="submit"
                                         :disabled="!state.addNoteValidated"
                                     >
@@ -454,11 +448,14 @@
             const route = useRoute();
             const toast = useToast();
 
+            
+            console.log('ConceptDetail', route.params.id, route.query.t);
+            
             // FETCH
-            store.dispatch('setSelectedConcept',
-                route.params.id,
-                route.query.t,
-            ).then(_ => {
+            store.dispatch('setSelectedConcept',{
+                id: route.params.id,
+                tree: route.query.t,
+            }).then(_ => {
                 state.initialized = true;
             });
 
@@ -735,10 +732,15 @@
                     }
                 })
             });
-            // ON MOUNTED
-            // ON MOUNTED
-
-            // ON MOUNTED
+            
+            const resetDefaultLanguages = _ => {
+                state.addLabel.language = store.getters.activeLanguage;
+                state.addNote.language = store.getters.activeLanguage;
+            }
+            
+            watch(_ => store.getters.activeLanguage, (newLang, oldLang) => {
+                resetDefaultLanguages();
+            });
 
             // WATCHER
             watch(_ => route.params, async (newParams, oldParams) => {
@@ -747,10 +749,12 @@
                 if(!newParams.id)
                     return;
                 state.initialized = false;
-                store.dispatch('setSelectedConcept', 
-                    newParams.id,
-                    route.query.t,
-                ).then(_ => {
+                resetDefaultLanguages();
+                console.log('watcher', route.query.t);
+                store.dispatch('setSelectedConcept',{
+                    id: newParams.id,
+                    tree: route.query.t,
+                }).then(_ => {
                     state.initialized = true;
                 });
             });
