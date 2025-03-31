@@ -62,17 +62,18 @@ ul.grtvn-children>.grtvn {
     transform: rotate(90deg);
 }
 
-.tree-default-small .tree-closed>.tree-ocl {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
+//// Use of custom icons
+// .tree-default-small .tree-closed>.tree-ocl {
+//     background-position: center;
+//     background-repeat: no-repeat;
+//     background-size: contain;
 
-    background-image: url('!/img/tree/tree_handle_closed.svg');
-}
+    // background-image: url('!/img/tree/tree_handle_closed.svg');
+// }
 
-.tree-default-small .tree-open>.tree-ocl {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-image: url('!/img/tree/tree_handle_open.svg');
-}
+// .tree-default-small .tree-open>.tree-ocl {
+//     background-position: center;
+//     background-repeat: no-repeat;
+//     background-size: contain;
+    // background-image: url('!/img/tree/tree_handle_open.svg');
+// }
