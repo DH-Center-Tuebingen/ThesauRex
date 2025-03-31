@@ -63,7 +63,7 @@ if(!function_exists('sp_get_public_url')) {
             $uid = Auth::user()->id;
             $pref = Preference::getUserPreference($uid, "prefs.link-to-spacialist");
             $path = Str::finish($pref->value, "/");
-            return "${path}storage/$filename";
+            return "{$path}storage/$filename";
         }
         return Storage::url($filename);
     }

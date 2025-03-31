@@ -297,10 +297,17 @@ export function firstOrPlain(value) {
     return isArray(value) ? value[0] : value;
 };
 
-export const _cloneDeep = require('lodash/cloneDeep');
-export const _debounce = require('lodash/debounce');
-export const _throttle = require('lodash/throttle');
-export const _orderBy = require('lodash/orderBy');
+import _cloneDeep from 'lodash/cloneDeep';
+import _debounce from 'lodash/debounce';
+import _orderBy from 'lodash/orderBy';
+import _throttle from 'lodash/throttle';
+
+export {
+    _cloneDeep,
+    _debounce,
+    _orderBy,
+    _throttle,
+};
 
 export function getValidClass(msgObject, field) {
     // TODO remove if

@@ -9,8 +9,19 @@ const buildDir = isOpen ? 'build_open' : 'build';
 
 const _dirname = dirname(fileURLToPath(import.meta.url));
 
+function verifyEnvVars(env) {
+    const requirements = ["VITE_APP_NAME", "VITE_APP_PATH"];
+    const missingRequirements = requirements.filter((req) => !env[req]);
+    if (missingRequirements.length > 0) {
+        console.error(`Missing environment variables: ${missingRequirements.join(', ')}`);
+        process.exit(1);
+    }
+}
+
 export default ({mode}) => {
     const env = loadEnv(mode, process.cwd(), 'VITE_');
+    verifyEnvVars(env);
+
     const config = {
         plugins: [
             laravel({

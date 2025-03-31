@@ -101,26 +101,14 @@ One solution is to setup a proxy on the same machine and re-route all requests f
    ```
 
 ### Configure JavaScript
-ThesauRex is based on several JavaScript libraries, which are bundled using Webpack (configuration is done using Laravel Mix, a webpack-wrapper for Laravel). Only the zipped releases contain the already bundled JavaScript libraries. All other users have to run webpack to bundle these libraries.
-
-Before running webpack, you have to adjust the public path in the mix config file `webpack.mix.js`. Replace `publicPath` inside the `webpackConfig` call with the path of your instance.
+ThesauRex is based on several JavaScript libraries, which are build using Vite. Only the zipped releases contain the already bundled JavaScript libraries. All other users have to run vite to bundle these libraries.
 
 ```bash
-.webpackConfig({
-   output: {
-       publicPath: '/ThesauRex/'
-   }
-})
-```
-
-Now you can run webpack using
-
-```bash
+# In development serve the javascript with ...
 npm run dev
-# or
+# ...or build the library with ...
 npm run prod
 ```
-depending on whether you want a debugging-friendly development build or an optimized production-ready build.
 
 ### Configure Laravel
 Lumen should now work, but to test it you need to create a `.env` file which stores the Lumen configuration.
@@ -136,6 +124,8 @@ APP_NAME=ThesauRex
 APP_ENV=local
 APP_DEBUG=true
 APP_KEY=* base64:<32bit-key> #this needs to be a 32 digit random key. Use 'php artisan key:generate'
+
+VITE_APP_NAME=${APP_NAME}
 
 # Your database setup. pgsql is PostgreSQL. Host, port, database, username and password need to be configured first (e.g. using your database server's commands).
 DB_CONNECTION=pgsql
