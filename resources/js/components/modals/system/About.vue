@@ -47,9 +47,11 @@
                     <span>
                         {{ contributor.name }}
                     </span>
-                    <span class="badge bg-primary">
-                        {{ transJoin(contributor.roles) }}
-                    </span>
+                    <div class="d-flex flex-wrap gap-1 justify-content-start">
+                        <span class="badge bg-primary" v-for="role in contributor.roles" :key="role">
+                            {{ t(`settings.about.roles.${role}`) }}
+                        </span>
+                    </div>
                 </div>
             </div>
             <hr />
