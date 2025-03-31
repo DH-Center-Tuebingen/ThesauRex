@@ -44,7 +44,8 @@ export const store = createStore({
                     },
                     deletedUsers: [],
                     standalone: true,
-                    languages: [],
+                    activeLanguage: {},
+                    isActive: [],
                     permissions: [],
                     preferences: {},
                     systemPreferences: {},
@@ -455,12 +456,16 @@ export const store = createStore({
                 },
                 setLanguages(state, data) {
                     state.languages = data;
+                    state.activeLanguage = data[0];
                 },
                 setStandaloneState(state, data) {
                     state.standalone = data;
                 },
             },
             actions: {
+                setActiveLanguage({state}, data) {
+                    state.activeLanguage = data;
+                },
                 setAppState({ commit }, data) {
                     commit("setAppInitialized", data);
                 },
@@ -637,6 +642,7 @@ export const store = createStore({
                 },
             },
             getters: {
+                activeLanguage: (state) => state.activeLanguage,
                 appInitialized: (state) => state.appInitialized,
                 concepts: (state) => state.concepts,
                 projectConcepts: (state) => state.concepts.project,

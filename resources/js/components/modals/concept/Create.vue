@@ -1,7 +1,8 @@
 <template>
     <vue-final-modal
         class="modal-container modal"
-        name="create-concept-modal">
+        name="create-concept-modal"
+    >
         <div class="sp-modal-content sp-modal-content-sm">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -16,14 +17,32 @@
                         {{ t('modals.new_concept.title') }}
                     </span>
                 </h5>
-                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Close"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                 </button>
             </div>
             <div class="modal-body nonscrollable">
-                <form role="form" class="mb-2" id="create-concept-form" name="create-concept-form" @submit.prevent="onAdd()">
+                <form
+                    role="form"
+                    class="mb-2"
+                    id="create-concept-form"
+                    name="create-concept-form"
+                    @submit.prevent="onAdd()"
+                >
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button
+                                class="btn btn-outline-secondary dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                            >
                                 <div class="d-inline-flex gap-2">
                                     <span>
                                         {{ emojiFlag(state.concept.language.short_name) }}
@@ -34,7 +53,13 @@
                                 </div>
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item d-flex gap-2" href="" @click.prevent="setLanguage(language)" v-for="language in state.languages" :key="`create-concept-language-item-${language.short_name}`">
+                                <a
+                                    class="dropdown-item d-flex gap-2"
+                                    href=""
+                                    @click.prevent="setLanguage(language)"
+                                    v-for="language in state.languages"
+                                    :key="`create-concept-language-item-${language.short_name}`"
+                                >
                                     <span>
                                         {{ emojiFlag(language.short_name) }}
                                     </span>
@@ -44,15 +69,29 @@
                                 </a>
                             </div>
                         </div>
-                        <input type="text" class="form-control" v-model="state.concept.label">
+                        <input
+                            type="text"
+                            class="form-control"
+                            v-model="state.concept.label"
+                        >
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-outline-success" :disabled="!state.conceptValidated" form="create-concept-form">
+                <button
+                    type="submit"
+                    class="btn btn-outline-success"
+                    :disabled="!state.conceptValidated"
+                    form="create-concept-form"
+                >
                     <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
                 </button>
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                     <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
                 </button>
             </div>
@@ -69,8 +108,7 @@
     } from 'vue';
 
     import { useI18n } from 'vue-i18n';
-
-    import store from '@/bootstrap/store.js';
+    import { useStore } from '@/bootstrap/store.js';
 
     import {
         emojiFlag,
@@ -105,13 +143,14 @@
                 initialValue,
             } = toRefs(props);
             const { t } = useI18n();
+            const store = useStore();
 
             // FUNCTIONS
             const closeModal = _ => {
                 context.emit('cancel', false);
             };
             const onAdd = _ => {
-                if(!state.conceptValidated) return;
+                if (!state.conceptValidated) return;
 
                 context.emit('add', state.concept);
             };
@@ -133,13 +172,7 @@
 
             // ON MOUNTED
             onMounted(_ => {
-                const userLanguage = getPreference('prefs.gui-language');
-                const conceptLang = state.languages.find(l => l.short_name == userLanguage);
-                if(conceptLang) {
-                    state.concept.language = conceptLang;
-                } else {
-                    state.concept.language = state.languages[0];
-                }
+                state.concept.language = store.getters.activeLanguage;
             });
 
             // RETURN

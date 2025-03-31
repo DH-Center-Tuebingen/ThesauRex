@@ -282,6 +282,7 @@
 <script>
     import {
         computed,
+        onMounted,
         reactive,
         watch,
     } from 'vue';
@@ -327,6 +328,19 @@
             const { t } = useI18n();
             const route = useRoute();
             const toast = useToast();
+
+            onMounted(_ => {
+                state.addLabel.language = store.getters.activeLanguage;
+                state.addNote.language = store.getters.activeLanguage;
+            });
+
+            watch(_ => store.getters.activeLanguage,
+                (newLang, oldLang) => {
+                    if(newLang == oldLang) return;
+                    state.addLabel.language = newLang;
+                    state.addNote.language = newLang;
+                }
+            );
 
             // FETCH
             store.dispatch('setSelectedConcept', {

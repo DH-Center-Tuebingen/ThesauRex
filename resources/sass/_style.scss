@@ -43,3 +43,37 @@ code.normal {
 .notification-info {
     margin-left: -.5rem;
 }
+
+.btn-fab {
+    padding: 0;
+    height: 1.8rem;
+    width: 1.8rem;
+}
+
+.btn-fab.active {
+    border-color: var(--bs-btn-active-border-color);
+}
+
+.btn-fab-sm {
+    padding: 0;
+    height: 1.25rem;
+    width: 1.25rem;
+    font-size: 0.8rem;
+    line-height: normal;
+}
+
+.btn-fab-list > .btn-fab, .btn-fab-list > .btn-fab-sm {
+    margin-right: 0.25rem;
+}
+
+.btn-fab-list > .btn-fab:last-child, .btn-fab-list > .btn-fab-sm:last-child {
+    margin-right: 0;
+}
+
+.language-quick-select button {
+    overflow: hidden;
+
+    .flag {
+        transform: scale(2);
+    }
+}

@@ -13,7 +13,8 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
+                        <li class="nav-item d-flex align-items-center" v-if="state.loggedIn">
+                            <LanguageQuickSelect class="ms-3" />
                         </li>
                     </ul>
 
@@ -146,9 +147,11 @@
     import {
         searchParamsToObject
     } from '@/helpers/routing.js';
+    import LanguageQuickSelect from './components/LanguageQuickSelect.vue';
 
     export default {
         components: {
+            LanguageQuickSelect,
             'modals-container': ModalsContainer,
         },
         setup(props) {
