@@ -5,18 +5,16 @@
     >
         <div class="login-header my-5">
             <img
-                src="img/logo_white.svg"
+                src="img/logo.svg"
+                class="thesaurex-logo"
                 width="128"
-                style="filter: drop-shadow(0 0 3px black);"
             />
             <h1
-                class="mt-4 fw-bold text-white"
-                style="filter: drop-shadow(0 0 3px black);"
+                class="mt-4 fw-bold"
             >ThesauRex</h1>
         </div>
         <div
             class="card p-3"
-            style="filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));"
         >
             <div class="card-body">
                 <h2 class="fw-bold card-title mb-4">
