@@ -1,36 +1,48 @@
 <template>
     <div class="row h-100 of-hidden">
-        <div class="col-md-3 h-100 d-flex flex-column">
-            <h4>
-                {{ t('tree.sandbox.title') }}
-            </h4>
+        <div 
+        v-if="state.showSandbox"    
+        class="col-md-3 h-100 d-flex flex-column"
+        >
             <concept-tree
                 class="flex-grow-1 of-hidden"
                 :drag-target="state.dragTarget"
                 :tree-data="state.sandboxConcepts"
                 :tree-name="'sandbox'"
                 @added="addConceptTo('sandbox')"
-                @change-drag-target="changeDragTarget">
+                @change-drag-target="changeDragTarget"
+                @toggle-sandbox="toggleSandbox"
+            >
+                <template #title>
+                    <h4 class="my-0">
+                        {{ t('tree.sandbox.title') }}
+                    </h4>
+                </template>
             </concept-tree>
         </div>
         <div class="col-md-3 h-100 d-flex flex-column">
-            <h4>
-                {{ t('tree.project.title') }}
-            </h4>
             <concept-tree
                 class="flex-grow-1 of-hidden"
                 :drag-target="state.dragTarget"
                 :tree-data="state.projectConcepts"
                 :tree-name="'project'"
                 @added="addConceptTo('project')"
-                @change-drag-target="changeDragTarget">
+                @change-drag-target="changeDragTarget"
+                @toggle-sandbox="toggleSandbox"
+                >
+                <template #title>
+                    <h4 class="my-0">
+                        {{ t('tree.project.title') }}
+                    </h4>
+                </template>
             </concept-tree>
         </div>
         <div class="col-md-6 h-100">
-            <router-view
-                @added="addConceptTo('selection')"
-            ></router-view>
-            <div v-if="!state.conceptSelected" class="alert alert-info">
+            <router-view @added="addConceptTo('selection')"></router-view>
+            <div
+                v-if="!state.conceptSelected"
+                class="alert alert-info"
+            >
                 {{ t('detail.none_selected') }}
             </div>
         </div>
@@ -44,21 +56,26 @@
         reactive,
     } from 'vue';
 
-    import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
 
     import store from '@/bootstrap/store.js';
 
     export default {
         setup(props, context) {
-            const { t } = useI18n();
+            const {t} = useI18n();
 
             // FUNCTIONS
             const changeDragTarget = e => {
                 state.dragTarget = e;
             };
+            
+            const toggleSandbox = () => {
+                state.showSandbox = !state.showSandbox;
+            };
 
             // DATA
             const state = reactive({
+                showSandbox: false,
                 sandboxConcepts: computed(_ => store.getters.sandboxConcepts),
                 projectConcepts: computed(_ => store.getters.projectConcepts),
                 concept: computed(_ => store.getters.selectedConcept),
@@ -71,6 +88,7 @@
                 // HELPERS
                 // LOCAL
                 changeDragTarget,
+                toggleSandbox,
                 // PROPS
                 // STATE
                 state,

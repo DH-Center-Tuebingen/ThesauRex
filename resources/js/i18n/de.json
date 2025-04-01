@@ -123,7 +123,8 @@
             "title": "Projekt-Baum"
         },
         "sandbox": {
-            "title": "Sandkasten-Baum"
+            "title": "Sandkasten-Baum",
+            "toggle": "Toggle Sandbox Tree"
         },
         "contextmenu": {
             "add": "Konzept hinzufügen",
