@@ -147,7 +147,8 @@
     import {
         searchParamsToObject
     } from '@/helpers/routing.js';
-    import LanguageQuickSelect from './components/LanguageQuickSelect.vue';
+
+    import LanguageQuickSelect from '@/components/LanguageQuickSelect.vue';
 
     export default {
         components: {
