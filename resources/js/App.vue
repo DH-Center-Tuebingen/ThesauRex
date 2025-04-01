@@ -93,7 +93,7 @@
                 </div>
             </div>
         </nav>
-        <div class="container-fluid my-3 col overflow-hidden">
+        <div class="container-fluid col overflow-hidden">
             <template v-if="state.init">
                 <router-view></router-view>
             </template>

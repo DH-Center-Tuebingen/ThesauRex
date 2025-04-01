@@ -88,7 +88,7 @@
             :tree-name="treeName"
         >
         </tree-search>
-        <div class="d-flex flex-column col px-0 scroll-y-auto">
+        <div class="d-flex flex-column px-0 scroll-y-auto scroll-x-auto">
             <tree
                 v-if="treeData.length > 0"
                 :id="state.treeId"

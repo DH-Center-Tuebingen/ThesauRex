@@ -51,6 +51,8 @@ import '@/bootstrap/font.js';
 // Components
 import App from './App.vue';
 
+import 'dhc-components/css';
+
 const app = createApp(App);
 app.use(i18n);
 app.use(router);
