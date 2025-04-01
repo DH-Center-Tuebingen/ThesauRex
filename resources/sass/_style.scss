@@ -62,6 +62,14 @@ code.normal {
     line-height: normal;
 }
 
+.btn-fab-md {
+    padding: 0;
+    height: 1.5rem;
+    width: 1.5rem;
+    font-size: 0.7rem;
+    line-height: normal;
+}
+
 .btn-fab-list > .btn-fab, .btn-fab-list > .btn-fab-sm {
     margin-right: 0.25rem;
 }
@@ -74,6 +82,6 @@ code.normal {
     overflow: hidden;
 
     .flag {
-        transform: scale(2);
+        font-weight: bold;
     }
 }

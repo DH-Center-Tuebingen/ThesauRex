@@ -3,12 +3,12 @@
         <button
             v-for="language in store.getters.languages"
             :key="language"
-            class="text-white btn btn-fab-sm rounded-circle d-flex justify-content-center align-items-center"
+            class="text-white btn btn-fab-md rounded-circle d-flex justify-content-center align-items-center"
             :class="getClass(language)"
             @click="selectLanguage(language)"
         >
             <div class="flag">
-                {{ emojiFlag(language.short_name) }}
+                {{ language.short_name.toUpperCase() }}
             </div>
         </button>
     </div>

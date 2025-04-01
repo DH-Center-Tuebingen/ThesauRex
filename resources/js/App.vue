@@ -13,13 +13,13 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item d-flex align-items-center" v-if="state.loggedIn">
-                            <LanguageQuickSelect class="ms-3" />
-                        </li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav">
+                        <li class="nav-item d-flex align-items-center" v-if="state.loggedIn">
+                            <LanguageQuickSelect class="me-3" />
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" target="_blank" href="https://github.com/DH-Center-Tuebingen/Spacialist/wiki/User-manual">
                                 <i class="far fa-fw fa-question-circle"></i>
