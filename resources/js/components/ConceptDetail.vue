@@ -289,6 +289,7 @@
 
     import {
         onBeforeRouteLeave,
+        onBeforeRouteUpdate,
         useRoute,
     } from 'vue-router';
 
@@ -328,10 +329,19 @@
             const { t } = useI18n();
             const route = useRoute();
             const toast = useToast();
-
-            onMounted(_ => {
+            
+            const resetLanguageToDefault = _ => {
                 state.addLabel.language = store.getters.activeLanguage;
                 state.addNote.language = store.getters.activeLanguage;
+            };
+
+            onMounted(_ => {
+                resetLanguageToDefault();
+            });
+            
+            onBeforeRouteUpdate(async (to, from) => {
+                if(to.params.id == from.params.id) return;
+                resetLanguageToDefault();
             });
 
             watch(_ => store.getters.activeLanguage,

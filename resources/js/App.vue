@@ -18,7 +18,7 @@
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav">
                         <li class="nav-item d-flex align-items-center" v-if="state.loggedIn && state.hasMultipleLanguages">
-                            <LanguageQuickSelect class="me-3" />
+                            <LanguageQuickSelect />
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" target="_blank" href="https://github.com/DH-Center-Tuebingen/Spacialist/wiki/User-manual">
