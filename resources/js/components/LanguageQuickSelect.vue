@@ -3,7 +3,7 @@
         <button
             v-for="language in store.getters.languages"
             :key="language"
-            class="text-white btn btn-fab-md rounded-circle d-flex justify-content-center align-items-center"
+            class="btn btn-fab-md rounded-circle d-flex justify-content-center align-items-center"
             :class="getClass(language)"
             @click="selectLanguage(language)"
         >
@@ -27,9 +27,10 @@
             }
 
             const getClass = language => {
-                console.log(language, store.getters.activeLanguage, isActive(language));
                 return {
                     'active': isActive(language),
+                    'text-white': isActive(language),
+                    'text-secondary': !isActive(language),
                 };
             }
 

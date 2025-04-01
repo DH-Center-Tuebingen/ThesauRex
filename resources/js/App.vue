@@ -17,7 +17,7 @@
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav">
-                        <li class="nav-item d-flex align-items-center" v-if="state.loggedIn">
+                        <li class="nav-item d-flex align-items-center" v-if="state.loggedIn && state.hasMultipleLanguages">
                             <LanguageQuickSelect class="me-3" />
                         </li>
                         <li class="nav-item">
@@ -176,6 +176,7 @@
                 loggedIn: computed(_ => store.getters.isLoggedIn),
                 authUser: computed(_ => store.getters.user),
                 isStandalone: computed(_ => store.getters.isStandalone),
+                hasMultipleLanguages: computed(_ => store.getters.languages.length > 1),
             });
 
             // FUNCTIONS
