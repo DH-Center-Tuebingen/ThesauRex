@@ -29,7 +29,7 @@ import VueUploadComponent from 'vue-upload-component';
 import draggable from 'vuedraggable';
 import { Tree, Node, } from "tree-vue-component";
 // vue-final-modal
-import { createVfm } from 'vue-final-modal';
+import { createVfm, VueFinalModal } from 'vue-final-modal';
 
 // Init required libs
 import {
@@ -104,6 +104,7 @@ app.component('file-upload', VueUploadComponent);
 app.component('draggable', draggable);
 app.component('node', Node);
 app.component('tree', Tree);
+app.component('vue-final-modal', VueFinalModal);
 
 // Mount Vue
 app.mount('#app');
