@@ -68,7 +68,7 @@
                             <multiselect
                                 id="derive-from"
                                 v-model="v.fields.derived_from.value"
-                                :classes="multiselectResetClasslist"
+                                :class="multiselectResetClasslist"
                                 :object="true"
                                 :label="'name'"
                                 :track-by="'id'"
