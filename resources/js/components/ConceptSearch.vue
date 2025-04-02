@@ -1,15 +1,16 @@
 <template>
     <div class="input-group">
         <input type="text"
-        autocomplete="off"
-        class="form-control"
-        v-model="query"
-        :placeholder="$t(placeholder)"
-        @input="debounce"
-        @keydown.down="down"
-        @keydown.enter="hit"
-        @keydown.esc="reset"
-        @keydown.up="up"/>
+            autocomplete="off"
+            class="form-control"
+            v-model="query"
+            :placeholder="$t(placeholder)"
+            @input="debounce"
+            @keydown.down="down"
+            @keydown.enter="hit"
+            @keydown.esc="reset"
+            @keydown.up="up"
+        />
         <div class="input-group-append">
             <span class="input-group-text clickable" @click="clearItem">
                 <i class="fas fa-fw fa-times"></i>

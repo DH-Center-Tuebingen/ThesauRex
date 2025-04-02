@@ -86,14 +86,15 @@ code.normal {
     }
 }
 .multiselect-placeholder {
-    /** 
+    /**
         This creates a text ellipsis on the multiselect plachoder.
-        It's quite verbose, as it's by default a flex element, 
+        It's quite verbose, as it's by default a flex element,
         and we need to override it to a block element.
     */
     display: inline-block !important;
     height: auto !important;
-    align-self: anchor-center;
+    align-self: anchor-center; /* not supported by firefox! */
+    top: initial !important; /* fixes vertical alignment for firefox */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
