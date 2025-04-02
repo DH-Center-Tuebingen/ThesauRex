@@ -106,8 +106,8 @@
                 </div>
             </template>
         </div>
-        <importing-info-modal></importing-info-modal>
-        <modals-container></modals-container>
+        <ImportingInfoModal></ImportingInfoModal>
+        <ModalsContainer></ModalsContainer>
         <div class="toast-container ps-3 pb-3" id="toast-container"></div>
     </div>
 </template>
@@ -149,11 +149,13 @@
     } from '@/helpers/routing.js';
 
     import LanguageQuickSelect from '@/components/LanguageQuickSelect.vue';
+    import ImportingInfoModal from '@/components/modals/ImportingInfoModal.vue';
 
     export default {
         components: {
             LanguageQuickSelect,
-            'modals-container': ModalsContainer,
+            ImportingInfoModal,
+            ModalsContainer,
         },
         setup(props) {
             const { t, locale } = useI18n();
