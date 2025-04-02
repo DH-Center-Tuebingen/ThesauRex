@@ -1,5 +1,5 @@
 <template>
-    <modal name="importing-info-modal" :click-to-close="false">
+    <vue-final-modal name="importing-info-modal" :click-to-close="false">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -14,7 +14,7 @@
             <div class="modal-footer d-flex justify-content-between">
             </div>
         </div>
-    </modal>
+    </vue-final-modal>
 </template>
 
 <script>
