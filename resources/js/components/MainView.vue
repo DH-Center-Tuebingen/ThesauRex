@@ -88,7 +88,7 @@
                 state.dragTarget = e;
             };
 
-            const toggleSandbox = () => {
+            const toggleSandbox =_ => {
                 state.showSandbox = !state.showSandbox;
             };
 

@@ -81,7 +81,7 @@
             </div>
         </header>
         <tree-search
-            class="my-2 mb-4"
+            class="my-2 mb-3"
             :on-multiselect="onSearchMultiSelect"
             :on-clear="resetHighlighting"
             :tree-name="treeName"
@@ -103,8 +103,8 @@
             >
             </tree>
             <div
-                class="h-100 w-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-3 border-dashed border-2 border-secondary mt-2"
                 v-else
+                class="h-100 w-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-3 border-dashed border-2 border-secondary mt-2"
             >
                 <div class="text-center px-5">
                     <h4>
@@ -351,7 +351,6 @@
                     }
                     // ... source is added on same level (as child of parent/target)
                     const srcParentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
-                    console.log("same level", srcParentNode, dropData);
                     if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
                         return false;
                     }
