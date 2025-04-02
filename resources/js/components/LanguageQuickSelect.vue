@@ -12,7 +12,10 @@
                 {{ language.short_name.toUpperCase() }}
             </div>
         </button>
-        <div class="dropdown">
+        <div
+            class="dropdown"
+            v-if="dropdownLanguages.length > 0"
+        >
             <a
                 href="#"
                 class="dropdown-toggle text-secondary"
@@ -50,12 +53,18 @@
         computed,
     } from 'vue';
 
-    import { useStore } from '@/bootstrap/store.js';
+    import {useStore} from '@/bootstrap/store.js';
 
-    import { emojiFlag } from '@/helpers/helpers.js';
+    import {emojiFlag} from '@/helpers/helpers.js';
 
     export default {
-        setup() {
+        props: {
+            maxButtons: {
+                type: Number,
+                default: 3,
+            },
+        },
+        setup(props) {
             const store = useStore();
 
             const isActive = language => {
@@ -75,24 +84,23 @@
                 store.dispatch('setActiveLanguage', lang);
             };
 
-            const MAX_LANG_SHOWN = 3;
             const shownLanguages = computed(_ => {
                 const activeIdx = store.getters.languages.findIndex(language => isActive(language));
-                if(activeIdx >= MAX_LANG_SHOWN) {
+                if(activeIdx >= props.maxButtons) {
                     return [
                         store.getters.languages[activeIdx],
-                        ...store.getters.languages.slice(0, MAX_LANG_SHOWN - 1),
+                        ...store.getters.languages.slice(0, props.maxButtons - 1),
                     ];
                 } else {
-                    return store.getters.languages.slice(0, MAX_LANG_SHOWN);
+                    return store.getters.languages.slice(0, props.maxButtons);
                 }
             });
             const dropdownLanguages = computed(_ => {
                 const activeIdx = store.getters.languages.findIndex(language => isActive(language));
-                if(activeIdx >= MAX_LANG_SHOWN) {
-                    return store.getters.languages.slice(MAX_LANG_SHOWN - 1).filter(language => !isActive(language));
+                if(activeIdx >= props.maxButtons) {
+                    return store.getters.languages.slice(props.maxButtons - 1).filter(language => !isActive(language));
                 } else {
-                    return store.getters.languages.slice(MAX_LANG_SHOWN);
+                    return store.getters.languages.slice(props.maxButtons);
                 }
             });
 
