@@ -282,12 +282,14 @@
 <script>
     import {
         computed,
+        onMounted,
         reactive,
         watch,
     } from 'vue';
 
     import {
         onBeforeRouteLeave,
+        onBeforeRouteUpdate,
         useRoute,
     } from 'vue-router';
 
@@ -327,6 +329,28 @@
             const { t } = useI18n();
             const route = useRoute();
             const toast = useToast();
+            
+            const resetLanguageToDefault = _ => {
+                state.addLabel.language = store.getters.activeLanguage;
+                state.addNote.language = store.getters.activeLanguage;
+            };
+
+            onMounted(_ => {
+                resetLanguageToDefault();
+            });
+            
+            onBeforeRouteUpdate(async (to, from) => {
+                if(to.params.id == from.params.id) return;
+                resetLanguageToDefault();
+            });
+
+            watch(_ => store.getters.activeLanguage,
+                (newLang, oldLang) => {
+                    if(newLang == oldLang) return;
+                    state.addLabel.language = newLang;
+                    state.addNote.language = newLang;
+                }
+            );
 
             // FETCH
             store.dispatch('setSelectedConcept', {
