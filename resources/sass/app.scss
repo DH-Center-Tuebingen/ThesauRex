@@ -1,6 +1,8 @@
 // Variables
 @import 'variables';
 
+@import "fonts";
+
 // Bootstrap
 @import '~/bootstrap/scss/bootstrap';
 @import "bootstrap";
@@ -11,7 +13,6 @@
 
 // vue-upload-component
 @import "upload";
-
 
 // multiselect
 @import "~/@vueform/multiselect/themes/default";
