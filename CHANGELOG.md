@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.10.0
+### Added
+- Language Quick Select in navigation
+
 ## 0.9.3
 ### Added
 - Made language list searchable
