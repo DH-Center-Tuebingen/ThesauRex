@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 ## 0.10.0
 ### Added
 - Language Quick Select in navigation
+- Tree dropdown menu
+- _Padded Layout_ for all main routes
+
+### Changed
+- Moved RDF im-/export to the tree dropdown
+- Allow to toggle sandbox in tree dropdown
+- Tree section is now resizable 
+- Moved create top level button to the tree-toolbar
+- Tree title text now truncates and doesn't wrap
+- Concept URL now truncates at the start
 
 ## 0.9.3
 ### Added

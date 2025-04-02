@@ -3,11 +3,11 @@
         <ResizableColumns v-model="columns">
             <!-- Left Column -->
             <template #tree>
-                <div class="d-flex h-100 gap-4">
+                <div class="d-flex h-100 gap-4 p-3 pb-0">
                     <div
                         v-if="state.showSandbox"
-                        :class="state.columnClasses"
-                        class="h-100 flex-fill d-flex flex-row gap-4"
+                        class="h-100 col d-flex flex-row gap-4"
+                        style="width: 0;"
                     >
                         <concept-tree
                             class="flex-grow-1 of-hidden"
@@ -26,8 +26,8 @@
                         </concept-tree>
                     </div>
                     <div
-                        :class="state.columnClasses"
-                        class="h-100 flex-fill d-flex flex-column"
+                        class="h-100 col d-flex flex-column"
+                        style="width: 0;"
                     >
                         <concept-tree
                             class="flex-fill h-100"
@@ -50,7 +50,7 @@
 
             <!-- Right Column -->
             <template #detail>
-                <div class="h-100">
+                <div class="h-100 p-3">
                     <router-view @added="addConceptTo('selection')"></router-view>
                     <div
                         v-if="!state.conceptSelected"
@@ -99,9 +99,6 @@
                 projectConcepts: computed(_ => store.getters.projectConcepts),
                 concept: computed(_ => store.getters.selectedConcept),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
-                columnClasses: computed(_ => {
-                    return state.showSandbox ? 'w-50' : 'w-100';
-                }),
             });
 
             const columns = reactive([{
