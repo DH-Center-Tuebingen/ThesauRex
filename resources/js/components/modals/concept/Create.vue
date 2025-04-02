@@ -70,15 +70,18 @@
                             </div>
                         </div>
                         <input
+                            ref="inputField"
                             type="text"
                             class="form-control"
                             v-model="state.concept.label"
+                            @keydown.enter.prevent.stop="() => submitButton.click()"
                         >
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button
+                    ref="submitButton"
                     type="submit"
                     class="btn btn-outline-success"
                     :disabled="!state.conceptValidated"
@@ -102,8 +105,10 @@
 <script>
     import {
         computed,
+        nextTick,
         onMounted,
         reactive,
+        ref,
         toRefs,
     } from 'vue';
 
@@ -150,7 +155,7 @@
                 context.emit('cancel', false);
             };
             const onAdd = _ => {
-                if (!state.conceptValidated) return;
+                if(!state.conceptValidated) return;
 
                 context.emit('add', state.concept);
             };
@@ -170,9 +175,15 @@
                 languages: computed(_ => store.getters.languages),
             });
 
+            const submitButton = ref(null);
+            const inputField = ref(null);
+
             // ON MOUNTED
             onMounted(_ => {
                 state.concept.language = store.getters.activeLanguage;
+                nextTick(_ => {
+                    inputField.value.focus();
+                })
             });
 
             // RETURN
@@ -186,6 +197,8 @@
                 closeModal,
                 onAdd,
                 setLanguage,
+                inputField,
+                submitButton,
                 // STATE
                 state,
             };

@@ -22,6 +22,7 @@
         :ref="el => msRef = el"
         :placeholder="t('tree.search.placeholder')"
         @select="optionSelected"
+        @keyup.enter="selectCurrentOrCreateNew"
     >
         <template v-slot:singlelabel="{ value }">
             <div class="multiselect-single-label">
@@ -140,7 +141,10 @@
                 if(!query) {
                     return await new Promise(r => r([]));
                 }
-                return await searchConcept(query, treeName.value, exclude.value);
+                state.searching = true;
+                const result = await searchConcept(query, treeName.value, exclude.value);
+                state.searching = false;
+                return result;
             };
             const optionSelected = option => {
                 state.query = '';
@@ -164,6 +168,21 @@
                     content: content,
                 });
             };
+            
+            const selectCurrentOrCreateNew = _ => {
+                // Disallow to create when there is an active
+                // search to prevent the user from creating
+                // a new concept with the same name as an existing one.
+                if(state.searching) return;
+                
+                if(msRef.value.filteredOptions.length == 0) {                    
+                    addOptionSelected();
+                }
+            };
+            
+            const focus = _ => {
+                msRef.value.focus();
+            }
 
             // DATA
             const msRef = ref({});
@@ -171,6 +190,7 @@
                 id: `multiselect-tree-search-${treeName.value}-${getTs()}`,
                 entry: {},
                 query: '',
+                searching: false,
             });
 
             // RETURN
@@ -179,6 +199,8 @@
                 // HELPER
                 getLabel,
                 sortParents,
+                // EXTERNAL
+                focus,
                 // LOCAL
                 search,
                 optionSelected,
@@ -188,6 +210,7 @@
                 treeName,
                 addOption,
                 addOptionSelected,
+                selectCurrentOrCreateNew,
                 // STATE
                 msRef,
                 state,
