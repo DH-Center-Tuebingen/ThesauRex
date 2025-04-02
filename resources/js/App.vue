@@ -102,7 +102,7 @@
                     <div>
                         <i class="fas fa-5x fa-fw fa-spinner fa-spin"></i>
                     </div>
-                    <h1 class="mt-5" v-html="t('app.loading_screen_msg', {appname: state.appName})"></h1>
+                    <h1 class="mt-5"><span class="fw-light">{{t('app.loading_screen_msg')}}</span>&nbsp;{{state.appName}}&nbsp;<span class="fw-light">&hellip;</span></h1>
                 </div>
             </template>
         </div>
