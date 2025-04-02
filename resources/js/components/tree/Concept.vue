@@ -82,15 +82,13 @@
         </header>
         <tree-search
             class="my-2 mb-3"
-            :on-multiselect="onSearchMultiSelect"
-            :on-clear="resetHighlighting"
             :tree-name="treeName"
-        >
-        </tree-search>
+        />
         <div class="d-flex flex-column px-0 scroll-y-auto scroll-x-auto flex-fill">
             <tree
                 v-if="treeData.length > 0"
                 :id="state.treeId"
+                :preid="treeName"
                 :data="treeData"
                 :draggable="state.dragAllowed"
                 :drag-target="dragTarget"
@@ -193,11 +191,6 @@
             treeName: {
                 required: true,
                 type: String
-            },
-            dragDelay: {
-                required: false,
-                type: Number,
-                default: 500
             }
         },
         components: {
@@ -211,9 +204,7 @@
                 dragTarget,
                 treeData,
                 treeName,
-                dragDelay,
-            } = toRefs(props);
-
+            } = toRefs(props);            
             // FETCH
 
             // FUNCTIONS
