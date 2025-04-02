@@ -19,7 +19,7 @@
 }
 
 .truncate-text-start {
-    direction: rtl;
+    direction: rtl; /* TODO find a better solution! */
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
