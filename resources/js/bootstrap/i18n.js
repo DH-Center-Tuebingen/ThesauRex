@@ -7,10 +7,10 @@ const messages = {
     de: de,
 }
 
-let defaultLocale = 'en'
-const navigatorLanguage = navigator.language.split("-")[0]
+let defaultLocale = 'en';
+const navigatorLanguage = navigator.language.split("-")[0];
 if(navigatorLanguage in messages) {
-    defaultLocale = navigatorLanguage
+    defaultLocale = navigatorLanguage;
 }
 
 const i18n = createI18n({
