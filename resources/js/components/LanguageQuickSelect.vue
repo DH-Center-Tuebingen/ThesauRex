@@ -38,9 +38,6 @@
                         <span>
                             {{ language.display_name }}
                         </span>
-                        <span class="text-muted">
-                            {{ language.short_name.toUpperCase() }}
-                        </span>
                     </a>
                 </li>
             </ul>
