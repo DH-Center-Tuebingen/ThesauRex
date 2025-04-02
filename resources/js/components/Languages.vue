@@ -92,7 +92,7 @@
             // FETCH
 
             // FUNCTIONS
-            const showAddLanguageModal = () => {
+            const showAddLanguageModal = _ => {
                 showAddLanguage();
             };
             const onDeleteLanguage = id => {

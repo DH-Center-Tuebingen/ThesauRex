@@ -57,6 +57,7 @@
         "bootstrap": "^5.3.0",
         "country-emoji": "^1.5.6",
         "dayjs": "^1.11.7",
+        "dhc-components": "github:DH-Center-Tuebingen/dhc-components",
         "lodash": "^4.17.21",
         "p-queue": "^7.3.4",
         "tree-vue-component": "^6.0.2",

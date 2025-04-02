@@ -12,7 +12,7 @@
             </small>
         </h4>
         <div class="d-flex flex-row justify-content-start">
-            <code id="concept-url" class="normal text-black-50">{{ state.concept.concept_url }}</code>
+            <code id="concept-url" class="normal text-black-50 truncate-text-start">{{ state.concept.concept_url }}</code>
             <a href="" class="ps-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
                 <i class="fas fa-fw fa-copy"></i>
             </a>

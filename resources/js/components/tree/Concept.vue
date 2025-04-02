@@ -1,55 +1,93 @@
 <template>
     <div class="d-flex flex-column">
-        <div class="d-flex flex-row justify-content-start gap-2">
-            <file-upload
-                class="d-none"
-                accept="application/rdf+xml,application/xml"
-                extensions="xml,rdf"
-                v-model="state.files"
-                :ref="el => uploadRef = el"
-                :custom-action="importFile"
-                :directory="false"
-                :disabled="!can('thesaurus_write|thesaurus_create')"
-                :multiple="false"
-                :drop="true"
-                @input-file="inputFile">
-            </file-upload>
-            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
-                <button type="button" class="btn btn-outline-secondary" @click.prevent="triggerFileUpload('extend')">
-                    {{ t('tree.import.label') }}
+        <header class="title-header space-below d-flex justify-content-between align-items-center mb-2">
+            <slot name="title">
+            </slot>
+
+            <div class="toolbar d-flex gap-1 align-items-center">
+                <button
+                    class="btn btn-sm btn-outline-success border-0"
+                    :title="t('tree.new_top_concept')"
+                    @click.prevent="onAddTopConcept()"
+                >
+                    <i class="fa-solid fa-plus"></i>
                 </button>
-                <div class="btn-group" role="group">
-                    <button :id="`import-tree-btn-dropdown-${treeName}`" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                    <div class="dropdown-menu" :aria-labelledby="`import-tree-btn-dropdown-${treeName}`">
-                        <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('extend')">
-                            <i class="fas fa-fw fa-"></i>
-                            {{ t('tree.import.extend') }}
+                <div
+                    class="px-2 clickable"
+                    data-bs-toggle="dropdown"
+                >
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </div>
+
+                <file-upload
+                    class="d-none"
+                    accept="application/rdf+xml,application/xml"
+                    extensions="xml,rdf"
+                    v-model="state.files"
+                    :ref="el => uploadRef = el"
+                    :custom-action="importFile"
+                    :directory="false"
+                    :disabled="!can('thesaurus_write|thesaurus_create')"
+                    :multiple="false"
+                    :drop="true"
+                    @input-file="inputFile"
+                >
+                </file-upload>
+
+                <div
+                    class="dropdown-menu user-select-none"
+                    :aria-labelledby="`import-tree-btn-dropdown-${treeName}`"
+                >
+                    <a
+                        class="dropdown-item"
+                        href="#"
+                        @click.prevent="toggleSandbox()"
+                    >
+                        {{ t('tree.sandbox.toggle') }}
+                    </a>
+                    <hr class="dropdown-divider">
+                    <a
+                        class="dropdown-item"
+                        href="#"
+                        @click.prevent="triggerFileUpload('extend')"
+                    >
+                        {{ t('tree.import.extend') }}
+                    </a>
+                    <a
+                        class="dropdown-item"
+                        href="#"
+                        @click.prevent="triggerFileUpload('update_extend')"
+                    >
+                        {{ t('tree.import.update_extend') }}
+                    </a>
+                    <a
+                        class="dropdown-item"
+                        href="#"
+                        @click.prevent="triggerFileUpload('replace')"
+                    >
+                        {{ t('tree.import.replace') }}
+                    </a>
+                    <template v-if="can('thesaurus_share')">
+                        <div class="dropdown-divider"></div>
+                        <a
+                            class="dropdown-item"
+                            href="#"
+                            @click.prevent="onExport()"
+                        >
+                            {{ t('tree.export.label') }}
                         </a>
-                        <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('update_extend')">
-                            <i class="fas fa-fw fa-"></i>
-                            {{ t('tree.import.update_extend') }}
-                        </a>
-                        <a class="dropdown-item" href="#" @click.prevent="triggerFileUpload('replace')">
-                            <i class="fas fa-fw fa-"></i>
-                            {{ t('tree.import.replace') }}
-                        </a>
-                    </div>
+                    </template>
                 </div>
             </div>
-            <button type="button" class="btn btn-outline-secondary" @click="onExport()" v-if="can('thesaurus_share')">
-                {{ t('tree.export.label') }}
-            </button>
-        </div>
+        </header>
         <tree-search
-            class="my-2"
+            class="my-2 mb-3"
             :on-multiselect="onSearchMultiSelect"
             :on-clear="resetHighlighting"
-            :tree-name="treeName">
+            :tree-name="treeName"
+        >
         </tree-search>
-        <a href="" class="text-secondary" @click.prevent="onAddTopConcept()" v-if="can('thesaurus_write')">
-            {{ t('tree.new_top_concept') }}
-        </a>
-        <div class="d-flex flex-column col px-0 scroll-y-auto">
+        <div class="d-flex flex-column px-0 scroll-y-auto scroll-x-auto flex-fill">
             <tree
                 v-if="treeData.length > 0"
                 :id="state.treeId"
@@ -61,18 +99,26 @@
                 @change="itemClick"
                 @drop="itemDrop"
                 @toggle="itemToggle"
-                @change-drag-target="changeDragTarget">
+                @change-drag-target="changeDragTarget"
+            >
             </tree>
-            <div class="h-100 w-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-3 border-dashed border-2 border-secondary mt-2" v-else>
+            <div
+                v-else
+                class="h-100 w-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-3 border-dashed border-2 border-secondary mt-2"
+            >
                 <div class="text-center px-5">
                     <h4>
                         {{ t('tree.is_empty') }}
                     </h4>
-                    <span v-html="t('tree.empty_info')"/>
+                    <span v-html="t('tree.empty_info')" />
                 </div>
             </div>
         </div>
-        <div class="position-absolute top-0 start-0 h-100 w-100 bg-light bg-opacity-50" style="z-index: 9999;" v-show="state.isUploading">
+        <div
+            class="position-absolute top-0 start-0 h-100 w-100 bg-light bg-opacity-50"
+            style="z-index: 9999;"
+            v-show="state.isUploading"
+        >
             <div class="h-100 w-100 d-flex flex-column align-items-center justify-content-center">
                 <h1>
                     {{ t('modals.import_info.title') }}
@@ -92,14 +138,13 @@
     import {
         computed,
         onMounted,
-        onUnmounted,
         reactive,
         ref,
         toRefs,
     } from 'vue';
 
-    import { useRoute } from 'vue-router';
-    import { useI18n } from 'vue-i18n';
+    import {useRoute} from 'vue-router';
+    import {useI18n} from 'vue-i18n';
     import {
         getNodeFromPath,
     } from 'tree-component';
@@ -158,9 +203,9 @@
         components: {
             'tree-search': ConceptSearch,
         },
-        emits: ['change-drag-target'],
+        emits: ['change-drag-target', 'toggle-sandbox'],
         setup(props, context) {
-            const { t } = useI18n();
+            const {t} = useI18n();
             const currentRoute = useRoute();
             const {
                 dragTarget,
@@ -206,7 +251,7 @@
                 if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
-                    parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), eventData.targetPath.slice(0, eventData.targetPath.length-1));
+                    parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), eventData.targetPath.slice(0, eventData.targetPath.length - 1));
                 }
                 const nid = srcNode.nid;
                 const bid = parentNode ? parentNode.nid : -1;
@@ -224,6 +269,9 @@
             const changeDragTarget = dragTargetData => {
                 context.emit('change-drag-target', dragTargetData);
             };
+            const toggleSandbox = _ => {
+                context.emit('toggle-sandbox');
+            }
             const triggerFileUpload = type => {
                 state.uploadType = type;
                 uploadRef.value.$el.children.file.click();
@@ -272,7 +320,7 @@
                 if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
-                    parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.targetPath.slice(0, dropData.targetPath.length-1));
+                    parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.targetPath.slice(0, dropData.targetPath.length - 1));
                 }
                 const nid = srcNode.nid;
                 const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
@@ -291,7 +339,7 @@
                     // ... source is a parent of target (would result in circle) or ...
                     if(dropData.targetPath.length > dropData.sourcePath.length) {
                         let srcIsParent = true;
-                        for(let i=0; i<dropData.sourcePath.length; i++) {
+                        for(let i = 0; i < dropData.sourcePath.length; i++) {
                             const p = dropData.sourcePath[i];
                             const pt = dropData.targetPath[i];
                             if(p !== pt) {
@@ -302,8 +350,7 @@
                         if(srcIsParent) return false;
                     }
                     // ... source is added on same level (as child of parent/target)
-                    const srcParentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.sourcePath.slice(0, dropData.sourcePath.length-1));
-                    console.log("same level", srcParentNode, dropData);
+                    const srcParentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
                     if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
                         return false;
                     }
@@ -339,6 +386,7 @@
                 itemToggle,
                 itemDrop,
                 changeDragTarget,
+                toggleSandbox,
                 triggerFileUpload,
                 inputFile,
                 importFile,

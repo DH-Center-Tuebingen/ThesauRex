@@ -1,5 +1,5 @@
 <template>
-    <div class="col-md-4 offset-md-4">
+    <div class="col-md-4 offset-md-4 py-5">
         <div class="login-header mb-3">
             <h1>ThesauRex</h1>
             <img src="img/logo.png" width="100" />

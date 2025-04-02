@@ -1,39 +1,66 @@
 <template>
     <div class="row h-100 of-hidden">
-        <div class="col-md-3 h-100 d-flex flex-column">
-            <h4>
-                {{ t('tree.sandbox.title') }}
-            </h4>
-            <concept-tree
-                class="flex-grow-1 of-hidden"
-                :drag-target="state.dragTarget"
-                :tree-data="state.sandboxConcepts"
-                :tree-name="'sandbox'"
-                @added="addConceptTo('sandbox')"
-                @change-drag-target="changeDragTarget">
-            </concept-tree>
-        </div>
-        <div class="col-md-3 h-100 d-flex flex-column">
-            <h4>
-                {{ t('tree.project.title') }}
-            </h4>
-            <concept-tree
-                class="flex-grow-1 of-hidden"
-                :drag-target="state.dragTarget"
-                :tree-data="state.projectConcepts"
-                :tree-name="'project'"
-                @added="addConceptTo('project')"
-                @change-drag-target="changeDragTarget">
-            </concept-tree>
-        </div>
-        <div class="col-md-6 h-100">
-            <router-view
-                @added="addConceptTo('selection')"
-            ></router-view>
-            <div v-if="!state.conceptSelected" class="alert alert-info">
-                {{ t('detail.none_selected') }}
-            </div>
-        </div>
+        <ResizableColumns v-model="columns">
+            <!-- Left Column -->
+            <template #tree>
+                <div class="d-flex h-100 gap-4 p-3 pb-0">
+                    <div
+                        v-if="state.showSandbox"
+                        class="h-100 col d-flex flex-row gap-4"
+                        style="width: 0;"
+                    >
+                        <concept-tree
+                            class="flex-grow-1 of-hidden"
+                            :drag-target="state.dragTarget"
+                            :tree-data="state.sandboxConcepts"
+                            :tree-name="'sandbox'"
+                            @added="addConceptTo('sandbox')"
+                            @change-drag-target="changeDragTarget"
+                            @toggle-sandbox="toggleSandbox"
+                        >
+                            <template #title>
+                                <h4 class="my-0 text-truncate">
+                                    {{ t('tree.sandbox.title') }}
+                                </h4>
+                            </template>
+                        </concept-tree>
+                    </div>
+                    <div
+                        class="h-100 col d-flex flex-column"
+                        style="width: 0;"
+                    >
+                        <concept-tree
+                            class="flex-fill h-100"
+                            :drag-target="state.dragTarget"
+                            :tree-data="state.projectConcepts"
+                            :tree-name="'project'"
+                            @added="addConceptTo('project')"
+                            @change-drag-target="changeDragTarget"
+                            @toggle-sandbox="toggleSandbox"
+                        >
+                            <template #title>
+                                <h4 class="my-0 text-truncate">
+                                    {{ t('tree.project.title') }}
+                                </h4>
+                            </template>
+                        </concept-tree>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Right Column -->
+            <template #detail>
+                <div class="h-100 p-3">
+                    <router-view @added="addConceptTo('selection')"></router-view>
+                    <div
+                        v-if="!state.conceptSelected"
+                        class="alert alert-info"
+                    >
+                        {{ t('detail.none_selected') }}
+                    </div>
+                </div>
+            </template>
+        </ResizableColumns>
     </div>
 </template>
 
@@ -44,33 +71,54 @@
         reactive,
     } from 'vue';
 
-    import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
+    import {ResizableColumns} from 'dhc-components';
 
     import store from '@/bootstrap/store.js';
 
     export default {
+        components: {
+            ResizableColumns,
+        },
         setup(props, context) {
-            const { t } = useI18n();
+            const {t} = useI18n();
 
             // FUNCTIONS
             const changeDragTarget = e => {
                 state.dragTarget = e;
             };
 
+            const toggleSandbox =_ => {
+                state.showSandbox = !state.showSandbox;
+            };
+
             // DATA
             const state = reactive({
+                showSandbox: false,
                 sandboxConcepts: computed(_ => store.getters.sandboxConcepts),
                 projectConcepts: computed(_ => store.getters.projectConcepts),
                 concept: computed(_ => store.getters.selectedConcept),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
             });
 
+            const columns = reactive([{
+                name: 'tree',
+                width: 300,
+                minWidth: 100,
+                maxWidth: 500,
+            }, {
+                name: 'detail',
+                width: 700,
+            }])
+
             // RETURN
             return {
                 t,
                 // HELPERS
                 // LOCAL
+                columns,
                 changeDragTarget,
+                toggleSandbox,
                 // PROPS
                 // STATE
                 state,
