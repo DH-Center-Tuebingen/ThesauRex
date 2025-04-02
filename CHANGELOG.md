@@ -1,9 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## 0.10.0
+## 0.10 - Jelling
 ### Added
 - Language Quick Select in navigation
+### Fixed
+- Flag emojis not visible in certain browsers
 
 ## 0.9.3
 ### Added
