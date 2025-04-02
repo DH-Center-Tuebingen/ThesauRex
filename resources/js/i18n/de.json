@@ -124,7 +124,7 @@
         },
         "sandbox": {
             "title": "Sandkasten-Baum",
-            "toggle": "Toggle Sandbox Tree"
+            "toggle": "Sandkasten-Baum umschalten"
         },
         "contextmenu": {
             "add": "Konzept hinzufügen",
