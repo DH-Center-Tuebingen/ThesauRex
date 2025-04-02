@@ -15,7 +15,6 @@
                 <div
                     class="px-2 clickable"
                     data-bs-toggle="dropdown"
-                    data-toggle="dropdown"
                 >
                     <i class="fa-solid fa-ellipsis-vertical"></i>
                 </div>
