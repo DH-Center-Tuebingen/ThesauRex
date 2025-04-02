@@ -229,7 +229,7 @@
         }
     },
     "app": {
-        "loading_screen_msg": "<span class=\"fw-light\">Lade</span> {appname}<span class=\"fw-light\">&hellip;</span>"
+        "loading_screen_msg": "Lade"
     },
     "settings": {
         "user": {
