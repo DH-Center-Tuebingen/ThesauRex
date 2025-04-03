@@ -190,7 +190,8 @@
         },
         "new_concept": {
             "title": "Neues Top-Level-Konzept anlegen",
-            "title_parent": "Neues Konzept unter {name} anlegen"
+            "title_parent": "Neues Konzept unter {name} anlegen",
+            "add_new_info": "Neues Konzept anlegen:"
         },
         "delete_concept": {
             "title": "{name} löschen",

@@ -35,24 +35,24 @@
                     {{ getLabel(option, true) }}
                 </span>
                 <div
-                    class="d-flex align-items-center pb-1 ms-2"
-                    :class="{ 'numbered-list': option.parents.length > 1 }"
                     v-for="(parList, i) in sortParents(option.parents)"
                     :key="`search-result-multiselect-tree-search-${treeName}-list-${i}`"
+                    class="d-flex align-items-center pb-1 ms-2"
+                    :class="{ 'numbered-list': option.parents.length > 1 }"
                 >
                     <ol class="breadcrumb m-0 ms-1 p-0 bg-none small">
                         <li
-                            class=" breadcrumb-item text-muted small"
                             v-for="p in parList"
                             :key="`search-result-multiselect-tree-search-${treeName}-${p.id}`"
+                            class=" breadcrumb-item text-muted small"
                         >
                             <span>
                                 {{ getLabel(p, true) }}
                             </span>
                         </li>
                         <li
-                            class=" breadcrumb-item text-muted small fst-italic"
                             v-if="parList.length == 0"
+                            class=" breadcrumb-item text-muted small fst-italic"
                         >
                             <span>
                                 {{ t('tree.search.is_top_level') }}
@@ -71,7 +71,8 @@
                     class=""
                     @click="addOptionSelected()"
                 >
-                    Add new concept <span class="fw-bold">{{ state.query }}</span>
+                    {{ t('modals.new_concept.add_new_info') }}
+                    <span class="fw-bold">{{ state.query }}</span>
                 </span>
             </div>
         </template>

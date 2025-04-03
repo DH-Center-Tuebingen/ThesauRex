@@ -190,7 +190,8 @@
         },
         "new_concept": {
             "title": "Create new Top-Level Concept",
-            "title_parent": "Create new concept under {name}"
+            "title_parent": "Create new concept under {name}",
+            "add_new_info": "Add new concept:"
         },
         "delete_concept": {
             "title": "Delete {name}",
