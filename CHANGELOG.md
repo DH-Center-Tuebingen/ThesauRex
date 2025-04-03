@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Flag emojis not visible in certain browsers
 - Missing translations
+- Duplicate concepts after logout & login again
 ### Changed
 - Moved RDF im-/export to the tree dropdown
 - Allow to toggle sandbox in tree dropdown

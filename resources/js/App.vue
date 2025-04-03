@@ -187,6 +187,13 @@
                 auth.logout({
                     makeRequest: true,
                     redirect: '/login'
+                }).then(_ => {
+                    store.dispatch("resetConcepts", {
+                        tree: "project",
+                    });
+                    store.dispatch("resetConcepts", {
+                        tree: "sandbox",
+                    });
                 });
             };
             const showAboutModal = _ => {
