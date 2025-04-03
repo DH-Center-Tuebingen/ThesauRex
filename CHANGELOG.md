@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.10 - Jelling
+### Added
+- Language Quick Select in navigation
+- Tree dropdown menu
+- _Padded Layout_ for all main routes
+### Fixed
+- Flag emojis not visible in certain browsers
+- Missing translations
+- Duplicate concepts after logout & login again
+### Changed
+- Moved RDF im-/export to the tree dropdown
+- Allow to toggle sandbox in tree dropdown
+- Tree section is now resizable 
+- Moved create top level button to the tree-toolbar
+- Tree title text now truncates and doesn't wrap
+- Concept URL now truncates at the start
+
 ## 0.9.3
 ### Added
 - Made language list searchable

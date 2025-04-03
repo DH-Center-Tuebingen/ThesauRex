@@ -11,6 +11,10 @@ import {
 import Login from '@/components/Login.vue';
 import MainView from '@/components/MainView.vue';
 import ConceptDetail from '@/components/ConceptDetail.vue';
+
+// Layouts
+import PaddedLayout from '@/components/layouts/PaddedLayout.vue';
+
 // Settings
 import Users from '@/components/Users.vue';
 import Roles from '@/components/Roles.vue';
@@ -56,7 +60,10 @@ export const router = createRouter({
         {
             path: '/mg/users',
             name: 'users',
-            component: Users,
+            component: PaddedLayout,
+            props: {
+                component: Users  
+            },
             beforeEnter: (to, from) => {
                 return isStandalone;
             },
@@ -67,7 +74,10 @@ export const router = createRouter({
         {
             path: '/mg/roles',
             name: 'roles',
-            component: Roles,
+            component: PaddedLayout,
+            props: {
+                component: Roles  
+            },
             beforeEnter: (to, from) => {
                 return isStandalone;
             },
@@ -78,7 +88,10 @@ export const router = createRouter({
         {
             path: '/mg/language',
             name: 'languages',
-            component: Languages,
+            component: PaddedLayout,
+            props: {
+                component: Languages  
+            },
             meta: {
                 auth: true
             }
@@ -86,7 +99,10 @@ export const router = createRouter({
         {
             path: '/preferences',
             name: 'preferences',
-            component: Preferences,
+            component: PaddedLayout,
+            props: {
+                component: Preferences  
+            },
             meta: {
                 auth: true
             }
@@ -94,7 +110,10 @@ export const router = createRouter({
         {
             path: '/preferences/u/:id',
             name: 'userpreferences',
-            component: UserPreferences,
+            component: PaddedLayout,
+            props: {
+                component: UserPreferences  
+            },
             meta: {
                 auth: true
             }
@@ -102,7 +121,10 @@ export const router = createRouter({
         {
             path: '/profile',
             name: 'userprofile',
-            component: UserProfile,
+            component: PaddedLayout,
+            props: {
+                component: UserProfile  
+            },
             meta: {
                 auth: true
             }

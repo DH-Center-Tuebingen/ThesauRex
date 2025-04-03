@@ -123,7 +123,8 @@
             "title": "Project Tree"
         },
         "sandbox": {
-            "title": "Sandbox Tree"
+            "title": "Sandbox Tree",
+            "toggle": "Toggle Sandbox Tree"
         },
         "contextmenu": {
             "add": "Add concept",
@@ -189,7 +190,8 @@
         },
         "new_concept": {
             "title": "Create new Top-Level Concept",
-            "title_parent": "Create new concept under {name}"
+            "title_parent": "Create new concept under {name}",
+            "add_new_info": "Add new concept:"
         },
         "delete_concept": {
             "title": "Delete {name}",
@@ -228,7 +230,7 @@
         }
     },
     "app": {
-        "loading_screen_msg": "<span class=\"fw-light\">Loading</span> {appname}<span class=\"fw-light\">&hellip;</span>"
+        "loading_screen_msg": "Loading"
     },
     "settings": {
         "user": {

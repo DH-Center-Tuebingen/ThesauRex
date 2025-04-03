@@ -6,12 +6,21 @@ const messages = {
     en: en,
     de: de,
 }
+
+let defaultLocale = 'en';
+const navigatorLanguage = navigator.language.split("-")[0];
+if(navigatorLanguage in messages) {
+    defaultLocale = navigatorLanguage;
+}
+
 const i18n = createI18n({
     legacy: false,
-    locale: navigator.language,
+    locale: defaultLocale,
     fallbackLocale: 'en',
     messages: messages
 });
+
+window.i18n = i18n.global;
 
 export function useI18n() {
     return i18n;

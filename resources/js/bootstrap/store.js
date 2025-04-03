@@ -44,6 +44,8 @@ export const store = createStore({
                     },
                     deletedUsers: [],
                     standalone: true,
+                    activeLanguage: {},
+                    isActive: [],
                     languages: [],
                     permissions: [],
                     preferences: {},
@@ -65,7 +67,7 @@ export const store = createStore({
                 },
                 updateUser(state, data) {
                     const index = state.users.findIndex((u) => u.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         const cleanData = only(data, [
                             "email",
                             "roles",
@@ -81,7 +83,7 @@ export const store = createStore({
                 },
                 deactivateUser(state, data) {
                     const index = state.users.findIndex((u) => u.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         const delUser = state.users.splice(index, 1)[0];
                         delUser.deleted_at = data.deleted_at;
                         state.deletedUsers.push(delUser);
@@ -91,7 +93,7 @@ export const store = createStore({
                     const index = state.deletedUsers.findIndex(
                         (u) => u.id == data
                     );
-                    if (index > -1) {
+                    if(index > -1) {
                         const reacUser = state.deletedUsers.splice(index, 1)[0];
                         state.users.push(reacUser);
                     }
@@ -101,7 +103,7 @@ export const store = createStore({
                 },
                 updateRole(state, data) {
                     const index = state.roles.findIndex((r) => r.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         const cleanData = only(data, [
                             "display_name",
                             "description",
@@ -118,7 +120,7 @@ export const store = createStore({
                 },
                 deleteRole(state, data) {
                     const index = state.roles.findIndex((r) => r.id == data.id);
-                    if (index > -1) {
+                    if(index > -1) {
                         state.roles.splice(index, 1);
                     }
                 },
@@ -231,7 +233,7 @@ export const store = createStore({
                     });
                 },
                 setSelectedConcept(state, data) {
-                    if (!data) {
+                    if(!data) {
                         state.concept.from = null;
                         state.concept.data = {};
                     } else {
@@ -449,18 +451,22 @@ export const store = createStore({
                     const idx = state.languages.findIndex(
                         (l) => l.id == data.language_id
                     );
-                    if (idx > -1) {
+                    if(idx > -1) {
                         state.languages.splice(idx, 1);
                     }
                 },
                 setLanguages(state, data) {
                     state.languages = data;
+                    state.activeLanguage = data[0];
                 },
                 setStandaloneState(state, data) {
                     state.standalone = data;
                 },
             },
             actions: {
+                setActiveLanguage({state}, data) {
+                    state.activeLanguage = data;
+                },
                 setAppState({ commit }, data) {
                     commit("setAppInitialized", data);
                 },
@@ -637,6 +643,7 @@ export const store = createStore({
                 },
             },
             getters: {
+                activeLanguage: (state) => state.activeLanguage,
                 appInitialized: (state) => state.appInitialized,
                 concepts: (state) => state.concepts,
                 projectConcepts: (state) => state.concepts.project,

@@ -13,12 +13,13 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                        </li>
                     </ul>
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav">
+                        <li class="nav-item d-flex align-items-center" v-if="state.loggedIn && state.hasMultipleLanguages">
+                            <LanguageQuickSelect />
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" target="_blank" href="https://github.com/DH-Center-Tuebingen/Spacialist/wiki/User-manual">
                                 <i class="far fa-fw fa-question-circle"></i>
@@ -92,7 +93,7 @@
                 </div>
             </div>
         </nav>
-        <div class="container-fluid my-3 col overflow-hidden">
+        <div class="container-fluid col overflow-hidden">
             <template v-if="state.init">
                 <router-view></router-view>
             </template>
@@ -101,12 +102,12 @@
                     <div>
                         <i class="fas fa-5x fa-fw fa-spinner fa-spin"></i>
                     </div>
-                    <h1 class="mt-5" v-html="t('app.loading_screen_msg', {appname: state.appName})"></h1>
+                    <h1 class="mt-5"><span class="fw-light">{{t('app.loading_screen_msg')}}</span>&nbsp;{{state.appName}}&nbsp;<span class="fw-light">&hellip;</span></h1>
                 </div>
             </template>
         </div>
-        <importing-info-modal></importing-info-modal>
-        <modals-container></modals-container>
+        <ImportingInfoModal></ImportingInfoModal>
+        <ModalsContainer></ModalsContainer>
         <div class="toast-container ps-3 pb-3" id="toast-container"></div>
     </div>
 </template>
@@ -147,9 +148,14 @@
         searchParamsToObject
     } from '@/helpers/routing.js';
 
+    import LanguageQuickSelect from '@/components/LanguageQuickSelect.vue';
+    import ImportingInfoModal from '@/components/modals/ImportingInfoModal.vue';
+
     export default {
         components: {
-            'modals-container': ModalsContainer,
+            LanguageQuickSelect,
+            ImportingInfoModal,
+            ModalsContainer,
         },
         setup(props) {
             const { t, locale } = useI18n();
@@ -173,6 +179,7 @@
                 loggedIn: computed(_ => store.getters.isLoggedIn),
                 authUser: computed(_ => store.getters.user),
                 isStandalone: computed(_ => store.getters.isStandalone),
+                hasMultipleLanguages: computed(_ => store.getters.languages.length > 1),
             });
 
             // FUNCTIONS
@@ -180,6 +187,13 @@
                 auth.logout({
                     makeRequest: true,
                     redirect: '/login'
+                }).then(_ => {
+                    store.dispatch("resetConcepts", {
+                        tree: "project",
+                    });
+                    store.dispatch("resetConcepts", {
+                        tree: "sandbox",
+                    });
                 });
             };
             const showAboutModal = _ => {

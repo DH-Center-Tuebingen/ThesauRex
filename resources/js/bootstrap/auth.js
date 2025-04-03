@@ -10,7 +10,7 @@ import {
     slugify
 } from '@/helpers/helpers.js';
 
-const appName = slugify(__APPNAME__, '_');
+const appName = slugify(import.meta.env.VITE_APP_NAME, '_');
 
 export const vueAuth = createAuth({
     plugins: {

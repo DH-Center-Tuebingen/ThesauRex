@@ -43,3 +43,59 @@ code.normal {
 .notification-info {
     margin-left: -.5rem;
 }
+
+.btn-fab {
+    padding: 0;
+    height: 1.8rem;
+    width: 1.8rem;
+}
+
+.btn-fab.active {
+    border-color: var(--bs-btn-active-border-color);
+}
+
+.btn-fab-sm {
+    padding: 0;
+    height: 1.25rem;
+    width: 1.25rem;
+    font-size: 0.8rem;
+    line-height: normal;
+}
+
+.btn-fab-md {
+    padding: 0;
+    height: 1.5rem;
+    width: 1.5rem;
+    font-size: 0.7rem;
+    line-height: normal;
+}
+
+.btn-fab-list > .btn-fab, .btn-fab-list > .btn-fab-sm {
+    margin-right: 0.25rem;
+}
+
+.btn-fab-list > .btn-fab:last-child, .btn-fab-list > .btn-fab-sm:last-child {
+    margin-right: 0;
+}
+
+.language-quick-select button {
+    overflow: hidden;
+
+    .flag {
+        font-weight: bold;
+    }
+}
+.multiselect-placeholder {
+    /**
+        This creates a text ellipsis on the multiselect plachoder.
+        It's quite verbose, as it's by default a flex element,
+        and we need to override it to a block element.
+    */
+    display: inline-block !important;
+    height: auto !important;
+    align-self: anchor-center; /* not supported by firefox! */
+    top: initial !important; /* fixes vertical alignment for firefox */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

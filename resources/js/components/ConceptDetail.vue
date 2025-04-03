@@ -12,7 +12,7 @@
             </small>
         </h4>
         <div class="d-flex flex-row justify-content-start">
-            <code id="concept-url" class="normal text-black-50">{{ state.concept.concept_url }}</code>
+            <code id="concept-url" class="normal text-black-50 truncate-text-start">{{ state.concept.concept_url }}</code>
             <a href="" class="ps-2 text-secondary" @click.prevent="copyToClipboard('concept-url')">
                 <i class="fas fa-fw fa-copy"></i>
             </a>
@@ -282,12 +282,14 @@
 <script>
     import {
         computed,
+        onMounted,
         reactive,
         watch,
     } from 'vue';
 
     import {
         onBeforeRouteLeave,
+        onBeforeRouteUpdate,
         useRoute,
     } from 'vue-router';
 
@@ -327,6 +329,28 @@
             const { t } = useI18n();
             const route = useRoute();
             const toast = useToast();
+            
+            const resetLanguageToDefault = _ => {
+                state.addLabel.language = store.getters.activeLanguage;
+                state.addNote.language = store.getters.activeLanguage;
+            };
+
+            onMounted(_ => {
+                resetLanguageToDefault();
+            });
+            
+            onBeforeRouteUpdate(async (to, from) => {
+                if(to.params.id == from.params.id) return;
+                resetLanguageToDefault();
+            });
+
+            watch(_ => store.getters.activeLanguage,
+                (newLang, oldLang) => {
+                    if(newLang == oldLang) return;
+                    state.addLabel.language = newLang;
+                    state.addNote.language = newLang;
+                }
+            );
 
             // FETCH
             store.dispatch('setSelectedConcept', {

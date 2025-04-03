@@ -38,7 +38,7 @@
                             <multiselect
                                 id="add-language-selection"
                                 v-model="v.fields.short_name.value"
-                                :classes="multiselectResetClasslist"
+                                :class="multiselectResetClasslist"
                                 :object="true"
                                 :label="'name'"
                                 :track-by="'id'"
