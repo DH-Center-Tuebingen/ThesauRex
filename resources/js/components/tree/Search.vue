@@ -67,10 +67,7 @@
             v-if="addOption && state.query.length > 0"
         >
             <div class="d-flex flex-column py-2 px-2-5 fs-6">
-                <span
-                    class=""
-                    @click="addOptionSelected()"
-                >
+                <span @click="addOptionSelected()">
                     {{ t('modals.new_concept.add_new_info') }}
                     <span class="fw-bold">{{ state.query }}</span>
                 </span>
@@ -80,13 +77,13 @@
             <div v-if="addOption"></div>
             <div v-else>
                 <div
-                    class="p-2"
                     v-if="!!state.query"
+                    class="p-2"
                     v-html="t('tree.search.no_results', { term: state.query })"
                 />
                 <div
-                    class="p-1 text-muted"
                     v-else
+                    class="p-1 text-muted"
                 >
                     {{ t('tree.search.empty_term_info') }}
                 </div>

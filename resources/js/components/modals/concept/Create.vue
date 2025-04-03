@@ -80,7 +80,6 @@
             </div>
             <div class="modal-footer">
                 <button
-                    ref="submitButton"
                     type="submit"
                     class="btn btn-outline-success"
                     :disabled="!state.conceptValidated"
@@ -116,7 +115,6 @@
 
     import {
         emojiFlag,
-        getPreference,
     } from '@/helpers/helpers.js';
 
     import {
@@ -174,7 +172,6 @@
                 languages: computed(_ => store.getters.languages),
             });
 
-            const submitButton = ref(null);
             const inputField = ref(null);
 
             // ON MOUNTED
@@ -197,7 +194,6 @@
                 onAdd,
                 setLanguage,
                 inputField,
-                submitButton,
                 // STATE
                 state,
             };
