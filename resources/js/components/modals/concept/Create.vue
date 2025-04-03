@@ -70,6 +70,7 @@
                             </div>
                         </div>
                         <input
+                            ref="inputField"
                             type="text"
                             class="form-control"
                             v-model="state.concept.label"
@@ -102,8 +103,10 @@
 <script>
     import {
         computed,
+        nextTick,
         onMounted,
         reactive,
+        ref,
         toRefs,
     } from 'vue';
 
@@ -112,7 +115,6 @@
 
     import {
         emojiFlag,
-        getPreference,
     } from '@/helpers/helpers.js';
 
     import {
@@ -150,7 +152,7 @@
                 context.emit('cancel', false);
             };
             const onAdd = _ => {
-                if (!state.conceptValidated) return;
+                if(!state.conceptValidated) return;
 
                 context.emit('add', state.concept);
             };
@@ -170,9 +172,14 @@
                 languages: computed(_ => store.getters.languages),
             });
 
+            const inputField = ref(null);
+
             // ON MOUNTED
             onMounted(_ => {
                 state.concept.language = store.getters.activeLanguage;
+                nextTick(_ => {
+                    inputField.value.focus();
+                })
             });
 
             // RETURN
@@ -186,6 +193,7 @@
                 closeModal,
                 onAdd,
                 setLanguage,
+                inputField,
                 // STATE
                 state,
             };

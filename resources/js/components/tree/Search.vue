@@ -22,6 +22,7 @@
         :ref="el => msRef = el"
         :placeholder="t('tree.search.placeholder')"
         @select="optionSelected"
+        @keyup.enter="selectCurrentOrCreateNew"
     >
         <template v-slot:singlelabel="{ value }">
             <div class="multiselect-single-label">
@@ -33,16 +34,26 @@
                 <span class="fw-bold">
                     {{ getLabel(option, true) }}
                 </span>
-                <div class="d-flex align-items-center pb-1 ms-2" :class="{'numbered-list': option.parents.length > 1}" v-for="(parList, i) in sortParents(option.parents)"
-                    :key="`search-result-multiselect-tree-search-${treeName}-list-${i}`">
+                <div
+                    v-for="(parList, i) in sortParents(option.parents)"
+                    :key="`search-result-multiselect-tree-search-${treeName}-list-${i}`"
+                    class="d-flex align-items-center pb-1 ms-2"
+                    :class="{ 'numbered-list': option.parents.length > 1 }"
+                >
                     <ol class="breadcrumb m-0 ms-1 p-0 bg-none small">
-                        <li class=" breadcrumb-item text-muted small" v-for="p in parList"
-                            :key="`search-result-multiselect-tree-search-${treeName}-${p.id}`">
+                        <li
+                            v-for="p in parList"
+                            :key="`search-result-multiselect-tree-search-${treeName}-${p.id}`"
+                            class=" breadcrumb-item text-muted small"
+                        >
                             <span>
                                 {{ getLabel(p, true) }}
                             </span>
                         </li>
-                        <li class=" breadcrumb-item text-muted small fst-italic" v-if="parList.length == 0">
+                        <li
+                            v-if="parList.length == 0"
+                            class=" breadcrumb-item text-muted small fst-italic"
+                        >
                             <span>
                                 {{ t('tree.search.is_top_level') }}
                             </span>
@@ -51,18 +62,29 @@
                 </div>
             </div>
         </template>
-        <template v-slot:beforelist="{}" v-if="addOption && state.query.length > 0">
+        <template
+            v-slot:beforelist="{ }"
+            v-if="addOption && state.query.length > 0"
+        >
             <div class="d-flex flex-column py-2 px-2-5 fs-6">
-                <span class="" @click="addOptionSelected()">
-                    Add new concept <span class="fw-bold">{{ state.query }}</span>
+                <span @click="addOptionSelected()">
+                    {{ t('modals.new_concept.add_new_info') }}
+                    <span class="fw-bold">{{ state.query }}</span>
                 </span>
             </div>
         </template>
-        <template v-slot:nooptions="{}">
+        <template v-slot:nooptions="{ }">
             <div v-if="addOption"></div>
             <div v-else>
-                <div class="p-2" v-if="!!state.query" v-html="t('tree.search.no_results', {term: state.query})" />
-                <div class="p-1 text-muted" v-else>
+                <div
+                    v-if="!!state.query"
+                    class="p-2"
+                    v-html="t('tree.search.no_results', { term: state.query })"
+                />
+                <div
+                    v-else
+                    class="p-1 text-muted"
+                >
                     {{ t('tree.search.empty_term_info') }}
                 </div>
             </div>
@@ -78,7 +100,7 @@
         toRefs,
     } from 'vue';
 
-    import { useI18n } from 'vue-i18n';
+    import {useI18n} from 'vue-i18n';
 
     import {
         searchConcept,
@@ -123,7 +145,7 @@
         },
         emits: ['add'],
         setup(props, context) {
-            const { t } = useI18n();
+            const {t} = useI18n();
             const {
                 delay,
                 limit,
@@ -140,7 +162,14 @@
                 if(!query) {
                     return await new Promise(r => r([]));
                 }
-                return await searchConcept(query, treeName.value, exclude.value);
+                state.searching = true;
+                try {
+                    const result = await searchConcept(query, treeName.value, exclude.value);
+                    return result;
+                } finally {
+                    state.searching = false;
+                    return [];
+                }
             };
             const optionSelected = option => {
                 state.query = '';
@@ -165,12 +194,28 @@
                 });
             };
 
+            const selectCurrentOrCreateNew = _ => {
+                // Disallow to create when there is an active
+                // search to prevent the user from creating
+                // a new concept with the same name as an existing one.
+                if(state.searching) return;
+
+                if(msRef.value.filteredOptions.length == 0) {
+                    addOptionSelected();
+                }
+            };
+
+            const focus = _ => {
+                msRef.value.focus();
+            }
+
             // DATA
             const msRef = ref({});
             const state = reactive({
                 id: `multiselect-tree-search-${treeName.value}-${getTs()}`,
                 entry: {},
                 query: '',
+                searching: false,
             });
 
             // RETURN
@@ -179,6 +224,8 @@
                 // HELPER
                 getLabel,
                 sortParents,
+                // EXTERNAL
+                focus,
                 // LOCAL
                 search,
                 optionSelected,
@@ -188,6 +235,7 @@
                 treeName,
                 addOption,
                 addOptionSelected,
+                selectCurrentOrCreateNew,
                 // STATE
                 msRef,
                 state,
