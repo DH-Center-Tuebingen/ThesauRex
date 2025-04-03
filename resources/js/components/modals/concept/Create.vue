@@ -74,7 +74,6 @@
                             type="text"
                             class="form-control"
                             v-model="state.concept.label"
-                            @keydown.enter.prevent.stop="() => submitButton.click()"
                         >
                     </div>
                 </form>
