@@ -86,8 +86,6 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import auth from '@/bootstrap/auth.js';
-
     import {
         getUser,
         _cloneDeep,

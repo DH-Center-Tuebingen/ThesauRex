@@ -5,6 +5,12 @@ import {
     throwError,
 } from '@/helpers/helpers.js';
 
+export const web_http = axios.create();
+web_http.defaults.baseURL = '';
+web_http.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+web_http.defaults.withCredentials = true;
+web_http.defaults.withXSRFToken = true;
+
 const instance = axios.create();
 
 instance.defaults.baseURL = 'api/v1';

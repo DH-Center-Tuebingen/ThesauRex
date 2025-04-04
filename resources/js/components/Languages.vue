@@ -68,7 +68,7 @@
     // import { mapFields } from 'vee-validate';
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useSystemStore from '@/bootstrap/stores/system.js';
 
     import {
         can,
@@ -88,6 +88,7 @@
     export default {
         setup(props, context) {
             const { t } = useI18n();
+            const systemStore = useSystemStore();
 
             // FETCH
 
@@ -101,7 +102,7 @@
 
             // DATA
             const state = reactive({
-                languages: computed(_ => store.getters.languages),
+                languages: computed(_ => systemStore.languages),
             });
 
             // ON MOUNTED

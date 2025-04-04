@@ -1,6 +1,7 @@
-import auth from '@/bootstrap/auth.js';
 import store from '@/bootstrap/store.js';
 import router from '@/bootstrap/router.js';
+
+import useUserStore from '@/bootstrap/stores/user.js';
 
 import {
     flag,
@@ -21,20 +22,9 @@ import {
 
 export const multiselectResetClasslist = {clear: 'multiselect-clear multiselect-clear-reset'};
 
-export async function initApp(locale) {
-    store.dispatch('setAppState', false);
-    await fetchPreData(locale);
-    await fetchTreeData();
-    await fetchUsers();
-    await fetchLanguages();
-    await fetchVersion();
-    store.dispatch('setAppState', true);
-    return new Promise(r => r(null));
-};
-
 export function can(permissionString, oneOf) {
     oneOf = oneOf || false;
-    const user = store.getters.user;
+    const user = useUserStore().user;
     if(!user) return false;
     const permissions = permissionString.split('|');
     const hasPermission = permission => {
@@ -66,22 +56,6 @@ export function getErrorMessages(error, suffix = '') {
 export function getTs() {
     const d = new Date();
     return d.getTime();
-};
-
-export function hasPreference(prefKey, prop) {
-    const ps = store.getters.preferenceByKey(prefKey);
-    if (ps) {
-        return ps[prop] || ps;
-    }
-};
-
-export function getPreference(prefKey) {
-    return store.getters.preferenceByKey(prefKey);
-};
-
-export function getProjectName(slug = false) {
-    const name = getPreference('prefs.project-name');
-    return slug ? slugify(name) : name;
 };
 
 export function slugify(s, delimiter = '-') {
@@ -186,24 +160,19 @@ export function createDownloadLink(content, filename, base64 = false, contentTyp
 };
 
 export function isLoggedIn() {
-    return auth.check();
+    return useUserStore().userLoggedIn;
 };
 
 export function getUser() {
-    return isLoggedIn() ? auth.user() : {};
+    return isLoggedIn() ? useUserStore().getCurrentUser : {};
+};
+
+export function getUsers() {
+    return useUserStore().users;
 };
 
 export function userId() {
     return getUser().id || -1;
-};
-
-export function getUsers() {
-    const fallback = [];
-    if(isLoggedIn()) {
-        return store.getters.users || fallback;
-    } else {
-        return fallback;
-    }
 };
 
 export function getRoles(withPermissions = false) {

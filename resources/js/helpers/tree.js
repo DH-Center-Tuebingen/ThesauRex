@@ -6,6 +6,9 @@ import { getNodeFromPath } from 'tree-component';
 
 import i18n from '@/bootstrap/i18n.js';
 
+import useSystemStore from '@/bootstrap/stores/system.js';
+import useConceptStore from '@/bootstrap/stores/concept.js';
+
 import { addToast } from '@/plugins/toast.js';
 
 import {
@@ -22,7 +25,6 @@ import {
 import {
     emojiFlag,
     isArray,
-    getPreference,
     slugify,
     createDownloadLink,
 } from '@/helpers/helpers.js';
@@ -151,7 +153,7 @@ export function toggleTreeNode(node, tree) {
 export function getLabel(node, displayForeign = false) {
     if(!node) return 'No Title';
     if(!node.labels || !node.labels.length) return node.concept_url;
-    const prefLang = getPreference('prefs.gui-language');
+    const prefLang = useSystemStore().getPreference('prefs.gui-language');
     if(node.labels.length > 1) {
         let sortIndex = l => {
             let idx = 0;
@@ -232,9 +234,9 @@ export class Node {
     constructor(data, component) {
         Object.assign(this, data);
         this.nid = this.id;
-        if(!!store.getters.conceptsFromMap(data.tree)[this.id]) {
+        if(!!useConceptStore().conceptMap[data.tree][this.id]) {
             let cntr = 1;
-            while(!!store.getters.conceptsFromMap(data.tree)[`${this.id}_${cntr}`]) {
+            while(!!useConceptStore().conceptMap[data.tree][`${this.id}_${cntr}`]) {
                 cntr++;
             }
             this.id = `${this.id}_${cntr}`;

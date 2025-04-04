@@ -7,9 +7,11 @@ use App\Role;
 use App\User;
 use App\Http\Controllers\Controller;
 use App\RolePreset;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Sleep;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
@@ -101,20 +103,41 @@ class UserController extends Controller
         ]);
 
         $creds = ['password'];
+        $userProp = '';
         if($request->has('nickname')) {
             $creds[] = 'nickname';
+            $userProp = 'nickname';
         } else {
             $creds[] = 'email';
+            $userProp = 'email';
+        }
+        $user = User::where($userProp, $request->get($userProp))->withoutTrashed()->first();
+        if(!isset($user)) {
+            Sleep::for(2)->seconds();
+            return response()->json([
+                'error' => __('Invalid Credentials')
+            ], 400);
+        }
+        if($user->login_attempts === 0) {
+            return response()->json([
+                'error' => __('Password confirmation expired')
+            ], 400);
         }
         $credentials = request($creds);
 
-        if(!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Invalid Credentials'], 400);
+        if(!Auth::guard('web')->attempt($credentials, true)) {
+            return response()->json(['error' => __('Invalid Credentials')], 400);
+        }
+
+        $request->session()->regenerate();
+
+        if($user->login_attempts > 0) {
+            $user->login_attempts--;
+            $user->save();
         }
 
         return response()
-            ->json(null, 200)
-            ->header('Authorization', $token);
+            ->json($user, 200);
     }
 
     public function addUser(Request $request) {

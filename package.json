@@ -36,7 +36,6 @@
         "@vue/babel-plugin-transform-vue-jsx": "^1.4.0",
         "@vue/cli-plugin-babel": "^5.0.8",
         "@vue/compiler-sfc": "^3.3.4",
-        "@websanova/vue-auth": "^4.2.1",
         "axios": "^1.4.0",
         "eslint": "^9.23.0",
         "eslint-plugin-vue": "^10.0.0",
@@ -48,8 +47,7 @@
         "vite": "^6.2.4",
         "vue": "^3.3.4",
         "vue-loader": "^17.1.0",
-        "vue-router": "^4.1.6",
-        "vuex": "4.0.2"
+        "vue-router": "^4.1.6"
     },
     "dependencies": {
         "@fontsource/raleway": "^5.0.2",
@@ -62,6 +60,7 @@
         "dhc-components": "github:DH-Center-Tuebingen/dhc-components",
         "lodash": "^4.17.21",
         "p-queue": "^8.0.1",
+        "pinia": "^3.0.1",
         "tree-vue-component": "^6.0.2",
         "vee-validate": "^4.9.6",
         "vue-final-modal": "^4.5.3",

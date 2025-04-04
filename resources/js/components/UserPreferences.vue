@@ -108,7 +108,7 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import { useToast } from '@/plugins/toast.js';
 
@@ -137,6 +137,7 @@
             const { t, locale } = useI18n();
             const route = useRoute();
             const toast = useToast();
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const trackChanges = (label, data) => {
@@ -182,7 +183,7 @@
             const state = reactive({
                 dirtyData: {},
                 hasDirtyData: computed(_ => Object.keys(state.dirtyData).length > 0),
-                preferences: computed(_ => store.getters.preferences),
+                preferences: computed(_ => userStore.preferences),
                 prefsLoaded: computed(_ => !!state.preferences),
                 browserLanguage: navigator.language ? navigator.language.split('-')[0] : 'en',
             });

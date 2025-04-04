@@ -67,7 +67,7 @@
 
     import { getNodeFromPath } from 'tree-component';
 
-    import store from '@/bootstrap/store.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
 
     import {
         removeRelation,
@@ -106,6 +106,7 @@
             const {
                 data,
             } = toRefs(props);
+            const conceptStore = useConceptStore();
 
             // FETCH
 
@@ -173,7 +174,7 @@
                 bsElem: null,
                 ddVisible: false,
                 label: computed(_ => getLabel(data.value)),
-                concept: computed(_ => store.getters.selectedConcept.data),
+                concept: computed(_ => conceptStore.concept.data),
                 isTopConcept: computed(_ => state.concept.is_top_concept),
                 hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
                 canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
@@ -185,7 +186,7 @@
                 // pop element itself, because we want parent node
                     path.pop();
                     if(path.length == 0) return;
-                    return getNodeFromPath(store.getters.conceptsFromTree(data.value.tree), path);
+                    return getNodeFromPath(conceptStore.concepts[data.value.tree], path);
                 }),
                 parentLabel: computed(_ => getLabel(state.parent)),
                 isSelected: computed(_ => state.concept && state.concept.id === data.value.nid),

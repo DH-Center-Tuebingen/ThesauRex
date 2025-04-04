@@ -295,7 +295,8 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
+    import useSystemStore from '@/bootstrap/stores/system.js';
 
     import { useToast } from '@/plugins/toast.js';
 
@@ -329,22 +330,24 @@
             const { t } = useI18n();
             const route = useRoute();
             const toast = useToast();
-            
+            const conceptStore = useConceptStore();
+            const systemStore = useSystemStore();
+
             const resetLanguageToDefault = _ => {
-                state.addLabel.language = store.getters.activeLanguage;
-                state.addNote.language = store.getters.activeLanguage;
+                state.addLabel.language = systemStore.activeLanguage;
+                state.addNote.language = systemStore.activeLanguage;
             };
 
             onMounted(_ => {
                 resetLanguageToDefault();
             });
-            
+
             onBeforeRouteUpdate(async (to, from) => {
                 if(to.params.id == from.params.id) return;
                 resetLanguageToDefault();
             });
 
-            watch(_ => store.getters.activeLanguage,
+            watch(_ => systemStore.activeLanguage,
                 (newLang, oldLang) => {
                     if(newLang == oldLang) return;
                     state.addLabel.language = newLang;
@@ -353,10 +356,7 @@
             );
 
             // FETCH
-            store.dispatch('setSelectedConcept', {
-                concept_id: route.params.id,
-                tree: route.query.t,
-            }).then(_ => {
+            conceptStore.setSelected(route.params.id, route.query.t).then(_ => {
                 state.initialized = true;
             });
 
@@ -576,8 +576,8 @@
                 updatingTopLevelState: false,
                 addLabelValidated: computed(_ => state.addLabel.language.short_name && state.addLabel.value && state.addLabel.value.length),
                 addNoteValidated: computed(_ => state.addNote.language.short_name && state.addNote.value && state.addNote.value.length),
-                concept: computed(_ => store.getters.selectedConcept.data),
-                tree: computed(_ => store.getters.selectedConcept.from),
+                concept: computed(_ => conceptStore.concept.data),
+                tree: computed(_ => conceptStore.concept.from),
                 isTopConcept: computed(_ => state.concept.is_top_concept),
                 hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
                 canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
@@ -585,7 +585,7 @@
                 hasLabels: computed(_ => state.concept.labels && state.concept.labels.length > 0),
                 hasNotes: computed(_ => state.concept.notes && state.concept.notes.length > 0),
                 label: computed(_ => getLabel(state.concept)),
-                languages: computed(_ => store.getters.languages),
+                languages: computed(_ => systemStore.languages),
                 labelCount: computed(_ => state.hasLabels ? state.concept.labels.length : 0),
                 prefLabelCount: computed(_ => {
                     if(!state.hasLabels) {
@@ -612,18 +612,14 @@
                     if(newParams.id == oldParams.id) return;
                     if(!newParams.id) return;
                     state.initialized = false;
-                    store.dispatch('setSelectedConcept', {
-                        concept_id: newParams.id,
-                        tree: route.query.t,
-                    }).then(_ => {
-                        state.initialized = true;
-                    });
+                    await conceptStore.setSelected(newParams.id, route.query.t);
+                    state.initialized = true;
                 }
             );
 
             // ON BEFORE LEAVE
             onBeforeRouteLeave(async (to, from) => {
-                store.dispatch('unsetSelectedConcept');
+                await conceptStore.setSelected();
                 return true;
             });
 

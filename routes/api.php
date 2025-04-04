@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,11 +14,11 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1')->group(function() {
     Route::get('/pre', 'HomeController@getGlobalData');
     Route::get('/version', function() {
         $versionInfo = new App\VersionInfo();
@@ -34,7 +35,7 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 // USER
 Route::post('/v1/auth/login', 'UserController@login');
 
-Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1')->group(function() {
     Route::get('/auth/refresh', 'UserController@refreshToken');
     Route::get('/auth/user', 'UserController@getUser');
     Route::get('/user', 'UserController@getUsers');
@@ -57,7 +58,7 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 });
 
 // TREE
-Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1/tree')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1/tree')->group(function() {
     Route::get('/', 'TreeController@getTree');
     Route::get('/byParent/{id}', 'TreeController@getDescendants')->where('id', '[0-9]+');
     Route::get('/{id}', 'TreeController@getConcept')->where('id', '[0-9]+');
@@ -84,7 +85,7 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 });
 
 // LANGUAGE
-Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1/language')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1/language')->group(function() {
     Route::get('', 'LanguageController@getLanguages');
 
     Route::post('', 'LanguageController@addLanguage');
@@ -93,7 +94,7 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 });
 
 // PREFERENCES
-Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1/preference')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1/preference')->group(function() {
     Route::get('', 'PreferenceController@getPreferences');
     Route::get('/{id}', 'PreferenceController@getUserPreferences')->where('id', '[0-9]+');
 
@@ -102,6 +103,6 @@ Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v
 });
 
 // SEARCH
-Route::middleware(['before' => 'jwt.auth', 'after' => 'jwt.refresh'])->prefix('v1/search')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1/search')->group(function() {
     Route::get('/concept', 'SearchController@searchConcepts');
 });

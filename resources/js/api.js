@@ -1,8 +1,8 @@
 import {
     default as http,
+    web_http,
 } from '@/bootstrap/http.js';
 import store from '@/bootstrap/store.js';
-import auth from '@/bootstrap/auth.js';
 
 import {
     only,
@@ -14,77 +14,58 @@ import {
 } from '@/helpers/tree.js';
 
 // GET AND STORE (FETCH)
-export async function fetchVersion() {
-    await $httpQueue.add(() => http.get('/version').then(response => {
-        store.dispatch('setVersion', response.data);
+export async function getCsrfCookie() {
+    await $httpQueue.add(() => web_http.get('/sanctum/csrf-cookie').then(response => {
     }));
+}
+
+export async function logout() {
+    return await $httpQueue.add(() => http.post('/auth/logout'));
+}
+
+export async function fetchVersion() {
+    return await $httpQueue.add(() => http.get('/version').then(response => response.data));
 };
 
 export async function fetchPreData(locale) {
-    return $httpQueue.add(() => http.get('pre').then(response => {
-        store.dispatch('setPreferences', response.data.preferences);
-        store.dispatch('setSystemPreferences', response.data.system_preferences);
-        store.dispatch('setStandaloneState', response.data.standalone);
-
-        if(auth.ready()) {
-            auth.load().then(_ => {
-                locale.value = store.getters.preferenceByKey('prefs.gui-language');
-            });
-        } else {
-            locale.value = store.getters.preferenceByKey('prefs.gui-language');
-        }
-    }));
+    return $httpQueue.add(() => http.get('pre').then(response => response.data));
 };
 
 export async function fetchTreeData(include = ['project', 'sandbox']) {
+    const data = {
+        project: null,
+        sandbox: null,
+    }
     if(include.includes("project")) {
-        await $httpQueue.add(() =>
-            http.get("/tree?t=project").then((response) => {
-                const sortedConcepts = response.data;
-                sortTree(sortedConcepts);
-                store.dispatch("setConcepts", {
-                    tree: "project",
-                    concepts: sortedConcepts,
-                });
-            })
+        data.project = await $httpQueue.add(() =>
+            http.get("/tree?t=project").then(response => response.data)
         );
     }
     if(include.includes('sandbox')) {
-        await $httpQueue.add(
-            () => http.get('/tree?t=sandbox').then(response => {
-                const sortedConcepts = response.data;
-                sortTree(sortedConcepts);
-                store.dispatch('setConcepts', {
-                    tree: 'sandbox',
-                    concepts: sortedConcepts,
-                });
-            })
+        data.sandbox = await $httpQueue.add(
+            () => http.get('/tree?t=sandbox').then(response => response.data)
         );
     }
+
+    return data;
 };
+
+export async function fetchUser() {
+    return await $httpQueue.add(() => http.get('/auth/user').then(response => response.data));
+}
 
 export async function fetchUsers() {
-    store.dispatch('setUser', auth.user());
-    await $httpQueue.add(() => http.get('user').then(response => {
-        store.dispatch('setUsers', {
-            active: response.data.users,
-            deleted: response.data.deleted_users || []
-        });
-    }));
-    await $httpQueue.add(() => http.get('role').then(response => {
-        store.dispatch('setRoles', {
-            roles: response.data.roles,
-            permissions: response.data.permissions,
-            presets: response.data.presets,
-        });
-    }));
-};
+    const userData = await $httpQueue.add(() => http.get('user').then(response => response.data));
+    const roleData = await $httpQueue.add(() => http.get('role').then(response => response.data));
+    return {
+        user: userData,
+        role: roleData,
+    };
+}
 
 export async function fetchLanguages() {
-    await $httpQueue.add(
-        () => http.get('/language').then(response => {
-            store.dispatch('setLanguages', response.data);
-        })
+    return await $httpQueue.add(
+        () => http.get('/language').then(response => response.data)
     );
 };
 
@@ -137,6 +118,11 @@ export async function exportTree(tree, rootId) {
 };
 
 // POST
+export async function login(credentials) {
+    return await $httpQueue.add(() => http.post('/auth/login', credentials).then(response => {
+        return response.data;
+    }));
+}
 export async function addUser(user) {
     const data = only(user, ['name', 'nickname', 'email', 'password']);
     return $httpQueue.add(

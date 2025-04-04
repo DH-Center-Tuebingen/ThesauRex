@@ -5,7 +5,7 @@
                 <!-- Branding Image -->
                 <router-link :to="{name: 'home'}" class="navbar-brand">
                     <img src="favicon.png" class="logo" alt="spacialist logo" />
-                    {{ getPreference('prefs.project-name') }}
+                    {{ state.appName }}
                 </router-link>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -31,8 +31,8 @@
                                 {{ t('global.login') }}
                             </router-link>
                         </li>
-                        <li class="nav-item" v-if="hasPreference('prefs.link-to-spacialist')">
-                            <a :href="getPreference('prefs.link-to-spacialist')" class="nav-link" target="_blank">
+                        <li class="nav-item" v-if="state.hasSpacialistLink">
+                            <a :href="state.spacialistLink" class="nav-link" target="_blank">
                                 {{ t('global.spacialist') }}
                                 <sup>
                                     <i class="fas fa-fw fa-sm fa-fw fa-external-link-alt"></i>
@@ -128,16 +128,13 @@
         router,
     } from "@/bootstrap/router.js";
 
-    import store from '@/bootstrap/store.js';
-    import auth from '@/bootstrap/auth.js';
     import { useI18n } from 'vue-i18n';
     import { provideToast, useToast } from '@/plugins/toast.js';
 
+    import useSystemStore from '@/bootstrap/stores/system.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
+
     import {
-        getPreference,
-        getProjectName,
-        hasPreference,
-        initApp,
         throwError,
     } from '@/helpers/helpers.js';
 
@@ -159,13 +156,14 @@
         },
         setup(props) {
             const { t, locale } = useI18n();
+            const systemStore = useSystemStore();
+            const userStore = useUserStore();
 
             // FETCH
-            initApp(locale).then(_ => {
-                store.dispatch('setAppState', true);
-            }).catch(e => {
+            systemStore.initialize(locale).catch(e => {
+                console.log(e)
                 if(e.response.status == 401) {
-                    store.dispatch('setAppState', true);
+                    systemStore.setAppState(true);
                 } else {
                     throwError(e);
                 }
@@ -173,26 +171,27 @@
 
             // DATA
             const state = reactive({
-                auth: auth,
-                appName: computed(_ => getProjectName()),
-                init: computed(_ => store.getters.appInitialized),
-                loggedIn: computed(_ => store.getters.isLoggedIn),
-                authUser: computed(_ => store.getters.user),
-                isStandalone: computed(_ => store.getters.isStandalone),
-                hasMultipleLanguages: computed(_ => store.getters.languages.length > 1),
+                appName: computed(_ => systemStore.getProjectName()),
+                init: computed(_ => systemStore.appInitialized),
+                loggedIn: computed(_ => userStore.userLoggedIn),
+                authUser: computed(_ => userStore.user),
+                isStandalone: computed(_ => systemStore.standalone),
+                hasMultipleLanguages: computed(_ => systemStore.languages.length > 1),
+                hasSpacialistLink: computed(_ => systemStore.hasPreference('prefs.link-to-spacialist')),
+                spacialistLink: computed(_ => {
+                    if(state.hasSpacialistLink) {
+                        return systemStore.getPreference('prefs.link-to-spacialist');
+                    } else {
+                        return '';
+                    }
+                }),
             });
 
             // FUNCTIONS
             const logout = _ => {
-                auth.logout({
-                    makeRequest: true,
-                    redirect: '/login'
-                }).then(_ => {
-                    store.dispatch("resetConcepts", {
-                        tree: "project",
-                    });
-                    store.dispatch("resetConcepts", {
-                        tree: "sandbox",
+                userStore.logout().then(_ => {
+                    router.push({
+                        name: 'login'
                     });
                 });
             };
@@ -216,9 +215,6 @@
                     }
                 }
             });
-            watch(state.auth, (newValue, oldValue) => {
-                store.commit('setUser', state.auth.user());
-            })
 
             // ON MOUNTED
             onMounted(_ => {
@@ -238,8 +234,6 @@
             return {
                 t,
                 // HELPERS
-                getPreference,
-                hasPreference,
                 // LOCAL
                 logout,
                 showAboutModal,

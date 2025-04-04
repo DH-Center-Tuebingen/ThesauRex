@@ -167,7 +167,7 @@
     } from '@/helpers/helpers.js';
 
     import router from '@/bootstrap/router.js';
-    import store from '@/bootstrap/store.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
 
     import ConceptSearch from '@/components/tree/Search.vue';
 
@@ -200,11 +200,12 @@
         setup(props, context) {
             const {t} = useI18n();
             const currentRoute = useRoute();
+            const conceptStore = useConceptStore();
             const {
                 dragTarget,
                 treeData,
                 treeName,
-            } = toRefs(props);            
+            } = toRefs(props);
             // FETCH
 
             // FUNCTIONS
@@ -357,7 +358,7 @@
                 uploadType: '',
                 isUploading: false,
                 treeId: computed(_ => `concept-tree-${treeName.value}`),
-                concept: computed(_ => store.getters.selectedConcept),
+                concept: computed(_ => conceptStore.concept),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
                 isFromTree: computed(_ => state.conceptSelected && state.concept.from == treeName.value),
                 dragAllowed: computed(_ => true),

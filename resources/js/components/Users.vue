@@ -87,7 +87,7 @@
                                     <a class="dropdown-item" href="#" v-if="userDirty(user.id)" @click.prevent="resetUser(user.id)">
                                         <i class="fas fa-fw fa-undo text-warning"></i> {{ t('global.reset') }}
                                     </a>
-                                    <a class="dropdown-item" href="#" v-if="hasPreference('prefs.enable-password-reset-link')" :disabled="!can('users_roles_write')" @click.prevent="updatePassword(user.email)">
+                                    <a class="dropdown-item" href="#" :disabled="state.currentUserId != user.id && !can('users_roles_write')" @click.prevent="updatePassword(user.email)">
                                         <i class="fas fa-fw fa-paper-plane text-info"></i> {{ t('global.send_reset_mail') }}
                                     </a>
                                     <a class="dropdown-item" href="#" :disabled="!can('users_roles_delete')" @click.prevent="deactivateUser(user.id)">
@@ -213,7 +213,6 @@
         getClassByValidation,
         getErrorMessages,
         getUserBy,
-        hasPreference,
     } from '@/helpers/helpers.js';
 
     import {
@@ -414,9 +413,10 @@
             // DATA
             const state = reactive({
                 setupFinished: false,
-                userList: computed(_ => store.getters.users),
-                deletedUserList: computed(_ => store.getters.deletedUsers),
-                roles: computed(_ => store.getters.roles(true)),
+                currentUserId: userStore.getCurrentUserId,
+                userList: computed(_ => userStore.users),
+                deletedUserList: computed(_ => userStore.deletedUsers),
+                roles: computed(_ => userStore.getRoles(true)),
                 dataInitialized: computed(_ => state.userList.length > 0 && state.roles.length > 0),
                 errors: {},
             });
@@ -452,7 +452,6 @@
                 can,
                 date,
                 getClassByValidation,
-                hasPreference,
                 showUserInfo,
                 // LOCAL
                 userDirty,

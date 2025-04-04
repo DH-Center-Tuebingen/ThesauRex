@@ -74,7 +74,7 @@
     import {useI18n} from 'vue-i18n';
     import {ResizableColumns} from 'dhc-components';
 
-    import store from '@/bootstrap/store.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
 
     export default {
         components: {
@@ -82,6 +82,7 @@
         },
         setup(props, context) {
             const {t} = useI18n();
+            const conceptStore = useConceptStore();
 
             // FUNCTIONS
             const changeDragTarget = e => {
@@ -95,9 +96,9 @@
             // DATA
             const state = reactive({
                 showSandbox: false,
-                sandboxConcepts: computed(_ => store.getters.sandboxConcepts),
-                projectConcepts: computed(_ => store.getters.projectConcepts),
-                concept: computed(_ => store.getters.selectedConcept),
+                sandboxConcepts: computed(_ => conceptStore.concepts.sandbox),
+                projectConcepts: computed(_ => conceptStore.concepts.project),
+                concept: computed(_ => conceptStore.concept),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
             });
 
