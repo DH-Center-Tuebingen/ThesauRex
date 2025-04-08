@@ -1,6 +1,12 @@
 <?php
 
+use App\ThConcept;
+use App\ThConceptLabel;
+use App\ThConceptLabelSandbox;
+use App\ThConceptSandbox;
+use App\ThLanguage;
 use App\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -9,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ReplaceLasteditor extends Migration
 {
-    private $withLasteditor = [
+    private array $withLasteditor = [
         'th_concept_master',
         'th_concept',
         'th_concept_label_master',
@@ -22,8 +28,7 @@ class ReplaceLasteditor extends Migration
      *
      * @return void
      */
-    public function up()
-    {
+    public function up(): void {
         if(!Schema::hasColumn('users', 'avatar') && !Schema::hasColumn('users', 'metadata')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->text('avatar')->nullable();
@@ -70,8 +75,7 @@ class ReplaceLasteditor extends Migration
      *
      * @return void
      */
-    public function down()
-    {
+    public function down(): void {
         if(Schema::hasColumn('users', 'avatar') && Schema::hasColumn('users', 'metadata')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('avatar');
@@ -108,15 +112,18 @@ class ReplaceLasteditor extends Migration
         }
     }
 
-    private function getElements($tableName)
-    {
-        switch ($tableName) {
+    private function getElements(string $tableName): Collection {
+        switch($tableName) {
+            case 'th_concept':
+                return ThConcept::all();
+            case 'th_concept_label':
+                return ThConceptLabel::all();
             case 'th_concept_master':
-                return \App\ThConceptSandbox::all();
+                return ThConceptSandbox::all();
             case 'th_concept_label_master':
-                return \App\ThConceptLabelSandbox::all();
+                return ThConceptLabelSandbox::all();
             case 'th_language':
-                return \App\ThLanguage::all();
+                return ThLanguage::all();
         }
     }
 }
