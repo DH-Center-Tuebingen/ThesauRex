@@ -86,6 +86,7 @@
     export default {
         setup() {
             const { t, locale } = useI18n();
+            const route = useRoute();
             const userStore = useUserStore();
             // DATA
             const state = reactive({

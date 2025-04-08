@@ -131,6 +131,7 @@
     import { useI18n } from 'vue-i18n';
     import { provideToast, useToast } from '@/plugins/toast.js';
 
+    import useLanguageStore from '@/bootstrap/stores/language.js';
     import useSystemStore from '@/bootstrap/stores/system.js';
     import useUserStore from '@/bootstrap/stores/user.js';
 
@@ -156,6 +157,7 @@
         },
         setup(props) {
             const { t, locale } = useI18n();
+            const languageStore = useLanguageStore();
             const systemStore = useSystemStore();
             const userStore = useUserStore();
 
@@ -176,7 +178,7 @@
                 loggedIn: computed(_ => userStore.userLoggedIn),
                 authUser: computed(_ => userStore.user),
                 isStandalone: computed(_ => systemStore.standalone),
-                hasMultipleLanguages: computed(_ => systemStore.languages.length > 1),
+                hasMultipleLanguages: computed(_ => languageStore.languages.length > 1),
                 hasSpacialistLink: computed(_ => systemStore.hasPreference('prefs.link-to-spacialist')),
                 spacialistLink: computed(_ => {
                     if(state.hasSpacialistLink) {

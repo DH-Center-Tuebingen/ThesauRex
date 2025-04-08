@@ -32,10 +32,7 @@ import {
 export async function fetchChildren(id, tree) {
     tree = tree != 'sandbox' ? 'project' : tree;
     return fetchChildrenApi(id, tree).then(data => {
-        return store.dispatch("addConcepts", {
-            concepts: data,
-            tree: tree,
-        });
+        return useConceptStore().addConcepts(data, tree);
     });
 
 };
@@ -117,8 +114,9 @@ export function exportTree(tree, rootId) {
 };
 
 export async function openPath(ids, tree = 'project') {
+    const conceptStore = useConceptStore();
     const index = ids.pop();
-    const elem = store.getters.conceptsFromMap(tree)[index];
+    const elem = conceptStore.conceptMap[tree][index];
     if(ids.length == 0) {
         return elem;
     }
@@ -130,7 +128,7 @@ export async function openPath(ids, tree = 'project') {
         // Have to get current elemen from tree (not entities array) as well
         // otherwise children and childrenLoaded props are not correctly set
         const htmlElem = document.getElementById(`${tree}-tree-node-${elem.id}`).parentElement;
-        const node = getNodeFromPath(store.getters.conceptsFromTree(tree), htmlElem.getAttribute('data-path').split(','));
+        const node = getNodeFromPath(conceptStore.concepts[tree], htmlElem.getAttribute('data-path').split(','));
         node.children = children;
         node.childrenLoaded = true;
     }

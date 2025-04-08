@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 
-import useUserStore from './user.js';
 import useConceptStore from './concept.js';
+import useLanguageStore from './language.js';
+import useUserStore from './user.js';
 
 import {
     fetchPreData,
@@ -16,10 +17,6 @@ import {
     slugify,
 } from '@/helpers/helpers.js';
 
-import {
-    sortTree,
-} from '@/helpers/tree.js';
-
 const resetState = ctx => {
     ctx.appInitialized = false;
     ctx.systemPreferences = {};
@@ -30,8 +27,6 @@ export const useSystemStore = defineStore('system', {
     state: _ => ({
         appInitialized: false,
         systemPreferences: {},
-        languages: [],
-        activeLanguage: {},
         version: {},
         standalone: true,
     }),
@@ -76,44 +71,20 @@ export const useSystemStore = defineStore('system', {
             userStore.setUsers(usersData.user.users, usersData.user.deleted_users);
             userStore.setRoles(usersData.role.roles, usersData.role.permissions, usersData.role.presets);
 
-            // const topEntities = await fetchTopEntities();
-            // entityStore.initialize(topEntities);
             const concepts = await fetchTreeData();
-            for(let k in concepts) {
-                conceptStore.resetConcepts(k);
-                sortTree(concepts[k]);
-                conceptStore.setConcepts({
-                    tree: k,
-                    concepts: concepts[k],
-                });
+            for(let tree in concepts) {
+                conceptStore.initializeConcepts(concepts[tree], tree);
             }
 
-            const languages = await fetchLanguages();
-            this.setLanguages(languages);
+            await useLanguageStore().initialize(locale);
 
             const versionData = await fetchVersion();
             this.version = versionData;
 
             this.appInitialized = true;
         },
-        removeLanguage(id) {
-            const idx = this.languages.findIndex(l => l.id == id);
-            if(idx > -1) {
-                this.languages.splice(idx, 1);
-            }
-        },
-        setLanguages(data) {
-            this.languages = data;
-            this.setActiveLanguage(data[0]);
-        },
-        setActiveLanguage(language) {
-            this.activeLanguage = language;
-        },
         setStandaloneState(data) {
             this.standalone = data;
-        },
-        addLanguage(data) {
-            this.languages.push(data);
         },
     },
 });

@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia';
 
 import {
+    getConceptParentIds,
+} from '@/api.js';
+
+import {
     Node,
     openPath,
     unnode,
@@ -33,16 +37,17 @@ export const useConceptStore = defineStore('concept', {
     getters: {
     },
     actions: {
-        addConcept(data) {
-            const n = data.node;
+        // TODO new sig
+        addConcept(conceptNode, tree, ) {
+            const n = conceptNode;
             const doCount = !n.already_existing;
             delete n.already_existing;
 
-            this.conceptMap[data.tree][n.id] = n;
-            if(!this.conceptReferences[data.tree][n.nid]) {
-                this.conceptReferences[data.tree][n.nid] = [];
+            this.conceptMap[tree][n.id] = n;
+            if(!this.conceptReferences[tree][n.nid]) {
+                this.conceptReferences[tree][n.nid] = [];
             }
-            this.conceptReferences[data.tree][n.nid].push(n.id);
+            this.conceptReferences[tree][n.nid].push(n.id);
             let added = false;
             for(let i=0; i<n.path.length; i++) {
                 const path = n.path[i];
@@ -51,14 +56,14 @@ export const useConceptStore = defineStore('concept', {
 
                 if(!!parentId) {
                     // add current node's parent to list for easier update of all occurrences
-                    if(!this.conceptParents[data.tree][n.nid]) {
-                        this.conceptParents[data.tree][n.nid] = [];
+                    if(!this.conceptParents[tree][n.nid]) {
+                        this.conceptParents[tree][n.nid] = [];
                     }
-                    if(!this.conceptParents[data.tree][n.nid].includes(parentId)) {
-                        this.conceptParents[data.tree][n.nid].push(parentId);
+                    if(!this.conceptParents[tree][n.nid].includes(parentId)) {
+                        this.conceptParents[tree][n.nid].push(parentId);
                     }
 
-                    const parentConcept = this.conceptMap[data.tree][parentId];
+                    const parentConcept = this.conceptMap[tree][parentId];
                     if(!!parentConcept) {
                         if(parentConcept.childrenLoaded && parentConcept.children.findIndex(c => c.nid == n.nid) == -1) {
                             parentConcept.children.push(n);
@@ -87,9 +92,9 @@ export const useConceptStore = defineStore('concept', {
                 } else {
                     if(!added) {
                         added = true;
-                        const idx = this.concepts[data.tree].findIndex(rn => rn.nid == n.nid);
+                        const idx = this.concepts[tree].findIndex(rn => rn.nid == n.nid);
                         if(idx == -1) {
-                            this.concepts[data.tree].push(n);
+                            this.concepts[tree].push(n);
                         }
                     }
                 }
@@ -100,19 +105,31 @@ export const useConceptStore = defineStore('concept', {
             this.conceptMap[tree] = {};
             this.conceptParents[tree] = {};
         },
-        setConcepts(data) {
-            data.concepts.forEach(c => {
-                const n = new Node({
-                    ...c,
-                    tree: data.tree,
+        initializeConcepts(concepts, tree) {
+            this.resetConcepts(tree);
+            sortTree(concepts);
+
+            concepts.forEach(concept => {
+                const node = new Node({
+                    ...concept,
+                    tree: tree,
                 });
-                this.conceptMap[data.tree][n.id] = n;
-                if(!this.conceptReferences[data.tree][n.nid]) {
-                    this.conceptReferences[data.tree][n.nid] = [];
-                }
-                this.conceptReferences[data.tree][n.nid].push(n.id);
-                this.concepts[data.tree].push(n);
+                this.addConcept(node, tree);
             });
+        },
+        addConcepts(concepts, tree) {
+            const nodes = [];
+            concepts.forEach(concept => {
+                const node = new Node({
+                    ...concept,
+                    tree: tree,
+                    // flag to make sure to not increase children_count as we simply load already existing children
+                    already_existing: true,
+                });
+                this.addConcept(node, tree);
+                nodes.push(node);
+            });
+            return nodes;
         },
         deleteConceptReferences(data) {
             const nid = data.id;
@@ -153,7 +170,7 @@ export const useConceptStore = defineStore('concept', {
                         const path = ids[i];
                         await openPath(path, tree);
                     }
-                    concept = state.conceptMap[tree][id];
+                    concept = this.conceptMap[tree][id];
                 }
                 this.concept.from = tree;
                 this.concept.data = concept;

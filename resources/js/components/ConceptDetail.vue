@@ -296,7 +296,7 @@
     import { useI18n } from 'vue-i18n';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
-    import useSystemStore from '@/bootstrap/stores/system.js';
+    import useLanguageStore from '@/bootstrap/stores/language.js';
 
     import { useToast } from '@/plugins/toast.js';
 
@@ -331,11 +331,11 @@
             const route = useRoute();
             const toast = useToast();
             const conceptStore = useConceptStore();
-            const systemStore = useSystemStore();
+            const languageStore = useLanguageStore();
 
             const resetLanguageToDefault = _ => {
-                state.addLabel.language = systemStore.activeLanguage;
-                state.addNote.language = systemStore.activeLanguage;
+                state.addLabel.language = languageStore.activeLanguage;
+                state.addNote.language = languageStore.activeLanguage;
             };
 
             onMounted(_ => {
@@ -347,7 +347,7 @@
                 resetLanguageToDefault();
             });
 
-            watch(_ => systemStore.activeLanguage,
+            watch(_ => languageStore.activeLanguage,
                 (newLang, oldLang) => {
                     if(newLang == oldLang) return;
                     state.addLabel.language = newLang;
@@ -585,7 +585,7 @@
                 hasLabels: computed(_ => state.concept.labels && state.concept.labels.length > 0),
                 hasNotes: computed(_ => state.concept.notes && state.concept.notes.length > 0),
                 label: computed(_ => getLabel(state.concept)),
-                languages: computed(_ => systemStore.languages),
+                languages: computed(_ => languageStore.languages),
                 labelCount: computed(_ => state.hasLabels ? state.concept.labels.length : 0),
                 prefLabelCount: computed(_ => {
                     if(!state.hasLabels) {

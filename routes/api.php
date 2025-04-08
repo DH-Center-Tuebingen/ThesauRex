@@ -33,7 +33,10 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function() {
 });
 
 // USER
-Route::post('/v1/auth/login', 'UserController@login');
+Route::middleware('web')->prefix('v1')->group(function() {
+    Route::post('/auth/login', 'UserController@login');
+    Route::post('/auth/logout', 'UserController@logout');
+});
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function() {
     Route::get('/auth/refresh', 'UserController@refreshToken');
@@ -46,7 +49,6 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function() {
     Route::post('/user/avatar', 'UserController@addAvatar')->where('id', '[0-9]+');
     Route::post('/user/reset/password', 'Auth\\ForgotPasswordController@sendResetLinkEmail');
     Route::post('/role', 'UserController@addRole');
-    Route::post('/auth/logout', 'UserController@logout');
 
     Route::patch('/user/{id}', 'UserController@patchUser');
     Route::patch('/user/restore/{id}', 'UserController@restoreUser');

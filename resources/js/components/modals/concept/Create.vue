@@ -85,7 +85,7 @@
                     :disabled="!state.conceptValidated"
                     form="create-concept-form"
                 >
-                    <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
+                    <i class="fas fa-fw fa-plus" /> {{ t('global.add') }}
                 </button>
                 <button
                     type="button"
@@ -93,7 +93,7 @@
                     data-bs-dismiss="modal"
                     @click="closeModal()"
                 >
-                    <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
+                    <i class="fas fa-fw fa-times" /> {{ t('global.cancel') }}
                 </button>
             </div>
         </div>
@@ -108,10 +108,13 @@
         reactive,
         ref,
         toRefs,
+        watch,
     } from 'vue';
 
     import { useI18n } from 'vue-i18n';
-    import { useStore } from '@/bootstrap/store.js';
+
+    import useLanguageStore from '@/bootstrap/stores/language.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
 
     import {
         emojiFlag,
@@ -145,7 +148,8 @@
                 initialValue,
             } = toRefs(props);
             const { t } = useI18n();
-            const store = useStore();
+            const conceptStore = useConceptStore();
+            const languageStore = useLanguageStore();
 
             // FUNCTIONS
             const closeModal = _ => {
@@ -167,16 +171,16 @@
                     label: initialValue.value,
                 },
                 hasParent: computed(_ => parentId.value > 0),
-                parentConcept: computed(_ => state.hasParent ? store.getters.conceptsFromMap(tree.value)[parentId.value] : null),
+                parentConcept: computed(_ => state.hasParent ? conceptStore.conceptMap[tree.value][parentId.value] : null),
                 conceptValidated: computed(_ => state.concept.language.short_name && state.concept.label && state.concept.label.length),
-                languages: computed(_ => store.getters.languages),
+                languages: computed(_ => languageStore.languages),
             });
 
             const inputField = ref(null);
 
             // ON MOUNTED
             onMounted(_ => {
-                state.concept.language = store.getters.activeLanguage;
+                state.concept.language = languageStore.activeLanguage;
                 nextTick(_ => {
                     inputField.value.focus();
                 })
