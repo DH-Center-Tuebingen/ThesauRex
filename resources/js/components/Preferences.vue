@@ -102,11 +102,10 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useSystemStore from '@/bootstrap/stores/system.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import { useToast } from '@/plugins/toast.js';
-
-    import { patchPreferences } from '@/api.js';
 
     import {
         can,
@@ -129,6 +128,8 @@
         setup(props, context) {
             const { t } = useI18n();
             const toast = useToast();
+            const systemStore = useSystemStore();
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const trackChanges = (label, data) => {
@@ -144,7 +145,7 @@
                 for(let k in state.dirtyData) {
                     const dd = state.dirtyData[k];
                     if(k == 'prefs.gui-language') {
-                        const userLang = store.getters.preferenceByKey('prefs.gui-language');
+                        const userLang = userStore.getPreferenceByKey('prefs.gui-language');
                         const sysLang = state.preferences['prefs.gui-language'];
                         // if user pref language does not differ from sys pref language
                         if(userLang === sysLang) {
@@ -157,10 +158,7 @@
                         label: k,
                     });
                 }
-                const data = {
-                    changes: entries,
-                };
-                patchPreferences(data).then(data => {
+                systemStore.patchPreferences(entries).then(data => {
                     // Update language if value has changed
                     if(!!updatedLanguage) {
                         locale.value = updatedLanguage;
@@ -179,7 +177,7 @@
             const state = reactive({
                 dirtyData: {},
                 hasDirtyData: computed(_ => Object.keys(state.dirtyData).length > 0),
-                preferences: computed(_ => store.getters.systemPreferences),
+                preferences: computed(_ => systemStore.preferences),
                 prefsLoaded: computed(_ => !!state.preferences),
             });
 

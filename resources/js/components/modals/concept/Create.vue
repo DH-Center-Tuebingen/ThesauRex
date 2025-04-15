@@ -3,7 +3,7 @@
         class="modal-container modal"
         name="create-concept-modal"
     >
-        <div class="sp-modal-content sp-modal-content-sm">
+        <div class="sp-modal-content sp-modal-content-xs">
             <div class="modal-header">
                 <h5 class="modal-title">
                     <span v-if="state.hasParent">
@@ -181,8 +181,12 @@
             // ON MOUNTED
             onMounted(_ => {
                 state.concept.language = languageStore.activeLanguage;
+                // wrap in two nextTick, to make sure modal is really rendered
+                // using only one nextTick might fail on some systems
                 nextTick(_ => {
-                    inputField.value.focus();
+                    nextTick(_ => {
+                        inputField.value.focus();
+                    })
                 })
             });
 

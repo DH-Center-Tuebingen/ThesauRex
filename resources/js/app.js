@@ -35,8 +35,8 @@ import { createVfm, VueFinalModal } from 'vue-final-modal';
 import {
   can,
 } from '@/helpers/helpers.js';
-// Vuex
-import store from '@/bootstrap/store.js';
+// Pinia
+import pinia from '@/bootstrap/store.js';
 // Vue-Router
 import router from '@/bootstrap/router.js';
 // Axios
@@ -56,7 +56,7 @@ import 'dhc-components/css';
 const app = createApp(App);
 app.use(i18n);
 app.use(router);
-app.use(store);
+app.use(pinia);
 
 app.use(createVfm());
 
@@ -97,7 +97,7 @@ app.directive('dcan', {
 app.component('concept-tree', ConceptTree);
 app.component('user-avatar', UserAvatar);
 app.component('alert', Alert);
-app.component('concept-search', ConceptSearch);
+app.component('ConceptSearch', ConceptSearch);
 // Third-Party components
 app.component('multiselect', Multiselect);
 app.component('file-upload', VueUploadComponent);

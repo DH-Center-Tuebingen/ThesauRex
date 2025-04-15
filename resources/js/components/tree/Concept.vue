@@ -154,11 +154,6 @@
     } from '@/helpers/tree.js';
 
     import {
-        addRelation,
-        cloneAcrossTree,
-    } from '@/api.js';
-
-    import {
         showCreateConcept,
     } from '@/helpers/modal.js';
 
@@ -243,7 +238,7 @@
                 if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
-                    parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), eventData.targetPath.slice(0, eventData.targetPath.length - 1));
+                    parentNode = getNodeFromPath(conceptStore[treeName.value], eventData.targetPath.slice(0, eventData.targetPath.length - 1));
                 }
                 const nid = srcNode.nid;
                 const bid = parentNode ? parentNode.nid : -1;
@@ -251,9 +246,9 @@
                 const isFromOtherTree = srcNode.tree != tgtNode.tree;
 
                 if(isFromOtherTree) {
-                    cloneAcrossTree(nid, bid, srcNode.tree, tgtNode.tree);
+                    conceptStore.clone(nid, bid, srcNode.tree, tgtNode.tree);
                 } else {
-                    addRelation(nid, bid, srcNode.tree);
+                    conceptStore.addRelation(nid, bid, srcNode.tree);
                 }
 
                 return;
@@ -312,7 +307,7 @@
                 if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
-                    parentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.targetPath.slice(0, dropData.targetPath.length - 1));
+                    parentNode = getNodeFromPath(conceptStore.concepts[treeName.value], dropData.targetPath.slice(0, dropData.targetPath.length - 1));
                 }
                 const nid = srcNode.nid;
                 const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
@@ -342,7 +337,7 @@
                         if(srcIsParent) return false;
                     }
                     // ... source is added on same level (as child of parent/target)
-                    const srcParentNode = getNodeFromPath(store.getters.conceptsFromTree(treeName.value), dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
+                    const srcParentNode = getNodeFromPath(conceptStore.concepts[treeName.value], dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
                     if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
                         return false;
                     }

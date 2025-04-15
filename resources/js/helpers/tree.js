@@ -1,7 +1,6 @@
 import TreeNode from '@/components/tree/Node.vue';
 
 import { ref } from 'vue';
-import store from '@/bootstrap/store.js';
 import { getNodeFromPath } from 'tree-component';
 
 import i18n from '@/bootstrap/i18n.js';
@@ -12,29 +11,13 @@ import useConceptStore from '@/bootstrap/stores/concept.js';
 import { addToast } from '@/plugins/toast.js';
 
 import {
+    emojiFlag,
+    isArray,
     only,
 } from '@/helpers/helpers.js';
 
-import {
-    fetchChildren as fetchChildrenApi,
-    uploadFile,
-    exportTree as exportTreeApi,
-    fetchTreeData,
-} from '@/api.js';
-
-import {
-    emojiFlag,
-    isArray,
-    slugify,
-    createDownloadLink,
-} from '@/helpers/helpers.js';
-
 export async function fetchChildren(id, tree) {
-    tree = tree != 'sandbox' ? 'project' : tree;
-    return fetchChildrenApi(id, tree).then(data => {
-        return useConceptStore().addConcepts(data, tree);
-    });
-
+    return await useConceptStore().rewrittenPushConcepts(id, tree);
 };
 
 export function sortParents(parents) {
@@ -77,7 +60,7 @@ function sortTreeLevel(tree, fn) {
 };
 
 export function uploadConceptsFile(file, tree, type) {
-    return uploadFile(file, tree, type).then(data => {
+    return useConceptStore().uploadFile(file, tree, type).then(data => {
         const msg = i18n.global.t('tree.import.toast.finish.message', {
             lbl_skip: data.skipped_labels,
             lbl_ign: data.ignored_labels,
@@ -90,27 +73,11 @@ export function uploadConceptsFile(file, tree, type) {
             autohide: false,
             html: true,
         });
-
-        store.dispatch('resetConcepts', {
-            tree: tree,
-        });
-        return fetchTreeData([tree]);
     });
 };
 
 export function exportTree(tree, rootId) {
-    let filename = '';
-    if(rootId) {
-        const concept = store.getters.conceptsFromMap(tree)[rootId];
-        const label = slugify(getLabel(concept));
-        filename = `thesaurex-${tree}-${label}-export.rdf`;
-    } else {
-        filename = `thesaurex-${tree}-export.rdf`;
-    }
-
-    exportTreeApi(tree, rootId).then(response => {
-        createDownloadLink(response.data, filename, false, response.headers['content-type']);
-    });
+    useConceptStore().export(tree, rootId);
 };
 
 export async function openPath(ids, tree = 'project') {

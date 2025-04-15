@@ -70,10 +70,6 @@
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
     import {
-        removeRelation,
-    } from '@/api.js';
-
-    import {
         showCreateConcept,
         showDeleteConcept,
     } from '@/helpers/modal.js';
@@ -164,7 +160,7 @@
 
                 const narrower_id = data.value.nid || data.value.id;
                 const broader_id = state.parent.nid || parent.id;
-                removeRelation(narrower_id, broader_id, data.value.tree);
+                conceptStore.removeRelation(narrower_id, broader_id, data.value.tree);
             };
 
             // DATA

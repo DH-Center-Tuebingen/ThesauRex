@@ -2,7 +2,8 @@ import {
     default as http,
     web_http,
 } from '@/bootstrap/http.js';
-import store from '@/bootstrap/store.js';
+
+import useConceptStore from '@/bootstrap/stores/concept.js';
 
 import {
     only,
@@ -69,13 +70,21 @@ export async function fetchLanguages() {
     );
 };
 
-export async function fetchChildren(id, tree = 'project') {
+export async function fetchChildren(id, tree = 'project', sorted = true) {
     return $httpQueue.add(
         () => http.get(`/tree/byParent/${id}?t=${tree}`).then(response => {
-            const sortedChildren = response.data;
-            sortTree(sortedChildren);
-            return sortedChildren;
+            const children = response.data;
+            if(sorted) {
+                sortTree(children);
+            }
+            return children;
         })
+    );
+};
+
+export async function fetchConcept(id, tree = 'project') {
+    return $httpQueue.add(
+        () => http.get(`/tree/${id}?t=${tree}`).then(response => response.data)
     );
 };
 
@@ -83,9 +92,7 @@ export async function fetchChildren(id, tree = 'project') {
 
 export async function getConceptParentIds(id, tree) {
     return await $httpQueue.add(() =>
-        http.get(`/tree/${id}/parentIds?t=${tree}`).then((response) => {
-            return response.data;
-        })
+        http.get(`/tree/${id}/parentIds?t=${tree}`).then(response => response.data)
     );
 };
 
@@ -94,12 +101,11 @@ export async function uploadFile(file, tree, type) {
     formData.append('file', file);
     formData.append('type', type);
 
-    return $httpQueue.add(
-        () => http.post(`/tree?t=${tree}`, formData)
-            .then(response => response.data)
-            .catch(error => {
-                throwError(error);
-            })
+    return await $httpQueue.add(
+        async () => http.post(`/tree?t=${tree}`, formData).then(response => response.data)
+        .catch(error => {
+            throwError(error);
+        })
     );
 }
 
@@ -112,16 +118,14 @@ export async function exportTree(tree, rootId) {
     }
     endpoint += `?t=${tree}`;
 
-    return $httpQueue.add(
+    return await $httpQueue.add(
         () => http.get(endpoint)
     );
 };
 
 // POST
 export async function login(credentials) {
-    return await $httpQueue.add(() => http.post('/auth/login', credentials).then(response => {
-        return response.data;
-    }));
+    return await $httpQueue.add(() => http.post('/auth/login', credentials).then(response => response.data));
 }
 export async function addUser(user) {
     const data = only(user, ['name', 'nickname', 'email', 'password']);
@@ -155,69 +159,45 @@ export async function sendResetPasswordMail(email) {
 };
 
 export async function addLanguage(languageData) {
-    await $httpQueue.add(
-        () => http.post('/language', languageData).then(response => {
-            store.dispatch('addLanguage', response.data);
-        })
+    return await $httpQueue.add(
+        () => http.post('/language', languageData).then(response => response.data)
     );
 };
 
 // PATCH
 
-export async function toggleTopLevelState(tree, id) {
+export async function toggleTopLevelState(id, tree) {
     return await $httpQueue.add(
-        () => http.patch(`/tree/state/tlc/${id}?t=${tree}`, {}).then(response => {
-            const action = response.data.is_top_concept ? 'addRelation' : 'removeRelation';
-            const actionData = {
-                tree: tree,
-                broader: -1,
-                narrower: response.data.id,
-            };
-
-            store.dispatch(action, actionData);
-            return response.data;
-        })
+        () => http.patch(`/tree/state/tlc/${id}?t=${tree}`, {}).then(response => response.data)
     );
 };
 
-export async function patchLabel(id, content, concept_id, tree) {
+export async function patchLabel(id, content, tree) {
     const data = {
         label: content,
     };
     return await $httpQueue.add(
-        () => http.patch(`/tree/label/${id}?t=${tree}`, data).then(response => {
-            store.dispatch('updateLabel', {
-                tree: tree,
-                concept_id: concept_id,
-                label_id: id,
-                label: content,
-            });
-            handleConceptChange(concept_id, tree);
-            return response.data;
-        })
+        () => http.patch(`/tree/label/${id}?t=${tree}`, data).then(response => response.data)
     );
 };
 
-export async function patchNote(id, content, concept_id, tree) {
+export async function patchNote(id, content, tree) {
     const data = {
         content: content,
     };
     return await $httpQueue.add(
-        () => http.patch(`/tree/note/${id}?t=${tree}`, data).then(response => {
-            store.dispatch('updateNote', {
-                tree: tree,
-                concept_id: concept_id,
-                note_id: id,
-                content: content,
-            });
-            return response.data;
-        })
+        () => http.patch(`/tree/note/${id}?t=${tree}`, data).then(response => response.data)
     );
 };
 
-export async function patchPreferences(data, uid) {
+export async function patchPreferences(changedPreferences, uid) {
     const endpoint = !!uid ? `preference/${uid}` : 'preference';
-    return await http.patch(endpoint, data).then(response => response.data);
+    const data = {
+        changes: changedPreferences,
+    };
+    return await $httpQueue.add(
+        () => http.patch(endpoint, data).then(response => response.data)
+    );
 };
 
 export async function reactivateUser(uid) {
@@ -240,30 +220,15 @@ export async function patchRoleData(rid, data) {
 
 // PUT
 
-export async function putAddLabel(data) {
+export async function addLabel(data) {
     return $httpQueue.add(
-        () => http.put(`/tree/label`, data).then(response => {
-            store.dispatch('addLabel', {
-                tree: data.tree_name,
-                concept_id: data.cid,
-                label: response.data,
-            });
-            handleConceptChange(data.cid, data.tree_name);
-            return response.data;
-        })
+        () => http.put(`/tree/label`, data).then(response => response.data)
     );
 };
 
-export async function putAddNote(data) {
+export async function addNote(data) {
     return $httpQueue.add(
-        () => http.put(`/tree/note`, data).then(response => {
-            store.dispatch('addNote', {
-                tree: data.tree_name,
-                concept_id: data.cid,
-                note: response.data,
-            });
-            return response.data
-        })
+        () => http.put(`/tree/note`, data).then(response => response.data)
     );
 };
 
@@ -271,38 +236,19 @@ export async function putAddNote(data) {
 
 export async function deleteLanguage(languageId) {
     await $httpQueue.add(
-        () => http.delete(`/language/${languageId}`).then(response => {
-            store.dispatch('removeLanguage', {
-                language_id: languageId,
-            });
-        })
+        () => http.delete(`/language/${languageId}`)
     );
 };
 
-export async function deleteLabel(id, tree, concept_id) {
+export async function deleteLabel(id, tree) {
     await $httpQueue.add(
-        () => http.delete(`/tree/label/${id}?t=${tree}`).then(response => {
-            store.dispatch('deleteLabel', {
-                id: id,
-                concept_id: concept_id,
-                tree: tree,
-                updated_label: response.data,
-            });
-            handleConceptChange(concept_id, tree);
-            return response.data;
-        })
+        () => http.delete(`/tree/label/${id}?t=${tree}`).then(response => response.data)
     );
 };
 
-export async function deleteNote(id, tree, concept_id) {
+export async function deleteNote(id, tree) {
     await $httpQueue.add(
-        () => http.delete(`/tree/note/${id}?t=${tree}`).then(_ => {
-            store.dispatch('deleteNote', {
-                id: id,
-                concept_id: concept_id,
-                tree: tree,
-            });
-        })
+        () => http.delete(`/tree/note/${id}?t=${tree}`).then(response => response.data)
     );
 };
 
@@ -313,15 +259,8 @@ export async function deleteConcept(id, tree, action, actionParams) {
             urlParams += `&${k}=${actionParams[k]}`;
         }
     }
-    await $httpQueue.add(
-        () => http.delete(`/tree/concept/${id}?t=${tree}&${urlParams}`).then(_ => {
-            store.dispatch('deleteConcept', {
-                id: id,
-                tree: tree,
-                action: action,
-                params: actionParams,
-            });
-        })
+    return await $httpQueue.add(
+        () => http.delete(`/tree/concept/${id}?t=${tree}&${urlParams}`).then(response => response.data)
     );
 };
 
@@ -334,74 +273,31 @@ export async function addConcept(concept, tree, broader_id) {
         data.parent_id = broader_id;
     }
     return await $httpQueue.add(
-        () => http.put(`/tree/concept?t=${tree}`, data).then(response => {
-            store.dispatch('addConcept', {
-                concept: response.data,
-                tree: tree,
-            });
-            handleConceptChange(response.data.id, tree);
-            return response.data;
-        })
+        () => http.put(`/tree/concept?t=${tree}`, data).then(response => response.data)
     )
 };
 
 export async function cloneAcrossTree(narrower_id, broader_id, srcNodeTree, tgtNodeTree) {
     const endpoint = `/tree/concept/clone/${narrower_id}/to/${broader_id}?t=${tgtNodeTree}&s=${srcNodeTree}`;
     return await $httpQueue.add(
-        () => http.put(endpoint).then(response => {
-            store.dispatch('addConcept', {
-                concept: response.data,
-                tree: tgtNodeTree,
-            });
-        })
+        () => http.put(endpoint).then(response => response.data)
     );
 };
 
 export async function addRelation(narrower_id, broader_id, tree) {
     try {
-        await $httpQueue.add(
+        return await $httpQueue.add(
             () => http.put(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
         );
     } catch(e) {
         throwError(e);
         return;
     }
-    if(!store.getters.conceptsFromMap(tree)[broader_id]) {
-        await $httpQueue.add(
-            () => http.get(`/tree/${broader_id}?t=${tree}`).then(response => {
-                store.dispatch('addConcept', {
-                    concept: response.data,
-                    tree: tree,
-                });
-            })
-        );
-    }
-    if(!store.getters.conceptsFromMap(tree)[narrower_id]) {
-        await $httpQueue.add(
-            () => http.get(`/tree/${narrower_id}?t=${tree}`).then(response => {
-                store.dispatch('addConcept', {
-                    concept: response.data,
-                    tree: tree,
-                });
-            })
-        );
-    }
-    store.dispatch('addRelation', {
-        broader: broader_id,
-        narrower: narrower_id,
-        tree: tree,
-    });
 };
 
 export async function removeRelation(narrower_id, broader_id, tree) {
     return await $httpQueue.add(
-        () => http.delete(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`).then(response => {
-            store.dispatch('removeRelation', {
-                broader: broader_id,
-                narrower: narrower_id,
-                tree: tree,
-            });
-        })
+        () => http.delete(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
     );
 };
 
@@ -431,17 +327,3 @@ export async function searchConcept(query = '', tree = 'project', excludeList = 
         () => http.get(`search/concept?q=${query}&t=${tree}&exc=${excludeStr}`).then(response => response.data)
     )
 };
-
-function handleConceptChange(conceptId, tree) {
-    const concept = store.getters.conceptsFromMap(tree)[conceptId];
-    const parents = store.getters.parentsFromTree(tree)[conceptId] || [];
-    if(concept.is_top_concept) {
-        sortTree(store.getters.conceptsFromTree(tree));
-    }
-    parents.forEach(p => {
-        const parentConcept = store.getters.conceptsFromMap(tree)[p];
-        if(!!parentConcept) {
-            sortTree(parentConcept.children);
-        }
-    });
-}

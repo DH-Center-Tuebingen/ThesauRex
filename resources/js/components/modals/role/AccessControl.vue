@@ -119,7 +119,7 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import AccessControlState from '@/components/role/AccessControlState.vue';
 
@@ -147,6 +147,7 @@
             const {
                 roleId,
             } = toRefs(props);
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const loadRolePermissions = permissions => {
@@ -196,7 +197,7 @@
             const resetToPreset = _ => {
                 if(!state.isDerived) return;
 
-                const preset = store.getters.rolePresets.find(rp => rp.name == state.role.derived.name);
+                const preset = userStore.rolePresets.find(rp => rp.name == state.role.derived.name);
 
                 if(!preset) return;
 
@@ -231,7 +232,7 @@
                     if(!state.isDerived) return false;
 
                     // state.role.derived.name
-                    const preset = store.getters.rolePresets.find(rp => rp.name == state.role.derived.name);
+                    const preset = userStore.rolePresets.find(rp => rp.name == state.role.derived.name);
                     if(!preset) return false;
 
                     const presetPerms = preset.fullSet;

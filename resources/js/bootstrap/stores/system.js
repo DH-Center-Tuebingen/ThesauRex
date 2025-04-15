@@ -9,8 +9,7 @@ import {
     fetchUser,
     fetchUsers,
     fetchVersion,
-    fetchLanguages,
-    fetchTreeData,
+    patchPreferences,
 } from '@/api.js';
 
 import {
@@ -19,14 +18,14 @@ import {
 
 const resetState = ctx => {
     ctx.appInitialized = false;
-    ctx.systemPreferences = {};
+    ctx.preferences = {};
     ctx.version = {};
 };
 
 export const useSystemStore = defineStore('system', {
     state: _ => ({
         appInitialized: false,
-        systemPreferences: {},
+        preferences: {},
         version: {},
         standalone: true,
     }),
@@ -64,17 +63,14 @@ export const useSystemStore = defineStore('system', {
 
             const preData = await fetchPreData();
             this.standalone = preData.standalone;
-            this.systemPreferences = preData.system_preferences;
+            this.preferences = preData.system_preferences;
             userStore.setPreferences(preData.preferences);
 
             const usersData = await fetchUsers();
             userStore.setUsers(usersData.user.users, usersData.user.deleted_users);
             userStore.setRoles(usersData.role.roles, usersData.role.permissions, usersData.role.presets);
 
-            const concepts = await fetchTreeData();
-            for(let tree in concepts) {
-                conceptStore.initializeConcepts(concepts[tree], tree);
-            }
+            conceptStore.initialize();
 
             await useLanguageStore().initialize(locale);
 
@@ -82,6 +78,9 @@ export const useSystemStore = defineStore('system', {
             this.version = versionData;
 
             this.appInitialized = true;
+        },
+        async patchPreferences(changedPreferences, uid) {
+            return await patchPreferences(changedPreferences, uid);
         },
         setStandaloneState(data) {
             this.standalone = data;

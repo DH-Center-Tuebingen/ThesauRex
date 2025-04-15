@@ -1,20 +1,13 @@
-import store from '@/bootstrap/store.js';
 import router from '@/bootstrap/router.js';
 
+import useLanguageStore from '@/bootstrap/stores/language.js';
+import useSystemStore from '@/bootstrap/stores/system.js';
 import useUserStore from '@/bootstrap/stores/user.js';
 
 import {
     flag,
     countries,
 } from 'country-emoji';
-
-import {
-    fetchPreData,
-    fetchTreeData,
-    fetchUsers,
-    fetchLanguages,
-    fetchVersion,
-} from '@/api.js';
 
 import {
     showError,
@@ -178,7 +171,7 @@ export function userId() {
 export function getRoles(withPermissions = false) {
     const fallback = [];
     if(isLoggedIn()) {
-        return store.getters.roles(!withPermissions) || fallback;
+        return useUserStore().roles(!withPermissions) || fallback;
     } else {
         return fallback;
     }
@@ -209,7 +202,7 @@ export function getRoleBy(value, attr = 'id', withPermissions = false) {
 };
 
 export function isStandalone() {
-    return store.getters.isStandalone;
+    return useSystemStore().standalone;
 };
 
 export function throwError(error) {
@@ -310,7 +303,7 @@ export function emojiFlag(code) {
 };
 
 export function getLanguage(id) {
-    return store.getters.languages.find(l => l.id == id);
+    return useLanguageStore().languages.find(l => l.id == id);
 }
 
 export function languageList() {

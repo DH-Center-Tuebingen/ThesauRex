@@ -15,7 +15,7 @@ import {
 
 import ToastComponent from '@/components/Toast.vue';
 
-const store = {
+const localStore = {
     wrapper: null,
 };
 
@@ -43,7 +43,7 @@ export function addToast(message, title, config) {
         id: toastId,
         ...finalConfig,
     }), toastContainer);
-    store.wrapper.appendChild(toastContainer);
+    localStore.wrapper.appendChild(toastContainer);
     const toastElem = document.getElementById(toastId);
     toastElem.addEventListener('hidden.bs.toast', e => {
         e.target.parentNode.remove();
@@ -70,7 +70,7 @@ function initializeWrapper(config) {
         }
     }
     wrapper.classList.add(...config.container_classes.split(' '));
-    store.wrapper = wrapper;
+    localStore.wrapper = wrapper;
 };
 
 function reduceGlobalConfig(config) {
@@ -105,7 +105,7 @@ export function useToast() {
     const toast = toastInstance;
     if (!toast) throw new Error("No toast provided!");
 
-    if(!store.wrapper) {
+    if(!localStore.wrapper) {
         initializeWrapper(toast.config);
     }
 

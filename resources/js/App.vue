@@ -163,7 +163,6 @@
 
             // FETCH
             systemStore.initialize(locale).catch(e => {
-                console.log(e)
                 if(e.response.status == 401) {
                     systemStore.setAppState(true);
                 } else {

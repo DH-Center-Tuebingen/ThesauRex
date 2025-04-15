@@ -191,15 +191,9 @@
 
     import * as yup from 'yup';
 
-    import store from '@/bootstrap/store.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import { useToast } from '@/plugins/toast.js';
-
-    import {
-        reactivateUser as reactivateUserApi,
-        sendResetPasswordMail,
-        patchUserData,
-    } from '@/api.js';
 
     import {
         showDiscard,
@@ -223,6 +217,7 @@
         setup(props) {
             const { t } = useI18n();
             const toast = useToast();
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const updateValidationState = users => {
@@ -312,15 +307,9 @@
                     data.email = v.fields[id].email.value;
                 }
 
-                return await patchUserData(id, data).then(data => {
+                return await userStore.updateUser(id, data, false).then(_ => {
                     state.errors[id] = {};
                     resetUserMeta(id);
-                    store.dispatch('updateUser', {
-                        id: data.id,
-                        email: data.email,
-                        roles: data.roles,
-                        updated_at: data.updated_at,
-                    });
                     const msg = t('settings.user.toasts.updated.msg', {
                         name: user.name
                     });
@@ -360,13 +349,11 @@
             };
             const reactivateUser = id => {
                 if(!can('users_roles_delete')) return;
-                reactivateUserApi(id).then(_ => {
-                    store.dispatch('reactivateUser', id);
-                });
+                userStore.reactivateUser(id);
             };
             const updatePassword = email => {
                 if(!can('users_roles_write')) return;
-                sendResetPasswordMail(email);
+                userStore.requestPasswordResetFor(email);
             };
             const anyUserDirty = _ => {
                 let isDirty = false;

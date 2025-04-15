@@ -16,6 +16,7 @@ import {
     patchRoleData,
     reactivateUser,
     setUserAvatar,
+    sendResetPasswordMail,
 } from '@/api.js';
 
 import {
@@ -249,13 +250,16 @@ export const useUserStore = defineStore('user', {
                 return data;
             });
         },
-        async deleteRole(role) {
-            deleteRole(role.id).then(_ => {
-                const idx = this.roles.findIndex(r => r.id == role.id);
+        async deleteRole(roleId) {
+            deleteRole(roleId).then(_ => {
+                const idx = this.roles.findIndex(role => role.id == roleId);
                 if(idx > -1) {
                     this.roles.splice(idx, 1);
                 }
             });
+        },
+        async requestPasswordResetFor(email) {
+            return await sendResetPasswordMail(email);
         },
     },
 });

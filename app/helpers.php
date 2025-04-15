@@ -172,7 +172,7 @@ if(!function_exists('th_note_builder')) {
 
 if(!function_exists('th_detect_circles')) {
     function th_detect_circles($thBroader) {
-        $circles = DB::select(DB::raw("
+        $circlesQuery = DB::raw("
             WITH RECURSIVE
             cte(bid, nid, depth, path, is_cycle) AS (
                 SELECT b.broader_id, b.narrower_id, 1, ARRAY[b.broader_id], false
@@ -185,8 +185,8 @@ if(!function_exists('th_detect_circles')) {
             SELECT distinct bid
             FROM cte
             WHERE is_cycle = TRUE
-        "));
+        ");
 
-        return $circles;
+        return DB::select($circlesQuery->getValue(DB::connection()->getQueryGrammar()));
     }
 }

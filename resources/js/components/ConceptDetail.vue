@@ -40,7 +40,7 @@
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
                         <div class="form-group mb-0">
-                            <concept-search
+                            <ConceptSearch
                                 :add-option="false"
                                 :exclude="[state.concept.id]"
                                 :tree-name="state.tree"
@@ -77,8 +77,13 @@
                     </h5>
                     <form role="form" class="mb-2" @submit.prevent="">
                         <div class="form-group mb-0">
-                            <concept-search :add-option="true" :exclude="[state.concept.id]" :tree-name="state.tree"
-                                @select="handleAddNarrower" @add="handleAddNewConcept" />
+                            <ConceptSearch
+                                :add-option="true"
+                                :exclude="[state.concept.id]"
+                                :tree-name="state.tree"
+                                @add="handleAddNewConcept"
+                                @select="handleAddNarrower"
+                            />
                         </div>
                     </form>
                     <ul class="list-group list-group-xs scroll-y-auto" v-if="state.hasNarrowers">
@@ -301,18 +306,6 @@
     import { useToast } from '@/plugins/toast.js';
 
     import {
-        putAddLabel,
-        toggleTopLevelState,
-        patchLabel,
-        deleteLabel as deleteLabelApi,
-        putAddNote,
-        patchNote,
-        deleteNote as deleteNoteApi,
-        addRelation,
-        removeRelation,
-    } from '@/api.js';
-
-    import {
         showCreateConcept,
     } from '@/helpers/modal.js';
 
@@ -375,11 +368,11 @@
             };
             const handleAddBroader = e => {
                 if(!e.option) return;
-                addRelation(state.concept.id, e.option.id, state.tree);
+                conceptStore.addRelation(state.concept.id, e.option.id, state.tree);
             };
             const handleAddNarrower = e => {
                 if(!e.option) return;
-                addRelation(e.option.id, state.concept.id, state.tree);
+                conceptStore.addRelation(e.option.id, state.concept.id, state.tree);
             };
             const handleAddNewConcept = e => {
                 showCreateConcept(state.tree, state.concept.id, e.content);
@@ -388,7 +381,7 @@
                 if(!state.canDeleteBroader && state.isTopConcept) return;
 
                 state.updatingTopLevelState = true;
-                toggleTopLevelState(state.tree, state.concept.id).then(_ => {
+                conceptStore.toggleTopLevelState(state.concept.id, state.tree).then(_ => {
                     state.updatingTopLevelState = false;
                 });
             };
@@ -396,14 +389,14 @@
                 const broader = state.concept.broaders[idx];
                 const nid = state.concept.nid || state.concept.id;
                 const bid = broader.nid || broader.id;
-                removeRelation(nid, bid, state.tree);
+                conceptStore.removeRelation(nid, bid, state.tree);
             };
             const removeNarrower = idx => {
                 const narrower = state.concept.narrowers[idx];
                 if(narrower.broaders_count <= 1) return;
                 const nid = narrower.nid || narrower.id;
                 const bid = state.concept.nid || state.concept.id;
-                removeRelation(nid, bid, state.tree);
+                conceptStore.removeRelation(nid, bid, state.tree);
             };
             const setLanguageFor = (type, lang) => {
                 let property = '';
@@ -448,16 +441,11 @@
                 }
             };
             const resetLabel = _ => {
-                state.addLabel.language = {};
+                // state.addLabel.language = {};
                 state.addLabel.value = '';
             };
             const addLabel = _ => {
-                putAddLabel({
-                    content: state.addLabel.value,
-                    lid: state.addLabel.language.id,
-                    cid: state.concept.id,
-                    tree_name: state.tree,
-                }).then(_ => {
+                conceptStore.addLabel(state.concept.id, state.tree, state.addLabel.value, state.addLabel.language.id).then(_ => {
                     resetLabel();
                 });
             };
@@ -466,7 +454,7 @@
                 if(label.label == state.editLabel.value) {
                     return;
                 }
-                patchLabel(label.id, state.editLabel.value, state.concept.id, state.tree).then(_ => {
+                conceptStore.updateLabel(state.concept.id, state.tree, label.id, state.editLabel.value).then(_ => {
                     setEditMode('label', state.editLabel.index, false);
                 });
             };
@@ -475,7 +463,7 @@
             };
             const deleteLabel = id => {
                 const label = state.concept.labels.find(l => l.id == id);
-                deleteLabelApi(id, state.tree, state.concept.id).then(_ => {
+                conceptStore.deleteLabel(state.concept.id, state.tree, id).then(_ => {
                     const title = t('detail.label.toasts.deleted.title');
                     const msg = t('detail.label.toasts.deleted.message', {
                         label: label.label,
@@ -487,16 +475,11 @@
                 });
             };
             const resetNote = _ => {
-                state.addNote.language = {};
+                // state.addNote.language = {};
                 state.addNote.value = '';
             };
             const addNote = _ => {
-                putAddNote({
-                    content: state.addNote.value,
-                    lid: state.addNote.language.id,
-                    cid: state.concept.id,
-                    tree_name: state.tree,
-                }).then(_ => {
+                conceptStore.addNote(state.concept.id, state.tree, state.addNote.value, state.addNote.language.id).then(_ => {
                     resetNote();
                 });
             };
@@ -505,7 +488,7 @@
                 if(note.content == state.editNote.value) {
                     return;
                 }
-                patchNote(note.id, state.editNote.value, state.concept.id, state.tree).then(_ => {
+                conceptStore.updateNote(state.concept.id, state.tree, note.id, state.editNote.value).then(_ => {
                     setEditMode('note', state.editNote.index, false);
                 });
             };
@@ -514,7 +497,7 @@
             };
             const deleteNote = id => {
                 const note = state.concept.notes.find(n => n.id == id);
-                deleteNoteApi(id, state.tree, state.concept.id).then(_ => {
+                conceptStore.deleteNote(state.concept.id, state.tree, id).then(_ => {
                     const title = t('detail.note.toasts.deleted.title');
                     const msg = t('detail.note.toasts.deleted.message', {
                         note: note.content,
