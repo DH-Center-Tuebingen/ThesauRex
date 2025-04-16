@@ -24,6 +24,7 @@
         "doctrine/dbal": "^3.3",
         "easyrdf/easyrdf": "^1.1.1",
         "laravel/framework": "^11.0",
+        "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "~2.0",
         "laravel/ui": "^4.5",

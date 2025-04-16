@@ -47,6 +47,8 @@ import '@/bootstrap/http.js';
 import i18n from '@/bootstrap/i18n.js';
 // Font Awesome
 import '@/bootstrap/font.js';
+// Laravel Echo (Frontend part of Reverb aka WebSockets)
+import '@/bootstrap/websocket.js';
 
 // Components
 import App from './App.vue';
