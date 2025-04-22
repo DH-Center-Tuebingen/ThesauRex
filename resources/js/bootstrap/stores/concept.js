@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import {defineStore} from 'pinia';
 
 import {
     addConcept,
@@ -75,7 +75,7 @@ export const useConceptStore = defineStore('concept', {
             }
             this.conceptReferences[tree][conceptNode.nid].push(conceptNode.id);
             let added = false;
-            for(let i=0; i<conceptNode.path.length; i++) {
+            for(let i = 0; i < conceptNode.path.length; i++) {
                 const path = conceptNode.path[i];
                 // second element in path is always direct parent (first is self)
                 const parentId = path[1];
@@ -275,7 +275,7 @@ export const useConceptStore = defineStore('concept', {
                 let concept = this.conceptMap[tree][id];
                 if(!concept) {
                     const ids = await getConceptParentIds(id, tree);
-                    for(let i=0; i<ids.length; i++) {
+                    for(let i = 0; i < ids.length; i++) {
                         const path = ids[i];
                         await openPath(path, tree);
                     }
@@ -330,25 +330,14 @@ export const useConceptStore = defineStore('concept', {
                 cid: id,
                 tree_name: tree,
             });
-            const concept = this.conceptMap[tree][id];
-            if(concept) {
-                if(!concept.labels) {
-                    concept.labels = [];
-                }
-                concept.labels.push(content);
-                this.handleConceptChange(id, tree);
-            }
+            this.pushLabel(content, id, tree);
         },
-        async updateLabel(conceptId, tree, labelId, text) {
+        async patchLabel(conceptId, tree, labelId, text) {
             await patchLabel(labelId, text, tree);
-            const concept = this.conceptMap[tree][conceptId];
-            if(concept?.labels) {
-                const label = concept.labels.find(label => label.id == labelId);
-                if(label) {
-                    label.label = text;
-                    this.handleConceptChange(conceptId, tree);
-                }
-            }
+            const updateData = {
+                label: text,
+            };
+            this.updateLabel(conceptId, tree, labelId, updateData);
         },
         async deleteLabel(conceptId, tree, labelId) {
             const updatedLabelId = await deleteLabel(labelId, tree);
@@ -377,14 +366,13 @@ export const useConceptStore = defineStore('concept', {
             if(concept?.notes) {
                 const idx = concept.notes.findIndex(note => note.id == noteId);
                 if(idx > -1) {
-                    concept.labels.splice(idx, 1);
-                    if(updatedLabel?.updated) {
-                        const label = concept.labels.find(label => label.id == updatedLabel.id);
-                        if(label) {
-                            label.concept_label_type = updatedLabel.type;
+                    const concept = this.conceptMap[tree][conceptId];
+                    if(concept?.notes) {
+                        const idx = concept.notes.findIndex(note => note.id == noteId);
+                        if(idx > -1) {
+                            concept.notes.splice(idx, 1);
                         }
                     }
-                    this.handleConceptChange(conceptId, tree);
                 }
             }
         },
@@ -423,27 +411,13 @@ export const useConceptStore = defineStore('concept', {
             await patchNote(noteId, text, tree);
             this.updateNote(conceptId, tree, noteId, text);
         },
+        async patchNote(conceptId, tree, noteId, text) {
+            await patchNote(noteId, text, tree);
+            this.updateNote(conceptId, tree, noteId, text);
+        },
         async deleteNote(conceptId, tree, noteId) {
             await deleteNote(noteId, tree);
             this.removeNote(conceptId, tree, noteId);
-        },
-        removeNote(conceptId, tree, noteId) {
-            const concept = this.conceptMap[tree][conceptId];
-            if(concept?.notes) {
-                const idx = concept.notes.findIndex(note => note.id == noteId);
-                if(idx > -1) {
-                    concept.notes.splice(idx, 1);
-                }
-            }
-        },
-        async addNote(id, tree, text, languageId) {
-            const content = await addNote({
-                content: text,
-                lid: languageId,
-                cid: id,
-                tree_name: tree,
-            });
-            this.pushNote(content, id, tree);
         },
         async addRelation(narrowerId, broaderId, tree) {
             await addRelation(narrowerId, broaderId, tree);
@@ -481,14 +455,14 @@ export const useConceptStore = defineStore('concept', {
                         this.concepts[tree].push(node);
                         sortTree(this.concepts[tree]);
 
-                        for(let i=0; i<narrowerList.length; i++) {
+                        for(let i = 0; i < narrowerList.length; i++) {
                             const narrowerConcept = this.conceptMap[tree][narrowerList[i]];
                             if(narrowerConcept) {
                                 narrowerConcept.is_top_concept = true;
                             }
                         }
                     } else {
-                        for(let i=0; i<broaderList.length; i++) {
+                        for(let i = 0; i < broaderList.length; i++) {
                             const broaderConcept = this.conceptMap[tree][broaderList[i]];
                             if(broaderConcept) {
                                 if(broaderConcept.children) {
@@ -509,7 +483,7 @@ export const useConceptStore = defineStore('concept', {
                                 broaderConcept.state.openable = true;
                             }
                         }
-                        for(let i=0; i<narrowerList.length; i++) {
+                        for(let i = 0; i < narrowerList.length; i++) {
                             const narrowerConcept = this.conceptMap[tree][narrowerList[i]];
                             if(narrowerConcept) {
                                 if(narrowerConcept.broaders) {
@@ -539,14 +513,14 @@ export const useConceptStore = defineStore('concept', {
                             this.concepts[tree].splice(idx, 1);
                         }
 
-                        for(let i=0; i<narrowerList.length; i++) {
+                        for(let i = 0; i < narrowerList.length; i++) {
                             const narrowerConcept = this.conceptMap[tree][narrowerList[i]];
                             if(narrowerConcept) {
                                 narrowerConcept.is_top_concept = false;
                             }
                         }
                     } else {
-                        for(let i=0; i<broaderList.length; i++) {
+                        for(let i = 0; i < broaderList.length; i++) {
                             const broaderConcept = this.conceptMap[tree][broaderList[i]];
                             if(broaderConcept) {
                                 if(broaderConcept.children) {
@@ -565,7 +539,7 @@ export const useConceptStore = defineStore('concept', {
                                 broaderConcept.state.openable = broaderConcept.children_count != 0;
                             }
                         }
-                        for(let i=0; i<narrowerList.length; i++) {
+                        for(let i = 0; i < narrowerList.length; i++) {
                             const narrowerConcept = this.conceptMap[tree][narrowerList[i]];
                             if(narrowerConcept) {
                                 if(narrowerConcept.broaders) {

@@ -472,6 +472,9 @@ class TreeController extends Controller
             $note = $noteTable->findOrFail($id);
             $note->delete();
         } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This note does not exist'
+            ], 400);
         }
 
         return response()->json(null, 204);
