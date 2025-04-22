@@ -246,17 +246,24 @@
                                 <span v-if="!(state.editNote.active && state.editNote.index === i)">
                                     {{ note.content }}
                                 </span>
-                                <div v-else class="d-flex flex-row align-items-center">
-                                    <input type="text" class="form-control" v-model="state.editNote.value" />
-                                    <button type="button" class="btn btn-outline-success btn-sm ms-2"
-                                        @click="updateNote()">
+                                <form
+                                    v-else
+                                    class="d-flex flex-row align-items-center"
+                                    @submit.prevent="updateNote()"
+                                >
+                                    <input
+                                        v-model="state.editNote.value"
+                                        type="text"
+                                        class="form-control"
+                                    >
+                                    <button type="submit" class="btn btn-outline-success btn-sm ms-2">
                                         <i class="fas fa-fw fa-check"></i>
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-sm ms-2"
                                         @click="cancelUpdateNote()">
                                         <i class="fas fa-fw fa-ban"></i>
                                     </button>
-                                </div>
+                                </form>
                             </span>
                             <div class="d-flex gap-1">
                                 <div
@@ -454,7 +461,7 @@
                 if(label.label == state.editLabel.value) {
                     return;
                 }
-                conceptStore.updateLabel(state.concept.id, state.tree, label.id, state.editLabel.value).then(_ => {
+                conceptStore.patchLabel(state.concept.id, state.tree, label.id, state.editLabel.value).then(_ => {
                     setEditMode('label', state.editLabel.index, false);
                 });
             };
@@ -488,7 +495,7 @@
                 if(note.content == state.editNote.value) {
                     return;
                 }
-                conceptStore.updateNote(state.concept.id, state.tree, note.id, state.editNote.value).then(_ => {
+                conceptStore.patchNote(state.concept.id, state.tree, note.id, state.editNote.value).then(_ => {
                     setEditMode('note', state.editNote.index, false);
                 });
             };

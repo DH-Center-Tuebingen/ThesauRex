@@ -11,10 +11,12 @@ import {
     deleteNote,
     exportTree,
     fetchChildren,
+    fetchConcept,
     fetchTreeData,
     getConceptParentIds,
     patchLabel,
     patchNote,
+    removeRelation,
     uploadFile,
     toggleTopLevelState,
 } from '@/api.js';
@@ -203,17 +205,19 @@ export const useConceptStore = defineStore('concept', {
             }
             return data;
         },
-        async fetchConcept(id, tree) {
+        async fetchAndPushConcept(id, tree, receivedFromEvent = false) {
             const concept = await fetchConcept(id, tree);
-            this.pushConcepts([concept], tree);
+            this.pushConcepts([concept], tree, {
+                ignore_count: receivedFromEvent,
+            });
         },
-        async rewrittenPushConcepts(id, tree) {
+        async fetchAndPushConcepts(id, tree) {
             tree = tree != 'sandbox' ? 'project' : tree;
             const children = await fetchChildren(id, tree);
             return this.pushConcepts(children, tree);
         },
         // method to add existing, fetched concepts to store
-        pushConcepts(concepts, tree) {
+        pushConcepts(concepts, tree, overrides = {}) {
             const nodes = [];
             concepts.forEach(concept => {
                 const node = new Node({
@@ -221,7 +225,7 @@ export const useConceptStore = defineStore('concept', {
                     tree: tree,
                 });
                 this.addConceptNode(node, tree, {
-                    ignore_count: true,
+                    ignore_count: overrides.ignore_count !== false,
                 });
                 nodes.push(node);
             });
@@ -294,6 +298,44 @@ export const useConceptStore = defineStore('concept', {
                 this.concept.data = concept;
             }
         },
+        pushLabel(label, conceptId, tree) {
+            const concept = this.conceptMap[tree][conceptId];
+            if(concept) {
+                if(!concept.labels) {
+                    concept.labels = [];
+                }
+                concept.labels.push(label);
+                handleConceptChange(conceptId, tree, this);
+            }
+        },
+        updateLabel(conceptId, tree, labelId, updates = {}) {
+            const concept = this.conceptMap[tree][conceptId];
+            if(concept?.labels) {
+                const label = concept.labels.find(label => label.id == labelId);
+                if(label) {
+                    for(let k in updates) {
+                        label[k] = updates[k];
+                    }
+                    handleConceptChange(conceptId, tree, this);
+                }
+            }
+        },
+        removeLabel(conceptId, tree, labelId, newPrefLabelId) {
+            const concept = this.conceptMap[tree][conceptId];
+            if(concept?.labels) {
+                const idx = concept.labels.findIndex(label => label.id == labelId);
+                if(idx > -1) {
+                    concept.labels.splice(idx, 1);
+                    if(newPrefLabelId) {
+                        const label = concept.labels.find(label => label.id == newPrefLabelId);
+                        if(label) {
+                            label.concept_label_type = 1;
+                        }
+                    }
+                    handleConceptChange(conceptId, tree, this);
+                }
+            }
+        },
         async addLabel(id, tree, text, languageId) {
             const content = await addLabel({
                 content: text,
@@ -301,41 +343,43 @@ export const useConceptStore = defineStore('concept', {
                 cid: id,
                 tree_name: tree,
             });
-            const concept = this.conceptMap[tree][id];
-            if(concept) {
-                if(!concept.labels) {
-                    concept.labels = [];
-                }
-                concept.labels.push(content);
-                handleConceptChange(id, tree, this);
-            }
+            this.pushLabel(content, id, tree);
         },
-        // updateLabel(conceptId, tree, labelId, text) {
-        async updateLabel(conceptId, tree, labelId, text) {
+        async patchLabel(conceptId, tree, labelId, text) {
             await patchLabel(labelId, text, tree);
-            const concept = this.conceptMap[tree][conceptId];
-            if(concept?.labels) {
-                const label = concept.labels.find(label => label.id == labelId);
-                if(label) {
-                    label.label = text;
-                    handleConceptChange(conceptId, tree, this);
-                }
-            }
+            const updateData = {
+                label: text,
+            };
+            this.updateLabel(conceptId, tree, labelId, updateData);
         },
         async deleteLabel(conceptId, tree, labelId) {
-            const updatedLabel = await deleteLabel(labelId, tree);
+            const updatedLabelId = await deleteLabel(labelId, tree);
+            this.removeLabel(conceptId, tree, labelId, updatedLabelId);
+        },
+        pushNote(note, conceptId, tree) {
             const concept = this.conceptMap[tree][conceptId];
-            if(concept?.labels) {
-                const idx = concept.labels.findIndex(label => label.id == labelId);
+            if(concept) {
+                if(!concept.notes) {
+                    concept.notes = [];
+                }
+                concept.notes.push(note);
+            }
+        },
+        updateNote(conceptId, tree, noteId, text) {
+            const concept = this.conceptMap[tree][conceptId];
+            if(concept?.notes) {
+                const note = concept.notes.find(note => note.id == noteId);
+                if(note) {
+                    note.content = text;
+                }
+            }
+        },
+        removeNote(conceptId, tree, noteId) {
+            const concept = this.conceptMap[tree][conceptId];
+            if(concept?.notes) {
+                const idx = concept.notes.findIndex(note => note.id == noteId);
                 if(idx > -1) {
-                    concept.labels.splice(idx, 1);
-                    if(updatedLabel?.updated) {
-                        const label = concept.labels.find(label => label.id == updatedLabel.id);
-                        if(label) {
-                            label.concept_label_type = updatedLabel.type;
-                        }
-                    }
-                    handleConceptChange(conceptId, tree, this);
+                    concept.notes.splice(idx, 1);
                 }
             }
         },
@@ -346,42 +390,24 @@ export const useConceptStore = defineStore('concept', {
                 cid: id,
                 tree_name: tree,
             });
-            const concept = this.conceptMap[tree][id];
-            if(concept) {
-                if(!concept.notes) {
-                    concept.notes = [];
-                }
-                concept.notes.push(content);
-            }
+            this.pushNote(content, id, tree);
         },
-        async updateNote(conceptId, tree, noteId, text) {
+        async patchNote(conceptId, tree, noteId, text) {
             await patchNote(noteId, text, tree);
-            const concept = this.conceptMap[tree][conceptId];
-            if(concept?.notes) {
-                const note = concept.notes.find(note => note.id == noteId);
-                if(note) {
-                    note.content = text;
-                }
-            }
+            this.updateNote(conceptId, tree, noteId, text);
         },
         async deleteNote(conceptId, tree, noteId) {
             await deleteNote(noteId, tree);
-            const concept = this.conceptMap[tree][conceptId];
-            if(concept?.notes) {
-                const idx = concept.notes.findIndex(note => note.id == noteId);
-                if(idx > -1) {
-                    concept.notes.splice(idx, 1);
-                }
-            }
+            this.removeNote(conceptId, tree, noteId);
         },
         async addRelation(narrowerId, broaderId, tree) {
             await addRelation(narrowerId, broaderId, tree);
 
             if(!this.conceptMap[tree][broaderId]) {
-                this.fetchConcept(broaderId, tree);
+                await this.fetchAndPushConcept(broaderId, tree);
             }
             if(!this.conceptMap[tree][narrowerId]) {
-                this.fetchConcept(narrowerId, tree);
+                await this.fetchAndPushConcept(narrowerId, tree);
             }
 
             this.handleAddRelation(broaderId, narrowerId, tree);

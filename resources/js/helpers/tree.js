@@ -17,7 +17,7 @@ import {
 } from '@/helpers/helpers.js';
 
 export async function fetchChildren(id, tree) {
-    return await useConceptStore().rewrittenPushConcepts(id, tree);
+    return await useConceptStore().fetchAndPushConcepts(id, tree);
 };
 
 export function sortParents(parents) {

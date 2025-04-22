@@ -19,6 +19,7 @@ Broadcast::channel('App.User.{id}', function ($user, $id) {
 });
 
 Broadcast::channel('channel.system', function (User $user) {
+    // return true;
     return auth()->user()->id == $user->id;
 });
 

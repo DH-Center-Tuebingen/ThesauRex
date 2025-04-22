@@ -39,7 +39,6 @@ Route::middleware('web')->prefix('v1')->group(function() {
 });
 
 Route::middleware('auth:sanctum')->prefix('v1')->group(function() {
-    Route::get('/auth/refresh', 'UserController@refreshToken');
     Route::get('/auth/user', 'UserController@getUser');
     Route::get('/user', 'UserController@getUsers');
     Route::get('/role', 'UserController@getRoles');

@@ -3,8 +3,6 @@ import {
     web_http,
 } from '@/bootstrap/http.js';
 
-import useConceptStore from '@/bootstrap/stores/concept.js';
-
 import {
     only,
     throwError,
@@ -235,13 +233,13 @@ export async function addNote(data) {
 // DELETE
 
 export async function deleteLanguage(languageId) {
-    await $httpQueue.add(
+    return await $httpQueue.add(
         () => http.delete(`/language/${languageId}`)
     );
 };
 
 export async function deleteLabel(id, tree) {
-    await $httpQueue.add(
+    return await $httpQueue.add(
         () => http.delete(`/tree/label/${id}?t=${tree}`).then(response => response.data)
     );
 };
