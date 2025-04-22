@@ -88,6 +88,21 @@
 
     import {
         handleTestEvent,
+        handleConceptAddedEvent,
+        handleConceptDeletedEvent,
+        handleConceptUpdatedEvent,
+        handleConceptLabelAddedEvent,
+        handleConceptLabelDeletedEvent,
+        handleConceptLabelUpdatedEvent,
+        handleConceptNoteAddedEvent,
+        handleConceptNoteDeletedEvent,
+        handleConceptNoteUpdatedEvent,
+        handleConceptRelationAddedEvent,
+        handleConceptRelationDeletedEvent,
+        handleConceptRelationUpdatedEvent,
+        handleLanguageAddedEvent,
+        handleLanguageDeletedEvent,
+        handleLanguageUpdatedEvent,
     } from '@/handlers/system.js';
 
     export default {
@@ -132,6 +147,21 @@
                 channels.system = subscribeSystemChannel();
                 listenToList(channels.system, [
                     handleTestEvent,
+                    handleConceptAddedEvent,
+                    handleConceptDeletedEvent,
+                    handleConceptUpdatedEvent,
+                    handleConceptLabelAddedEvent,
+                    handleConceptLabelDeletedEvent,
+                    handleConceptLabelUpdatedEvent,
+                    handleConceptNoteAddedEvent,
+                    handleConceptNoteDeletedEvent,
+                    handleConceptNoteUpdatedEvent,
+                    handleConceptRelationAddedEvent,
+                    handleConceptRelationDeletedEvent,
+                    handleConceptRelationUpdatedEvent,
+                    handleLanguageAddedEvent,
+                    handleLanguageDeletedEvent,
+                    handleLanguageUpdatedEvent,
                 ]);
             });
             onBeforeRouteLeave((to, from) => {

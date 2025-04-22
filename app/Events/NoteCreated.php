@@ -2,22 +2,28 @@
 
 namespace App\Events;
 
+use App\ThConceptNote;
+use App\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TestEvent implements ShouldBroadcast {
+class NoteCreated implements ShouldBroadcast {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
      */
     public function __construct(
-        public string $message
+        public ThConceptNote $note,
+        public string $tree,
+        public User $user
     ) {
-        $this->message = $message;
+        $this->note = $note;
+        $this->tree = $tree;
+        $this->user = $user;
     }
 
     /**
@@ -25,8 +31,7 @@ class TestEvent implements ShouldBroadcast {
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn(): array
-    {
+    public function broadcastOn(): array {
         return [
             new PrivateChannel('channel.system'),
         ];

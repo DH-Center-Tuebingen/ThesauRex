@@ -112,7 +112,7 @@ class TreeController extends Controller
             ->first();
         $concept->broaders->loadMissing('labels.language');
         $concept->narrowers->loadMissing('labels.language');
-        $concept->setAppends(['parents', 'path']);
+        $concept->setAppends(['broaders_count', 'parents', 'path']);
         return response()->json($concept);
     }
 
@@ -251,7 +251,7 @@ class TreeController extends Controller
         } else if($format === 'js') {
             $data = $graph->serialise('json');
         }
-        if (!is_scalar($data)) {
+        if(!is_scalar($data)) {
             $data = var_export($data, true);
         }
 
@@ -324,14 +324,16 @@ class TreeController extends Controller
         if(!$isTop) {
             $thBroader->broader_id = $parentId;
             $thBroader->narrower_id = $thConcept->id;
-            $thBroader->save();
+            // Do not fire event, because it is part of ThConcept event
+            $thBroader->saveQuietly();
         }
 
         $thConceptLabel->label = $label;
         $thConceptLabel->concept_id = $thConcept->id;
         $thConceptLabel->language_id = $labelLangId;
         $thConceptLabel->user_id = $user->id;
-        $thConceptLabel->save();
+        // Do not fire event, because it is part of ThConcept event
+        $thConceptLabel->saveQuietly();
 
         $thConcept->loadMissing('labels.language');
         $thConcept->children_count = 0;
@@ -447,11 +449,7 @@ class TreeController extends Controller
         // If label updated, return new pref label id
         // otherwise return empty success
         if($prefLabelUpdated) {
-            return response()->json([
-                'updated' => true,
-                'id' => $newPrefLabel->id,
-                'type' => $newPrefLabel->concept_label_type
-            ]);
+            return response()->json($newPrefLabel->id);
         } else {
             return response()->json(null, 204);
         }
@@ -470,9 +468,11 @@ class TreeController extends Controller
 
         $noteTable = th_note_builder($treeName);
 
-        $noteTable
-            ->where('id', $id)
-            ->delete();
+        try {
+            $note = $noteTable->findOrFail($id);
+            $note->delete();
+        } catch(ModelNotFoundException $e) {
+        }
 
         return response()->json(null, 204);
     }
@@ -728,6 +728,7 @@ class TreeController extends Controller
 
             $query->where('broader_id', $bid)
                 ->where('narrower_id', $id)
+                ->first()
                 ->delete();
         } else {
             $concept->is_top_concept = false;
