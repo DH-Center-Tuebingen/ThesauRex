@@ -537,6 +537,11 @@
                     console.log(err);
                 }
             };
+            const setConcept = async (id, tree) => {
+                state.initialized = false;
+                await conceptStore.setSelected(id, tree);
+                state.initialized = true;
+            }
 
             // DATA
             const state = reactive({
@@ -601,11 +606,17 @@
                 async (newParams, oldParams) => {
                     if(newParams.id == oldParams.id) return;
                     if(!newParams.id) return;
-                    state.initialized = false;
-                    await conceptStore.setSelected(newParams.id, route.query.t);
-                    state.initialized = true;
+                    await setConcept(newParams.id, route.query.t);
                 }
             );
+
+            // ON BEFORE UPDATE
+            onBeforeRouteUpdate(async (to, from) => {
+                if(to.query.t != from.query.t) {
+                    await setConcept(to.params.id, to.query.t);
+                }
+                return true;
+            });
 
             // ON BEFORE LEAVE
             onBeforeRouteLeave(async (to, from) => {
