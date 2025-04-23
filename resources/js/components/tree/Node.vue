@@ -170,6 +170,7 @@
                 ddVisible: false,
                 label: computed(_ => getLabel(data.value)),
                 concept: computed(_ => conceptStore.concept.data),
+                conceptTree: computed(_ => conceptStore.concept.from),
                 isTopConcept: computed(_ => state.concept.is_top_concept),
                 hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
                 canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
@@ -184,7 +185,7 @@
                     return getNodeFromPath(conceptStore.concepts[data.value.tree], path);
                 }),
                 parentLabel: computed(_ => getLabel(state.parent)),
-                isSelected: computed(_ => state.concept && state.concept.id === data.value.nid),
+                isSelected: computed(_ => state.concept && state.concept.id === data.value.nid && state.conceptTree == data.value.tree),
                 asyncToggle: computed(_ => _debounce(doToggle, 500)),
                 disabledAnchorClasses: computed(_ => {
                     if(state.canDeleteBroader) {
