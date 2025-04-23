@@ -80,7 +80,7 @@
                 </div>
             </div>
         </header>
-        <tree-search
+        <ConceptSearch
             class="my-2 mb-3"
             :tree-name="treeName"
         />
@@ -163,8 +163,6 @@
     import router from '@/bootstrap/router.js';
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
-    import ConceptSearch from '@/components/tree/Search.vue';
-
     const DropPosition = {
         empty: 0,
         up: 1,
@@ -187,9 +185,6 @@
                 type: String
             }
         },
-        components: {
-            'tree-search': ConceptSearch,
-        },
         emits: ['change-drag-target', 'toggle-sandbox'],
         setup(props, context) {
             const {t} = useI18n();
@@ -203,7 +198,7 @@
             // FETCH
 
             // FUNCTIONS
-            const itemClick = (item) => {
+            const itemClick = item => {
                 if(state.isFromTree && state.concept.data.id == item.data.id) {
                     router.push({
                         append: true,
