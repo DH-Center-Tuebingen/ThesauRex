@@ -333,34 +333,18 @@
             const conceptStore = useConceptStore();
             const languageStore = useLanguageStore();
 
+            // FETCH
+
+            // FUNCTIONS
+            const setConcept = async (id, tree) => {
+                state.initialized = false;
+                await conceptStore.setSelected(id, tree);
+                state.initialized = true;
+            };
             const resetLanguageToDefault = _ => {
                 state.addLabel.language = languageStore.activeLanguage;
                 state.addNote.language = languageStore.activeLanguage;
             };
-
-            onMounted(_ => {
-                resetLanguageToDefault();
-            });
-
-            onBeforeRouteUpdate(async (to, from) => {
-                if(to.params.id == from.params.id) return;
-                resetLanguageToDefault();
-            });
-
-            watch(_ => languageStore.activeLanguage,
-                (newLang, oldLang) => {
-                    if(newLang == oldLang) return;
-                    state.addLabel.language = newLang;
-                    state.addNote.language = newLang;
-                }
-            );
-
-            // FETCH
-            conceptStore.setSelected(route.params.id, route.query.t).then(_ => {
-                state.initialized = true;
-            });
-
-            // FUNCTIONS
             const setHoverState = (prop, index, hoverState) => {
                 switch(prop) {
                     case 'labels':
@@ -537,11 +521,6 @@
                     console.log(err);
                 }
             };
-            const setConcept = async (id, tree) => {
-                state.initialized = false;
-                await conceptStore.setSelected(id, tree);
-                state.initialized = true;
-            }
 
             // DATA
             const state = reactive({
@@ -600,22 +579,27 @@
             });
 
             // ON MOUNTED
+            onMounted(_ => {
+                resetLanguageToDefault();
+                setConcept(route.params.id, route.query.t);
+            });
 
             // WATCHER
-            watch(_ => route.params,
-                async (newParams, oldParams) => {
-                    if(newParams.id == oldParams.id) return;
-                    if(!newParams.id) return;
-                    await setConcept(newParams.id, route.query.t);
+            watch(_ => languageStore.activeLanguage,
+                (newLang, oldLang) => {
+                    if(newLang == oldLang) return;
+                    state.addLabel.language = newLang;
+                    state.addNote.language = newLang;
                 }
             );
 
             // ON BEFORE UPDATE
             onBeforeRouteUpdate(async (to, from) => {
-                if(to.query.t != from.query.t) {
+                if(to.query.t != from.query.t || to.params.id != from.params.id) {
                     await setConcept(to.params.id, to.query.t);
                 }
-                return true;
+                if(to.params.id == from.params.id) return;
+                resetLanguageToDefault();
             });
 
             // ON BEFORE LEAVE
