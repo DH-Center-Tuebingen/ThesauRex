@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.11 - Kilcrea
+### Added
+- Websockets for various data synchronization
+  - Adding, Updating, Deleting concepts, labels, notes and languages
+### Fixed
+- Flickering of text after first selection of a concept
+- Highlighting and selection of concept in tree if a concept with the same ID exists in the other tree
+
 ## 0.10 - Jelling
 ### Added
 - Language Quick Select in navigation
