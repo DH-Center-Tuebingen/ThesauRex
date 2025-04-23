@@ -41,20 +41,20 @@ export const router = createRouter({
                     path: 'c/:id',
                     name: 'conceptdetail',
                     component: ConceptDetail,
-                    children: []
-                }
+                    children: [],
+                },
             ],
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
         {
             path: '/login',
             name: 'login',
             component: Login,
             meta: {
-                auth: false
-            }
+                auth: false,
+            },
         },
         // Settings
         {
@@ -62,74 +62,74 @@ export const router = createRouter({
             name: 'users',
             component: PaddedLayout,
             props: {
-                component: Users  
+                component: Users,
             },
             beforeEnter: (to, from) => {
                 return isStandalone;
             },
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
         {
             path: '/mg/roles',
             name: 'roles',
             component: PaddedLayout,
             props: {
-                component: Roles  
+                component: Roles,
             },
             beforeEnter: (to, from) => {
                 return isStandalone;
             },
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
         {
             path: '/mg/language',
             name: 'languages',
             component: PaddedLayout,
             props: {
-                component: Languages  
+                component: Languages,
             },
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
         {
             path: '/preferences',
             name: 'preferences',
             component: PaddedLayout,
             props: {
-                component: Preferences  
+                component: Preferences,
             },
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
         {
             path: '/preferences/u/:id',
             name: 'userpreferences',
             component: PaddedLayout,
             props: {
-                component: UserPreferences  
+                component: UserPreferences,
             },
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
         {
             path: '/profile',
             name: 'userprofile',
             component: PaddedLayout,
             props: {
-                component: UserProfile  
+                component: UserProfile,
             },
             meta: {
-                auth: true
-            }
+                auth: true,
+            },
         },
-    ]
+    ],
 });
 
 export function useRouter() {
