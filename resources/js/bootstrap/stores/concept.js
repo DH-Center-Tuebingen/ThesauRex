@@ -226,17 +226,38 @@ export const useConceptStore = defineStore('concept', {
             const conceptRef = conceptRefs[0];
             const concept = this.conceptMap[tree][conceptRef];
             if(action != '' && action != 'cascade') {
+                let loadNarrowers = false;
                 const narrowerIds = concept.narrowers.map(narrower => narrower.id);
                 let broaders = null;
                 if(action == 'level') {
                     broaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;
+                    loadNarrowers = true;
                 } else if(action == 'top') {
+                    loadNarrowers = true;
                     broaders = [-1];
                 } else if(action == 'rerelate') {
+                    const newParent = this.conceptMap[tree][parameters.p];
+                    loadNarrowers = newParent.childrenLoaded;
+                    newParent.state.openable = true;
                     broaders = [parameters.p];
                 }
+
+                // Fetch all required narrowers that are not alreaday fetched,
+                // because they need to be added to the tree
+                if(loadNarrowers) {
+                    for(let i=0; i<narrowerIds.length; i++) {
+                        const narrowerId = narrowerIds[i];
+                        if(!this.conceptMap[tree][narrowerId]) {
+                            await this.fetchAndPushConcept(narrowerId, tree, false);
+                        }
+                    }
+                    
+                    // Add all narrower relations to their new parent
+                    this.handleAddRelation(broaders, narrowerIds, tree);
+                }
+                
+                // Remove all relations of the deleted concept to its narrowers
                 this.handleRemoveRelation(id, narrowerIds, tree);
-                this.handleAddRelation(broaders, narrowerIds, tree);
             }
 
             const removeBroaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;

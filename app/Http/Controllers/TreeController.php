@@ -776,8 +776,6 @@ class TreeController extends Controller
 
         switch($action) {
             case 'cascade':
-                $concept->delete();
-                self::deleteOrphanedConcepts($narrowers, $treeName);
                 break;
             case 'level':
                 if($concept->is_top_concept) {
@@ -785,7 +783,6 @@ class TreeController extends Controller
                         ->whereIn('id', $narrowers)
                         ->update(['is_top_concept' => true]);
                 }
-                $concept->delete();
                 foreach($broaders as $broaderId) {
                     foreach($narrowers as $narrowerId) {
                         $exists = th_broader_builder($treeName)
@@ -807,7 +804,6 @@ class TreeController extends Controller
                 }
                 break;
             case 'top':
-                $concept->delete();
                 th_tree_builder($treeName)
                     ->whereIn('id', $narrowers)
                     ->update(['is_top_concept' => true]);
@@ -832,7 +828,6 @@ class TreeController extends Controller
                         'error' => 'This concept does not exist'
                     ], 400);
                 }
-                $concept->delete();
                 foreach($narrowers as $narrowerId) {
                     $exists = th_broader_builder($treeName)
                         ->where('broader_id', $newParentId)
@@ -852,6 +847,8 @@ class TreeController extends Controller
                 }
                 break;
         }
+        $concept->delete();
+        self::deleteOrphanedConcepts($narrowers, $treeName);
 
         DB::commit();
 
