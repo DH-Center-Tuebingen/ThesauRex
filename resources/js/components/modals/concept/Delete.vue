@@ -6,9 +6,9 @@
             <div class="modal-header">
                 <h5 class="modal-title">
                     {{
-                    t('modals.delete_concept.title', {
-                    name: getLabel(state.concept)
-                    })
+                        t('modals.delete_concept.title', {
+                            name: getLabel(state.concept)
+                        })
                     }}
                 </h5>
                 <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
@@ -178,7 +178,7 @@
                 action: 'cascade',
                 relateConcept: null,
                 params: {},
-                concept: computed(_ => conceptStore.conceptMap[tree.value][conceptId.value]),
+                concept: computed(_ => conceptStore.conceptMap[tree.value][conceptId.value] || {}),
                 isValid: computed(_ => !!state.action && (state.action != 'rerelate' || !!state.relateConcept)),
             });
 
