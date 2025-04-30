@@ -41,7 +41,8 @@ export const handleConceptUpdatedEvent = {
     'ConceptUpdated': e => {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
-        const message = '[TODO] Successfully received ConceptUpdated Event! ' + JSON.stringify(e);
+        const message = 'Successfully received ConceptUpdated Event!';
+        useConceptStore().handleConceptUpdate(e.concept.id, e.tree, e.concept.is_top_concept);
         addToast(message, '', {
             duration: 2500,
             autohide: true,
@@ -56,7 +57,8 @@ export const handleConceptDeletedEvent = {
     'ConceptDeleted': e => {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
-        const message = '[TODO] Successfully received ConceptDeleted Event! ' + JSON.stringify(e);
+        const message = 'Successfully received ConceptDeleted Event!';
+        useConceptStore().deleteConceptReferences(e.concept.id, e.tree);
         addToast(message, '', {
             duration: 2500,
             autohide: true,
@@ -185,7 +187,8 @@ export const handleConceptRelationUpdatedEvent = {
     'RelationUpdated': e => {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
-        const message = '[TODO] Successfully received RelationUpdated Event! ' + JSON.stringify(e);
+        const message = '[TODO] Successfully received RelationUpdated Event!';
+        console.log("Relation Updated", e);
         addToast(message, '', {
             duration: 2500,
             autohide: true,

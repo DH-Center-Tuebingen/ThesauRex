@@ -779,9 +779,14 @@ class TreeController extends Controller
                 break;
             case 'level':
                 if($concept->is_top_concept) {
-                    th_tree_builder($treeName)
+                    $narrowersAsTopConcepts = th_tree_builder($treeName)
                         ->whereIn('id', $narrowers)
-                        ->update(['is_top_concept' => true]);
+                        ->whereNot('is_top_concept')
+                        ->get();
+                    foreach($narrowersAsTopConcepts as $updateConcept) {
+                        $updateConcept->is_top_concept = true;
+                        $updateConcept->save();
+                    }
                 }
                 foreach($broaders as $broaderId) {
                     foreach($narrowers as $narrowerId) {
@@ -804,9 +809,14 @@ class TreeController extends Controller
                 }
                 break;
             case 'top':
-                th_tree_builder($treeName)
+                $narrowersAsTopConcepts = th_tree_builder($treeName)
                     ->whereIn('id', $narrowers)
-                    ->update(['is_top_concept' => true]);
+                    ->whereNot('is_top_concept')
+                    ->get();
+                foreach($narrowersAsTopConcepts as $updateConcept) {
+                    $updateConcept->is_top_concept = true;
+                    $updateConcept->save();
+                }
                 break;
             case 'rerelate':
                 $newParentId = $request->query('p');

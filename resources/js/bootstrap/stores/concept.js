@@ -218,6 +218,8 @@ export const useConceptStore = defineStore('concept', {
             return nodes;
         },
         async deleteConcept(id, tree, action, parameters) {
+            // use 'cascade' as default action
+            action = (action == 'level' || action == 'top' || action == 'rerelate') ? action : 'cascade';
             await deleteConcept(id, tree, action, parameters);
 
             const conceptRefs = this.conceptReferences[tree][id];
@@ -225,7 +227,8 @@ export const useConceptStore = defineStore('concept', {
             // get all narrowers, simply get them from first ref
             const conceptRef = conceptRefs[0];
             const concept = this.conceptMap[tree][conceptRef];
-            if(action != '' && action != 'cascade') {
+
+            if(action != 'cascade') {
                 let loadNarrowers = false;
                 const narrowerIds = concept.narrowers.map(narrower => narrower.id);
                 let broaders = null;
@@ -268,6 +271,10 @@ export const useConceptStore = defineStore('concept', {
             const conceptRefs = this.conceptReferences[tree][id];
             conceptRefs.forEach(refId => {
                 delete this.conceptMap[tree][refId];
+                const idx = this.concepts[tree].findIndex(concept => concept.id == refId);
+                if(idx > -1) {
+                    this.concepts[tree].splice(idx, 1);
+                }
             });
             delete this.conceptReferences[tree][id];
             delete this.conceptParents[tree][id];
@@ -574,6 +581,24 @@ export const useConceptStore = defineStore('concept', {
                     }
                 });
             });
+        },
+        // currently only updating is_top_concept is allowed/handled
+        async handleConceptUpdate(conceptId, tree, isTopConcept) {
+            let fetched = false;
+            if(!this.conceptMap[tree][conceptId]) {
+                fetched = true;
+                await this.fetchAndPushConcept(conceptId, tree);
+            }
+
+            // if we had to fetch concept it is already up to date,
+            // no need to add relation
+            if(fetched) return;
+
+            if(isTopConcept) {
+                this.handleAddRelation(-1, conceptId, tree);
+            } else {
+                this.handleRemoveRelation(-1, conceptId, tree);
+            }
         },
         export(tree, fromNode) {
             let filename = '';
