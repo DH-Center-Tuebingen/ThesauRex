@@ -25,37 +25,6 @@ import {
 
 import useSystemStore from './system.js';
 
-const updateUserAt = (context, userId, data, isProfile) => {
-    const idx = context.users.findIndex(u => u.id == userId);
-    if(idx > -1) {
-        let allowedProps = [
-            "email",
-            "roles",
-            "updated_at",
-            "deleted_at",
-        ];
-        if(isProfile) {
-            allowedProps.push(
-                'nickname',
-                'metadata',
-                'avatar',
-            );
-        }
-
-        const cleanData = only(data, allowedProps);
-        const currentData = context.users[idx];
-
-        context.users[idx] = {
-            ...currentData,
-            ...cleanData,
-        };
-
-        if(context.getCurrentUserId == userId) {
-            context.setActiveUser(context.users[idx], true);
-        }
-    }
-};
-
 export const useUserStore = defineStore('user', {
     state: _ => ({
         userLoggedIn: false,
@@ -97,7 +66,13 @@ export const useUserStore = defineStore('user', {
                         return state.user;
                     } else {
                         return state.users
-                            .find(u => isNum ? (u[prop] == lValue) : (u[prop].toLowerCase() == lValue));
+                            .find(user => {
+                                if(isNum) {
+                                    return user[prop] == lValue;
+                                } else {
+                                    return user[prop].toLowerCase() == lValue;
+                                }
+                            });
                     }
                 } else {
                     return null;
@@ -117,7 +92,13 @@ export const useUserStore = defineStore('user', {
                     const isNum = !isNaN(value);
                     const lValue = isNum ? value : value.toLowerCase();
                     return this.getRoles(!withPermissions)
-                        .find(r => isNum ? (r[prop] == lValue) : (r[prop].toLowerCase() == lValue));
+                        .find(role => {
+                            if(isNum) {
+                                return role[prop] == lValue;
+                            } else {
+                                return role[prop].toLowerCase() == lValue;
+                            }
+                        });
                 } else {
                     return null;
                 }
@@ -153,7 +134,7 @@ export const useUserStore = defineStore('user', {
                 this.user = user;
             }
         },
-        setUsers(users, deletedUsers) {
+        setUsers(users, deletedUsers = null) {
             this.users = users;
             this.deletedUsers = deletedUsers || [];
         },
@@ -163,12 +144,9 @@ export const useUserStore = defineStore('user', {
             this.rolePresets = presets;
         },
         async addUser(data) {
-            return addUser(data).then(user => {
-                this.users.push(user);
-                return user;
-            }).catch(e => {
-                throw e;
-            });
+            const user = await addUser(data);
+            this.users.push(user);
+            return user;
         },
         async deactivateUser(userId) {
             return deactivateUser(userId).then(data => {
@@ -191,16 +169,13 @@ export const useUserStore = defineStore('user', {
             });
         },
         async updateUser(userId, userData, isProfile) {
-            return await patchUserData(userId, userData).then(data => {
-                updateUserAt(this, userId, userData, isProfile);
-                return data;
-            }).catch(e => {
-                throw e;
-            });
+            const data = await patchUserData(userId, userData);
+            this.updateUserAt(userId, userData, isProfile);
+            return data;
         },
         async confirmOrUpdatePassword(userId, password) {
             return confirmUserPassword(userId, password).then(_ => {
-                updateUserAt(this, userId, {
+                this.updateUserAt(userId, {
                     login_attempts: null,
                 });
             });
@@ -217,7 +192,7 @@ export const useUserStore = defineStore('user', {
                     // TODO fix!
                     updateData.avatar += `#${Date.now()}`;
                 }
-                return updateUserAt(this, user.id, updateData, true);
+                return this.updateUserAt(user.id, updateData, true);
             });
         },
         async deleteAvatar() {
@@ -225,15 +200,13 @@ export const useUserStore = defineStore('user', {
                 const updateData = {
                     avatar: false,
                 };
-                return updateUserAt(this, this.getCurrentUserId, updateData, true);
+                return this.updateUserAt(this.getCurrentUserId, updateData, true);
             });
         },
         async addRole(data) {
             return addRole(data).then(role => {
                 this.roles.push(role);
                 return role;
-            }).catch(e => {
-                throw e;
             });
         },
         async updateRole(id, roleData) {
@@ -260,6 +233,36 @@ export const useUserStore = defineStore('user', {
         },
         async requestPasswordResetFor(email) {
             return await sendResetPasswordMail(email);
+        },
+        updateUserAt(userId, data, isProfile) {
+            const idx = this.users.findIndex(user => user.id == userId);
+            if(idx > -1) {
+                let allowedProps = [
+                    "email",
+                    "roles",
+                    "updated_at",
+                    "deleted_at",
+                ];
+                if(isProfile) {
+                    allowedProps.push(
+                        'nickname',
+                        'metadata',
+                        'avatar',
+                    );
+                }
+
+                const cleanData = only(data, allowedProps);
+                const currentData = this.users[idx];
+
+                this.users[idx] = {
+                    ...currentData,
+                    ...cleanData,
+                };
+
+                if(this.getCurrentUserId == userId) {
+                    this.setActiveUser(this.users[idx], true);
+                }
+            }
         },
     },
 });

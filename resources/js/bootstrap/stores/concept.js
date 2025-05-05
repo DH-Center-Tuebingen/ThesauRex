@@ -33,20 +33,6 @@ import {
     sortTree,
 } from '@/helpers/tree.js';
 
-const handleConceptChange = (conceptId, tree, ctx) => {
-    const concept = ctx.conceptMap[tree][conceptId];
-    const parents = ctx.conceptParents[tree][conceptId] || [];
-    if(concept.is_top_concept) {
-        sortTree(ctx.concepts[tree]);
-    }
-    parents.forEach(parent => {
-        const parentConcept = ctx.conceptMap[tree][parent];
-        if(!!parentConcept) {
-            sortTree(parentConcept.children);
-        }
-    });
-}
-
 export const useConceptStore = defineStore('concept', {
     state: _ => ({
         concepts: {
@@ -138,7 +124,7 @@ export const useConceptStore = defineStore('concept', {
                 }
             }
 
-            handleConceptChange(conceptNode.id, tree, this);
+            this.handleConceptChange(conceptNode.id, tree);
         },
         resetConcepts(tree) {
             this.concepts[tree] = [];
@@ -207,7 +193,7 @@ export const useConceptStore = defineStore('concept', {
             const concept = await fetchConcept(id, tree);
             this.pushConcepts([concept], tree);
         },
-        async rewrittenPushConcepts(id, tree) {
+        async fetchChildren(id, tree) {
             tree = tree != 'sandbox' ? 'project' : tree;
             const children = await fetchChildren(id, tree);
             return this.pushConcepts(children, tree);
@@ -307,10 +293,9 @@ export const useConceptStore = defineStore('concept', {
                     concept.labels = [];
                 }
                 concept.labels.push(content);
-                handleConceptChange(id, tree, this);
+                this.handleConceptChange(id, tree);
             }
         },
-        // updateLabel(conceptId, tree, labelId, text) {
         async updateLabel(conceptId, tree, labelId, text) {
             await patchLabel(labelId, text, tree);
             const concept = this.conceptMap[tree][conceptId];
@@ -318,7 +303,7 @@ export const useConceptStore = defineStore('concept', {
                 const label = concept.labels.find(label => label.id == labelId);
                 if(label) {
                     label.label = text;
-                    handleConceptChange(conceptId, tree, this);
+                    this.handleConceptChange(conceptId, tree);
                 }
             }
         },
@@ -335,9 +320,22 @@ export const useConceptStore = defineStore('concept', {
                             label.concept_label_type = updatedLabel.type;
                         }
                     }
-                    handleConceptChange(conceptId, tree, this);
+                    this.handleConceptChange(conceptId, tree);
                 }
             }
+        },
+        handleConceptChange(conceptId, tree) {
+            const concept = this.conceptMap[tree][conceptId];
+            const parents = this.conceptParents[tree][conceptId] || [];
+            if(concept.is_top_concept) {
+                sortTree(this.concepts[tree]);
+            }
+            parents.forEach(parent => {
+                const parentConcept = this.conceptMap[tree][parent];
+                if(!!parentConcept) {
+                    sortTree(parentConcept.children);
+                }
+            });
         },
         async addNote(id, tree, text, languageId) {
             const content = await addNote({

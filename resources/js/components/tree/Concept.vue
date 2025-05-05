@@ -148,7 +148,6 @@
     } from 'tree-component';
 
     import {
-        exportTree,
         toggleTreeNode,
         uploadConceptsFile,
     } from '@/helpers/tree.js';
@@ -291,7 +290,7 @@
                 });
             };
             const onExport = _ => {
-                exportTree(treeName.value);
+                conceptStore.export(treeName.value);
             };
             const onAddTopConcept = _ => {
                 if(!can('thesaurus_write')) return;

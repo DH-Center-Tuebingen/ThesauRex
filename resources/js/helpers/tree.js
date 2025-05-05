@@ -17,7 +17,7 @@ import {
 } from '@/helpers/helpers.js';
 
 export async function fetchChildren(id, tree) {
-    return await useConceptStore().rewrittenPushConcepts(id, tree);
+    return await useConceptStore().fetchChildren(id, tree);
 };
 
 export function sortParents(parents) {
@@ -74,10 +74,6 @@ export function uploadConceptsFile(file, tree, type) {
             html: true,
         });
     });
-};
-
-export function exportTree(tree, rootId) {
-    useConceptStore().export(tree, rootId);
 };
 
 export async function openPath(ids, tree = 'project') {

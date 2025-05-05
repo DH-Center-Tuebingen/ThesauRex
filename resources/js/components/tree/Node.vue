@@ -76,7 +76,6 @@
 
     import {
         getLabel,
-        exportTree,
         toggleTreeNode,
     } from '@/helpers/tree.js';
 
@@ -148,7 +147,7 @@
             const onExport = _ => {
                 if(!can('thesaurus_share')) return;
 
-                exportTree(data.value.tree, data.value.id);
+                conceptStore.export(data.value.tree, data.value.id);
             };
             const onDelete = _ => {
                 if(!can('thesaurus_delete')) return;

@@ -237,7 +237,7 @@
                     data.description = v.fields[id].description.value;
                 }
 
-                return await userStore.updateRole(id, data).then(_ => {
+                return userStore.updateRole(id, data).then(_ => {
                     state.errors[id] = {};
                     resetRoleMeta(id);
                     const role = getRoleBy(id);

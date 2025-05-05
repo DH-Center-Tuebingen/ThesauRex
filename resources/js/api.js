@@ -3,8 +3,6 @@ import {
     web_http,
 } from '@/bootstrap/http.js';
 
-import useConceptStore from '@/bootstrap/stores/concept.js';
-
 import {
     only,
     throwError,
@@ -16,16 +14,15 @@ import {
 
 // GET AND STORE (FETCH)
 export async function getCsrfCookie() {
-    await $httpQueue.add(() => web_http.get('/sanctum/csrf-cookie').then(response => {
-    }));
+    await $httpQueue.add(() => web_http.get('/sanctum/csrf-cookie').then(_ => {}));
 }
 
 export async function logout() {
-    return await $httpQueue.add(() => http.post('/auth/logout'));
+    return $httpQueue.add(() => http.post('/auth/logout'));
 }
 
 export async function fetchVersion() {
-    return await $httpQueue.add(() => http.get('/version').then(response => response.data));
+    return $httpQueue.add(() => http.get('/version').then(response => response.data));
 };
 
 export async function fetchPreData(locale) {
@@ -52,7 +49,7 @@ export async function fetchTreeData(include = ['project', 'sandbox']) {
 };
 
 export async function fetchUser() {
-    return await $httpQueue.add(() => http.get('/auth/user').then(response => response.data));
+    return $httpQueue.add(() => http.get('/auth/user').then(response => response.data));
 }
 
 export async function fetchUsers() {
@@ -65,7 +62,7 @@ export async function fetchUsers() {
 }
 
 export async function fetchLanguages() {
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.get('/language').then(response => response.data)
     );
 };
@@ -91,7 +88,7 @@ export async function fetchConcept(id, tree = 'project') {
 // GET
 
 export async function getConceptParentIds(id, tree) {
-    return await $httpQueue.add(() =>
+    return $httpQueue.add(() =>
         http.get(`/tree/${id}/parentIds?t=${tree}`).then(response => response.data)
     );
 };
@@ -101,7 +98,7 @@ export async function uploadFile(file, tree, type) {
     formData.append('file', file);
     formData.append('type', type);
 
-    return await $httpQueue.add(
+    return $httpQueue.add(
         async () => http.post(`/tree?t=${tree}`, formData).then(response => response.data)
         .catch(error => {
             throwError(error);
@@ -118,14 +115,14 @@ export async function exportTree(tree, rootId) {
     }
     endpoint += `?t=${tree}`;
 
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.get(endpoint)
     );
 };
 
 // POST
 export async function login(credentials) {
-    return await $httpQueue.add(() => http.post('/auth/login', credentials).then(response => response.data));
+    return $httpQueue.add(() => http.post('/auth/login', credentials).then(response => response.data));
 }
 export async function addUser(user) {
     const data = only(user, ['name', 'nickname', 'email', 'password']);
@@ -137,7 +134,7 @@ export async function addUser(user) {
 export async function setUserAvatar(file) {
     let formData = new FormData();
     formData.append('file', file);
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.post(`user/avatar`, formData).then(response => response.data)
     );
 };
@@ -159,7 +156,7 @@ export async function sendResetPasswordMail(email) {
 };
 
 export async function addLanguage(languageData) {
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.post('/language', languageData).then(response => response.data)
     );
 };
@@ -167,7 +164,7 @@ export async function addLanguage(languageData) {
 // PATCH
 
 export async function toggleTopLevelState(id, tree) {
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.patch(`/tree/state/tlc/${id}?t=${tree}`, {}).then(response => response.data)
     );
 };
@@ -176,7 +173,7 @@ export async function patchLabel(id, content, tree) {
     const data = {
         label: content,
     };
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.patch(`/tree/label/${id}?t=${tree}`, data).then(response => response.data)
     );
 };
@@ -185,7 +182,7 @@ export async function patchNote(id, content, tree) {
     const data = {
         content: content,
     };
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.patch(`/tree/note/${id}?t=${tree}`, data).then(response => response.data)
     );
 };
@@ -195,7 +192,7 @@ export async function patchPreferences(changedPreferences, uid) {
     const data = {
         changes: changedPreferences,
     };
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.patch(endpoint, data).then(response => response.data)
     );
 };
@@ -235,19 +232,19 @@ export async function addNote(data) {
 // DELETE
 
 export async function deleteLanguage(languageId) {
-    await $httpQueue.add(
+    return $httpQueue.add(
         () => http.delete(`/language/${languageId}`)
     );
 };
 
 export async function deleteLabel(id, tree) {
-    await $httpQueue.add(
+    return $httpQueue.add(
         () => http.delete(`/tree/label/${id}?t=${tree}`).then(response => response.data)
     );
 };
 
 export async function deleteNote(id, tree) {
-    await $httpQueue.add(
+    return $httpQueue.add(
         () => http.delete(`/tree/note/${id}?t=${tree}`).then(response => response.data)
     );
 };
@@ -259,7 +256,7 @@ export async function deleteConcept(id, tree, action, actionParams) {
             urlParams += `&${k}=${actionParams[k]}`;
         }
     }
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.delete(`/tree/concept/${id}?t=${tree}&${urlParams}`).then(response => response.data)
     );
 };
@@ -272,31 +269,26 @@ export async function addConcept(concept, tree, broader_id) {
     if(broader_id) {
         data.parent_id = broader_id;
     }
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.put(`/tree/concept?t=${tree}`, data).then(response => response.data)
     )
 };
 
 export async function cloneAcrossTree(narrower_id, broader_id, srcNodeTree, tgtNodeTree) {
     const endpoint = `/tree/concept/clone/${narrower_id}/to/${broader_id}?t=${tgtNodeTree}&s=${srcNodeTree}`;
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.put(endpoint).then(response => response.data)
     );
 };
 
 export async function addRelation(narrower_id, broader_id, tree) {
-    try {
-        return await $httpQueue.add(
-            () => http.put(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
-        );
-    } catch(e) {
-        throwError(e);
-        return;
-    }
+    return $httpQueue.add(
+        () => http.put(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
+    );
 };
 
 export async function removeRelation(narrower_id, broader_id, tree) {
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.delete(`/tree/concept/${narrower_id}/broader/${broader_id}?t=${tree}`)
     );
 };
@@ -314,7 +306,7 @@ export async function deleteRole(id) {
 };
 
 export async function deleteUserAvatar() {
-    return await $httpQueue.add(
+    return $httpQueue.add(
         () => http.delete(`user/avatar`).then(response => response.data)
     );
 };

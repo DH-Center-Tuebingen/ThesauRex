@@ -30,18 +30,18 @@ export const useSystemStore = defineStore('system', {
         standalone: true,
     }),
     getters: {
+        getPreference: state => key => {
+            return useUserStore().getPreferenceByKey(key);
+        },
         hasPreference: state => (key, property) => {
-            const preference = useUserStore().getPreferenceByKey(key);
+            const preference = this.getPreference(key);
             if(preference) {
                 return preference[property] || preference;
             }
             return false;
         },
-        getPreference: state => key => {
-            return useUserStore().getPreferenceByKey(key);
-        },
         getProjectName: state => slug => {
-            const projectName = useUserStore().getPreferenceByKey('prefs.project-name');
+            const projectName = this.getPreference('prefs.project-name');
             return slug ? slugify(projectName) : projectName;
         },
     },
@@ -81,9 +81,6 @@ export const useSystemStore = defineStore('system', {
         },
         async patchPreferences(changedPreferences, uid) {
             return await patchPreferences(changedPreferences, uid);
-        },
-        setStandaloneState(data) {
-            this.standalone = data;
         },
     },
 });

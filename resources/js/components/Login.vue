@@ -114,7 +114,6 @@
                 }
                 await userStore.login(credentials)
                     .then(_ => {
-                        state.submitting = false;
                         state.error = {};
                         if(route.query.redirectTo) {
                             router.push(route.query.redirectTo);
@@ -125,11 +124,11 @@
                         }
                     })
                     .catch(e => {
-                        console.log(e)
-                        state.submitting = false;
                         userStore.logout();
                         state.error = getErrorMessages(e);
                         return Promise.reject();
+                    }).finally(_ => {
+                        state.submitting = false;
                     });
             };
 
