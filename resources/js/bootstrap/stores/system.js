@@ -34,14 +34,14 @@ export const useSystemStore = defineStore('system', {
             return useUserStore().getPreferenceByKey(key);
         },
         hasPreference: state => (key, property) => {
-            const preference = this.getPreference(key);
+            const preference = state.getPreference(key);
             if(preference) {
                 return preference[property] || preference;
             }
             return false;
         },
         getProjectName: state => slug => {
-            const projectName = this.getPreference('prefs.project-name');
+            const projectName = state.getPreference('prefs.project-name');
             return slug ? slugify(projectName) : projectName;
         },
     },
