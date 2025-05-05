@@ -238,7 +238,10 @@ export const useConceptStore = defineStore('concept', {
             }
 
             const removeBroaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;
-            this.handleRemoveRelation(removeBroaders, [id], tree);
+            
+            // Relations on the server-side are automatically removed (foreign key)
+            // we must only remove the references in the store.
+            this.handleRemoveRelation(removeBroaders, id, tree);
             this.deleteConceptReferences(id, tree);
         },
         deleteConceptReferences(id, tree) {
@@ -389,7 +392,6 @@ export const useConceptStore = defineStore('concept', {
         },
         async removeRelation(narrowerId, broaderId, tree) {
             await removeRelation(narrowerId, broaderId, tree);
-
             this.handleRemoveRelation(broaderId, narrowerId, tree);
         },
         handleAddRelation(broaders, narrowers, tree) {
