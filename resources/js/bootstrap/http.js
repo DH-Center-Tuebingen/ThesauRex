@@ -5,9 +5,9 @@ import {
     throwError,
 } from '@/helpers/helpers.js';
 
-web_http.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-web_http.defaults.withCredentials = true;
-web_http.defaults.withXSRFToken = true;
+axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
 
 export const web_http = axios.create();
 
