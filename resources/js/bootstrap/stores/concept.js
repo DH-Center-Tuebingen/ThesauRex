@@ -11,10 +11,12 @@ import {
     deleteNote,
     exportTree,
     fetchChildren,
+    fetchConcept,
     fetchTreeData,
     getConceptParentIds,
     patchLabel,
     patchNote,
+    removeRelation,
     uploadFile,
     toggleTopLevelState,
 } from '@/api.js';
@@ -235,7 +237,7 @@ export const useConceptStore = defineStore('concept', {
             }
 
             const removeBroaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;
-            this.removeRelation(removeBroaders, [id], tree);
+            this.handleRemoveRelation(removeBroaders, [id], tree);
             this.deleteConceptReferences(id, tree);
         },
         deleteConceptReferences(id, tree) {
