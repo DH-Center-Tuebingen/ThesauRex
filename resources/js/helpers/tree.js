@@ -154,43 +154,6 @@ export function unnode(node) {
     ]);
 };
 
-// export class Node {
-//     constructor(data) {
-//         Object.assign(this, data);
-//         this.nid = `tree-node-${this.id}`;
-//         this.label = 'Default Label';
-//         this.treeNodeSpec = {
-//             idProperty: 'nid',
-//             expandable: this.children_count > 0,
-//             selectable: true,
-//             draggable: true,
-//             allowDrop: true,
-//             state: {
-//                 expanded: false,
-//                 selected: false,
-//             },
-//             loadChildrenAsync: parent => {
-//                 return fetchChildren(parent.id, parent.tree);
-//             }
-//         };
-//         this.children = ref([]);
-//         this.childrenLoaded = ref(this.children.length == this.children_count);
-//         this.children_count = ref(this.children_count);
-//     }
-// }
-
-// function childrenPlaceholder(cnt, parentId) {
-//     const children = [];
-//     for(let i=0; i<cnt; i++) {
-//         children.push(new Node({
-//             id: `${parentId}-children-${i+1}`,
-//             label: `Children #${i+1}`,
-//             is_placeholder: true,
-//         }))
-//     }
-//     return children;
-// }
-
 export class Node {
     constructor(data, component) {
         Object.assign(this, data);
@@ -218,8 +181,5 @@ export class Node {
         this.childrenLoaded = ref(this.children.length == this.children_count);
         this.children_count = ref(this.children_count);
         this.component = component || TreeNode;
-        // this.dragDelay = vm.dragDelay;
-        // this.dragAllowed = _ => vm.isDragAllowed;
-        // this.onToggle = vm.itemToggle;
     }
 }
