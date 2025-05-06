@@ -233,13 +233,16 @@ export const useConceptStore = defineStore('concept', {
                 } else if(action == 'rerelate') {
                     broaders = [parameters.p];
                 }
+                // Removes all relations between the deleted element and its children
                 this.handleRemoveRelation(id, narrowerIds, tree);
+                
+                // Adds all relations between the new parent and the deleted children
                 this.handleAddRelation(broaders, narrowerIds, tree);
             }
 
             const removeBroaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;
             
-            // Relations on the server-side are automatically removed (foreign key)
+            // Relations on the server-side are automatically removed (cascade delete)
             // we must only remove the references in the store.
             this.handleRemoveRelation(removeBroaders, id, tree);
             this.deleteConceptReferences(id, tree);
