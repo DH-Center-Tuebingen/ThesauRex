@@ -233,7 +233,8 @@ export const useConceptStore = defineStore('concept', {
                 } else if(action == 'rerelate') {
                     broaders = [parameters.p];
                 }
-                this.addRelation(broaders, narrowerIds, tree);
+                this.handleRemoveRelation(id, narrowerIds, tree);
+                this.handleAddRelation(broaders, narrowerIds, tree);
             }
 
             const removeBroaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;
