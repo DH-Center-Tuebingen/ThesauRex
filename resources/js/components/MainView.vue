@@ -71,10 +71,24 @@
         reactive,
     } from 'vue';
 
+    import {
+        onBeforeRouteLeave,
+    } from 'vue-router';
+
     import {useI18n} from 'vue-i18n';
     import {ResizableColumns} from 'dhc-components';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
+
+    import {
+        subscribeSystemChannel,
+        unsubscribeSystemChannel,
+        listenToList,
+    } from '@/helpers/websocket.js';
+
+    import {
+        handleTestEvent,
+    } from '@/handlers/system.js';
 
     export default {
         components: {
@@ -110,7 +124,19 @@
             }, {
                 name: 'detail',
                 width: 700,
-            }])
+            }]);
+
+            const channels = {};
+
+            onMounted(_ => {
+                channels.system = subscribeSystemChannel();
+                listenToList(channels.system, [
+                    handleTestEvent,
+                ]);
+            });
+            onBeforeRouteLeave((to, from) => {
+                unsubscribeSystemChannel();
+            });
 
             // RETURN
             return {

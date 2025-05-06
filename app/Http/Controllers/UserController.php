@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 class UserController extends Controller
 {
     public function __construct() {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:sanctum', ['except' => ['login']]);
     }
 
     // GET
@@ -305,7 +305,7 @@ class UserController extends Controller
     public function restoreUser($id)
     {
         $user = auth()->user();
-        if (!$user->can('users_roles_delete')) {
+        if(!$user->can('users_roles_delete')) {
             return response()->json([
                 'error' => __('You do not have the permission to restore users')
             ], 403);
@@ -313,7 +313,7 @@ class UserController extends Controller
 
         try {
             $delUser = User::onlyTrashed()->findOrFail($id);
-        } catch (ModelNotFoundException $e) {
+        } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => __('This user does not exist')
             ], 400);
