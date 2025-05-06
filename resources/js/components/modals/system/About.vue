@@ -82,7 +82,7 @@
     } from 'vue';
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useSystemStore from '@/bootstrap/stores/system.js';
 
     import {
         date,
@@ -98,6 +98,7 @@
         emits: ['closing'],
         setup(props, context) {
             const { t } = useI18n();
+            const systemStore = useSystemStore();
 
             // FUNCTIONS
             const closeModal = _ => {
@@ -110,7 +111,7 @@
             // DATA
             const contributors = getContributors();
             const state = reactive({
-                version: computed(_ => store.getters.version),
+                version: computed(_ => systemStore.version),
             });
 
             // ON MOUNTED

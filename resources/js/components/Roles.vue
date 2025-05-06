@@ -117,7 +117,7 @@
 
     import * as yup from 'yup';
 
-    import store from '@/bootstrap/store.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import { useToast } from '@/plugins/toast.js';
 
@@ -139,14 +139,11 @@
         date,
     } from '@/helpers/filters.js';
 
-    // import {
-    //     patchRoleData,
-    // } from '@/api.js';
-
     export default {
         setup(props) {
             const { t } = useI18n();
             const toast = useToast();
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const updateValidationState = roles => {
@@ -240,15 +237,9 @@
                     data.description = v.fields[id].description.value;
                 }
 
-                return await patchRoleData(id, data).then(data => {
+                return userStore.updateRole(id, data).then(_ => {
                     state.errors[id] = {};
                     resetRoleMeta(id);
-                    store.dispatch('updateRole', {
-                        id: data.id,
-                        display_name: data.display_name,
-                        description: data.description,
-                        updated_at: data.updated_at,
-                    });
                     const role = getRoleBy(id);
                     const msg = t('settings.role.toasts.updated.msg', {
                         name: role.display_name
@@ -332,7 +323,7 @@
             // DATA
             const state = reactive({
                 setupFinished: false,
-                roleList: computed(_ => store.getters.roles()),
+                roleList: computed(_ => userStore.roles),
                 dataInitialized: computed(_ => state.roleList.length > 0),
                 errors: {},
             });

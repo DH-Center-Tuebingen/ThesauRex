@@ -1,41 +1,23 @@
 import TreeNode from '@/components/tree/Node.vue';
 
 import { ref } from 'vue';
-import store from '@/bootstrap/store.js';
 import { getNodeFromPath } from 'tree-component';
 
 import i18n from '@/bootstrap/i18n.js';
 
+import useSystemStore from '@/bootstrap/stores/system.js';
+import useConceptStore from '@/bootstrap/stores/concept.js';
+
 import { addToast } from '@/plugins/toast.js';
-
-import {
-    only,
-} from '@/helpers/helpers.js';
-
-import {
-    fetchChildren as fetchChildrenApi,
-    uploadFile,
-    exportTree as exportTreeApi,
-    fetchTreeData,
-} from '@/api.js';
 
 import {
     emojiFlag,
     isArray,
-    getPreference,
-    slugify,
-    createDownloadLink,
+    only,
 } from '@/helpers/helpers.js';
 
 export async function fetchChildren(id, tree) {
-    tree = tree != 'sandbox' ? 'project' : tree;
-    return fetchChildrenApi(id, tree).then(data => {
-        return store.dispatch("addConcepts", {
-            concepts: data,
-            tree: tree,
-        });
-    });
-
+    return await useConceptStore().fetchChildren(id, tree);
 };
 
 export function sortParents(parents) {
@@ -78,7 +60,7 @@ function sortTreeLevel(tree, fn) {
 };
 
 export function uploadConceptsFile(file, tree, type) {
-    return uploadFile(file, tree, type).then(data => {
+    return useConceptStore().uploadFile(file, tree, type).then(data => {
         const msg = i18n.global.t('tree.import.toast.finish.message', {
             lbl_skip: data.skipped_labels,
             lbl_ign: data.ignored_labels,
@@ -91,32 +73,13 @@ export function uploadConceptsFile(file, tree, type) {
             autohide: false,
             html: true,
         });
-
-        store.dispatch('resetConcepts', {
-            tree: tree,
-        });
-        return fetchTreeData([tree]);
-    });
-};
-
-export function exportTree(tree, rootId) {
-    let filename = '';
-    if(rootId) {
-        const concept = store.getters.conceptsFromMap(tree)[rootId];
-        const label = slugify(getLabel(concept));
-        filename = `thesaurex-${tree}-${label}-export.rdf`;
-    } else {
-        filename = `thesaurex-${tree}-export.rdf`;
-    }
-
-    exportTreeApi(tree, rootId).then(response => {
-        createDownloadLink(response.data, filename, false, response.headers['content-type']);
     });
 };
 
 export async function openPath(ids, tree = 'project') {
+    const conceptStore = useConceptStore();
     const index = ids.pop();
-    const elem = store.getters.conceptsFromMap(tree)[index];
+    const elem = conceptStore.conceptMap[tree][index];
     if(ids.length == 0) {
         return elem;
     }
@@ -128,7 +91,7 @@ export async function openPath(ids, tree = 'project') {
         // Have to get current elemen from tree (not entities array) as well
         // otherwise children and childrenLoaded props are not correctly set
         const htmlElem = document.getElementById(`${tree}-tree-node-${elem.id}`).parentElement;
-        const node = getNodeFromPath(store.getters.conceptsFromTree(tree), htmlElem.getAttribute('data-path').split(','));
+        const node = getNodeFromPath(conceptStore.concepts[tree], htmlElem.getAttribute('data-path').split(','));
         node.children = children;
         node.childrenLoaded = true;
     }
@@ -151,7 +114,7 @@ export function toggleTreeNode(node, tree) {
 export function getLabel(node, displayForeign = false) {
     if(!node) return 'No Title';
     if(!node.labels || !node.labels.length) return node.concept_url;
-    const prefLang = getPreference('prefs.gui-language');
+    const prefLang = useSystemStore().getPreference('prefs.gui-language');
     if(node.labels.length > 1) {
         let sortIndex = l => {
             let idx = 0;
@@ -191,50 +154,13 @@ export function unnode(node) {
     ]);
 };
 
-// export class Node {
-//     constructor(data) {
-//         Object.assign(this, data);
-//         this.nid = `tree-node-${this.id}`;
-//         this.label = 'Default Label';
-//         this.treeNodeSpec = {
-//             idProperty: 'nid',
-//             expandable: this.children_count > 0,
-//             selectable: true,
-//             draggable: true,
-//             allowDrop: true,
-//             state: {
-//                 expanded: false,
-//                 selected: false,
-//             },
-//             loadChildrenAsync: parent => {
-//                 return fetchChildren(parent.id, parent.tree);
-//             }
-//         };
-//         this.children = ref([]);
-//         this.childrenLoaded = ref(this.children.length == this.children_count);
-//         this.children_count = ref(this.children_count);
-//     }
-// }
-
-// function childrenPlaceholder(cnt, parentId) {
-//     const children = [];
-//     for(let i=0; i<cnt; i++) {
-//         children.push(new Node({
-//             id: `${parentId}-children-${i+1}`,
-//             label: `Children #${i+1}`,
-//             is_placeholder: true,
-//         }))
-//     }
-//     return children;
-// }
-
 export class Node {
     constructor(data, component) {
         Object.assign(this, data);
         this.nid = this.id;
-        if(!!store.getters.conceptsFromMap(data.tree)[this.id]) {
+        if(!!useConceptStore().conceptMap[data.tree][this.id]) {
             let cntr = 1;
-            while(!!store.getters.conceptsFromMap(data.tree)[`${this.id}_${cntr}`]) {
+            while(!!useConceptStore().conceptMap[data.tree][`${this.id}_${cntr}`]) {
                 cntr++;
             }
             this.id = `${this.id}_${cntr}`;
@@ -255,8 +181,5 @@ export class Node {
         this.childrenLoaded = ref(this.children.length == this.children_count);
         this.children_count = ref(this.children_count);
         this.component = component || TreeNode;
-        // this.dragDelay = vm.dragDelay;
-        // this.dragAllowed = _ => vm.isDragAllowed;
-        // this.onToggle = vm.itemToggle;
     }
 }

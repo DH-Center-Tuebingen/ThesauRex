@@ -65,7 +65,7 @@ export default ({mode}) => {
                 '@': resolve(_dirname, './resources/js/'),
                 '~': resolve(_dirname, './node_modules/'),
                 '!': resolve(_dirname, './public/'),
-                '%store': resolve(_dirname, './resources/js/bootstrap/store.js'),
+                '%stores': resolve(_dirname, './resources/js/bootstrap/store/'),
                 '%router': resolve(_dirname, './resources/js/bootstrap/router.js'),
             },
         },

@@ -1,23 +1,14 @@
-import store from '@/bootstrap/store.js';
 import i18n from '@/bootstrap/i18n.js';
+
+import useConceptStore from '@/bootstrap/stores/concept.js';
+import useLanguageStore from '@/bootstrap/stores/language.js';
+import useUserStore from '@/bootstrap/stores/user.js';
 
 import { addToast } from '@/plugins/toast.js';
 
 import {
     useModal,
 } from 'vue-final-modal';
-
-import {
-    addUser,
-    addRole,
-    patchRoleData,
-    deactivateUser,
-    deleteRole,
-    addLanguage,
-    deleteLanguage,
-    addConcept,
-    deleteConcept,
-} from '@/api.js';
 
 import {
     can,
@@ -125,11 +116,10 @@ export function showAddUser(onAdded) {
             name: uid,
             onAdd(e) {
                 if(!can('users_roles_create')) return;
-                addUser(e).then(user => {
+                useUserStore().addUser(e).then(user => {
                     if(!!onAdded) {
-                        onAdded();
+                        onAdded(user);
                     }
-                    store.dispatch('addUser', user);
                     modal.destroy();
                 });
             },
@@ -153,11 +143,10 @@ export function showDeactivateUser(user, onDeactivated) {
                     modal.destroy();
                     return;
                 }
-                deactivateUser(user.id).then(data => {
+                useUserStore().deactivateUser(user.id).then(data => {
                     if(!!onDeactivated) {
-                        onDeactivated();
+                        onDeactivated(data);
                     }
-                    store.dispatch('deactivateUser', data);
                     modal.destroy();
                 })
             },
@@ -180,11 +169,7 @@ export function showAccessControlModal(roleId) {
                 const data = {
                     permissions: e,
                 };
-                patchRoleData(roleId, data).then(data => {
-                    store.dispatch('updateRole', {
-                        id: roleId,
-                        permissions: data.permissions,
-                    });
+                useUserStore().updateRole(roleId, data).then(_ => {
                     const role = getRoleBy(roleId);
                     const msg = i18n.global.t('settings.role.toasts.updated.msg', {
                         name: role.display_name
@@ -193,7 +178,8 @@ export function showAccessControlModal(roleId) {
                     addToast(msg, title, {
                         channel: 'success',
                     });
-                })
+                    // modal.destroy();
+                });
             },
             onCancel(e) {
                 modal.destroy();
@@ -211,11 +197,10 @@ export function showAddRole(onAdded) {
             name: uid,
             onAdd(e) {
                 if(!can('users_roles_create')) return;
-                addRole(e).then(role => {
+                useUserStore().addRole(e).then(role => {
                     if(!!onAdded) {
-                        onAdded();
+                        onAdded(role);
                     }
-                    store.dispatch('addRole', role);
                     modal.destroy();
                 });
             },
@@ -237,11 +222,10 @@ export function showDeleteRole(role, onDeleted) {
             onConfirm(e) {
                 if(!can('users_roles_delete')) return;
 
-                deleteRole(role.id).then(_ => {
+                useUserStore().deleteRole(role).then(_ => {
                     if(!!onDeleted) {
                         onDeleted();
                     }
-                    store.dispatch('deleteRole', role);
                     modal.destroy();
                 });
             },
@@ -265,7 +249,7 @@ export function showCreateConcept(tree, pid, initValue = '') {
             onAdd(concept) {
                 if(!can('thesaurus_create')) return;
 
-                addConcept(concept, tree, pid).then(_ => {
+                useConceptStore().addConcept(concept, tree, pid).then(_ => {
                     modal.destroy();
                 });
             },
@@ -288,7 +272,7 @@ export function showDeleteConcept(tree, conceptId) {
             onConfirm(e) {
                 if(!can('thesaurus_delete')) return;
 
-                deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
+                useConceptStore().deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
                     modal.destroy();
                 });
             },
@@ -309,7 +293,7 @@ export function showAddLanguage() {
             onAdd(e) {
                 if(!can('thesaurus_create')) return;
 
-                addLanguage(e).then(_ => {
+                useLanguageStore().addLanguage(e).then(_ => {
                     modal.destroy();
                 });
             },
@@ -331,7 +315,7 @@ export function showDeleteLanguage(languageId) {
             onDelete(e) {
                 if(!can('thesaurus_delete')) return;
 
-                deleteLanguage(languageId).then(_ => {
+                useLanguageStore().deleteLanguage(languageId).then(_ => {
                     modal.destroy();
                 });
             },

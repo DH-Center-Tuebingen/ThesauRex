@@ -88,7 +88,7 @@
                                     <span class="text-danger fw-bold">*</span>
                                     :
                                 </div>
-                                <concept-search
+                                <ConceptSearch
                                     class="m-0 w-50"
                                     :add-option="false"
                                     :exclude="[state.concept.id]"
@@ -123,7 +123,7 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
 
     import {
         emojiFlag,
@@ -151,6 +151,7 @@
                 conceptId,
             } = toRefs(props);
             const { t } = useI18n();
+            const conceptStore = useConceptStore();
 
             // FUNCTIONS
             const closeModal = _ => {
@@ -177,7 +178,7 @@
                 action: 'cascade',
                 relateConcept: null,
                 params: {},
-                concept: computed(_ => store.getters.conceptsFromMap(tree.value)[conceptId.value]),
+                concept: computed(_ => conceptStore.conceptMap[tree.value][conceptId.value]),
                 isValid: computed(_ => !!state.action && (state.action != 'rerelate' || !!state.relateConcept)),
             });
 

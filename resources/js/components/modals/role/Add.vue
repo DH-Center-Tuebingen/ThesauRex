@@ -113,7 +113,7 @@
 
     import * as yup from 'yup';
 
-    import store from '@/bootstrap/store.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import {
         getClassByValidation,
@@ -126,6 +126,7 @@
         emits: ['add', 'cancel'],
         setup(props, context) {
             const { t } = useI18n();
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const closeModal = _ => {
@@ -173,7 +174,7 @@
 
             const state = reactive({
                 form: formMeta,
-                rolePresets: computed(_ => store.getters.rolePresets),
+                rolePresets: computed(_ => userStore.rolePresets),
             });
             const v = reactive({
                 fields: {

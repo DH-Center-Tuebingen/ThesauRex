@@ -108,11 +108,10 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import store from '@/bootstrap/store.js';
+    import useSystemStore from '@/bootstrap/stores/system.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import { useToast } from '@/plugins/toast.js';
-
-    import { patchPreferences } from '@/api.js';
 
     import {
         can,
@@ -137,6 +136,8 @@
             const { t, locale } = useI18n();
             const route = useRoute();
             const toast = useToast();
+            const systemStore = useSystemStore();
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const trackChanges = (label, data) => {
@@ -160,10 +161,7 @@
                         label: k,
                     });
                 }
-                const data = {
-                    changes: entries,
-                };
-                patchPreferences(data, route.params.id).then(data => {
+                systemStore.patchPreferences(entries, route.params.id).then(data => {
                     // Update language if value has changed
                     if(!!updatedLanguage) {
                         locale.value = updatedLanguage;
@@ -182,7 +180,7 @@
             const state = reactive({
                 dirtyData: {},
                 hasDirtyData: computed(_ => Object.keys(state.dirtyData).length > 0),
-                preferences: computed(_ => store.getters.preferences),
+                preferences: computed(_ => userStore.preferences),
                 prefsLoaded: computed(_ => !!state.preferences),
                 browserLanguage: navigator.language ? navigator.language.split('-')[0] : 'en',
             });

@@ -80,28 +80,22 @@
     import {
         computed,
         reactive,
-        ref,
         watch,
     } from 'vue';
 
     import { useI18n } from 'vue-i18n';
 
-    import auth from '@/bootstrap/auth.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import {
         getUser,
         _cloneDeep,
     } from '@/helpers/helpers.js';
 
-    import {
-        setUserAvatar,
-        patchUserData,
-        deleteUserAvatar,
-    } from '@/api.js';
-
     export default {
         setup(props) {
             const { t } = useI18n();
+            const userStore = useUserStore();
 
             // FETCH
 
@@ -124,8 +118,8 @@
                 // No changes, no update
                 if(Object.keys(data).length === 0) return;
 
-                patchUserData(state.user.id, data).then(data => {
-                    updateUserObjects(data);
+                userStore.updateUser(state.user.id, data, true).then(patchedData => {
+                    updateUserObjects(patchedData);
                 });
             };
             const resetUserInfo = _ => {
@@ -133,7 +127,7 @@
                 state.isDirty = false;
             };
             const deleteAvatar = _ => {
-                deleteUserAvatar().then(data => {
+                userStore.deleteAvatar().then(_ => {
                     updateUserObjects({
                         avatar: false,
                         avatar_url: '',
@@ -154,8 +148,8 @@
                 state.avatarUser = appliedMetadata(getUser());
             };
             const uploadFile = (file, component) => {
-                return setUserAvatar(file.file).then(data => {
-                    updateUserObjects(data)
+                userStore.setAvatar(file.file).then(data => {
+                    updateUserObjects(data);
                 });
             };
             const inputFile = (newFile, oldFile) => {

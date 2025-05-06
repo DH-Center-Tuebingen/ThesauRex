@@ -12,7 +12,7 @@
                 <h6 class="card-subtitle mb-2 text-muted">
                     {{ t('global.login_subtitle') }}
                 </h6>
-                <p class="card-text">
+                <div class="card-text">
                     <form @submit.prevent="login">
                         <div class="mb-2">
                             <label for="email" class="col-md-4 col-form-label">
@@ -60,7 +60,7 @@
                             </div>
                         </div>
                     </form>
-                </p>
+                </div>
             </div>
         </div>
     </div>
@@ -75,74 +75,69 @@
 
     import { useI18n } from 'vue-i18n';
     import { useRoute } from 'vue-router';
-    import auth from '@/bootstrap/auth.js';
     import router from '@/bootstrap/router.js';
+    import useUserStore from '@/bootstrap/stores/user.js';
 
     import {
-        initApp,
         getErrorMessages,
-        getValidClass
+        getValidClass,
     } from '@/helpers/helpers.js';
 
     export default {
         setup() {
             const { t, locale } = useI18n();
+            const route = useRoute();
+            const userStore = useUserStore();
             // DATA
             const state = reactive({
                 user: {},
                 redirect: {
                     name: 'home'
                 },
+                submitting: false,
                 error: {},
             });
 
             // FUNCTIONS
-            const login = _ => {
-                let data = {
+            const login = async _ => {
+                state.submitting = true;
+                state.error = {};
+                const credentials = {
                     password: state.user.password
                 };
                 // dirty check if email field should be treated
                 // as actual email address or nickname
                 if(state.user.email.includes('@')) {
-                    data.email = state.user.email;
+                    credentials.email = state.user.email;
                 } else {
-                    data.nickname = state.user.email;
+                    credentials.nickname = state.user.email;
                 }
-                auth.login({
-                    data: data,
-                    staySignedIn: state.user.remember,
-                    redirect: state.redirect,
-                    fetchUser: true
-                })
-                .then(_ => initApp(locale))
-                .catch(e => {
-                    state.error = getErrorMessages(e);
-                    return Promise.reject();
-                })
-                .then(_ => {
-                    state.error = {};
-                });
+                await userStore.login(credentials)
+                    .then(_ => {
+                        state.error = {};
+                        if(route.query.redirectTo) {
+                            router.push(route.query.redirectTo);
+                        } else {
+                            router.push({
+                                name: 'home',
+                            });
+                        }
+                    })
+                    .catch(e => {
+                        userStore.logout();
+                        state.error = getErrorMessages(e);
+                        return Promise.reject();
+                    }).finally(_ => {
+                        state.submitting = false;
+                    });
             };
 
             // ON MOUNTED
             onMounted(_ => {
-                if(auth.check()) {
+                if(userStore.userLoggedIn) {
                     router.push({
                         name: 'home'
                     });
-                }
-                const lastRoute = auth.redirect() ? auth.redirect().from : undefined;
-                const currentRoute = useRoute();
-                if(lastRoute && lastRoute.name != 'login') {
-                    state.redirect = {
-                        name: lastRoute.name,
-                        params: lastRoute.params,
-                        query: lastRoute.query
-                    };
-                } else if(currentRoute.query && currentRoute.query.redirect) {
-                    state.redirect = {
-                        path: currentRoute.query.redirect
-                    };
                 }
             });
 

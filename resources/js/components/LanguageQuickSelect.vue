@@ -50,9 +50,11 @@
         computed,
     } from 'vue';
 
-    import {useStore} from '@/bootstrap/store.js';
+    import useLanguageStore from '@/bootstrap/stores/language.js';
 
-    import {emojiFlag} from '@/helpers/helpers.js';
+    import {
+        emojiFlag,
+    } from '@/helpers/helpers.js';
 
     export default {
         props: {
@@ -62,10 +64,10 @@
             },
         },
         setup(props) {
-            const store = useStore();
+            const languageStore = useLanguageStore();
 
             const isActive = language => {
-                return store.getters.activeLanguage?.id === language?.id;
+                return languageStore.activeLanguage?.id === language?.id;
             };
 
             const getClass = language => {
@@ -78,26 +80,26 @@
             };
 
             const selectLanguage = lang => {
-                store.dispatch('setActiveLanguage', lang);
+                languageStore.setActiveLanguage(lang);
             };
 
             const shownLanguages = computed(_ => {
-                const activeIdx = store.getters.languages.findIndex(language => isActive(language));
+                const activeIdx = languageStore.languages.findIndex(language => isActive(language));
                 if(activeIdx >= props.maxButtons) {
                     return [
-                        store.getters.languages[activeIdx],
-                        ...store.getters.languages.slice(0, props.maxButtons - 1),
+                        languageStore.languages[activeIdx],
+                        ...languageStore.languages.slice(0, props.maxButtons - 1),
                     ];
                 } else {
-                    return store.getters.languages.slice(0, props.maxButtons);
+                    return languageStore.languages.slice(0, props.maxButtons);
                 }
             });
             const dropdownLanguages = computed(_ => {
-                const activeIdx = store.getters.languages.findIndex(language => isActive(language));
+                const activeIdx = languageStore.languages.findIndex(language => isActive(language));
                 if(activeIdx >= props.maxButtons) {
-                    return store.getters.languages.slice(props.maxButtons - 1).filter(language => !isActive(language));
+                    return languageStore.languages.slice(props.maxButtons - 1).filter(language => !isActive(language));
                 } else {
-                    return store.getters.languages.slice(props.maxButtons);
+                    return languageStore.languages.slice(props.maxButtons);
                 }
             });
 

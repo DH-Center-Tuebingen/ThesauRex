@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -13,4 +16,4 @@
 
 Route::get('/', 'HomeController@index')->name('home');
 
-Auth::routes();
+Auth::routes(["middleware" => ["auth:sanctum"]]);

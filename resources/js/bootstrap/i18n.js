@@ -17,7 +17,7 @@ const i18n = createI18n({
     legacy: false,
     locale: defaultLocale,
     fallbackLocale: 'en',
-    messages: messages
+    messages: messages,
 });
 
 window.i18n = i18n.global;

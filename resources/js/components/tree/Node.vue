@@ -67,11 +67,7 @@
 
     import { getNodeFromPath } from 'tree-component';
 
-    import store from '@/bootstrap/store.js';
-
-    import {
-        removeRelation,
-    } from '@/api.js';
+    import useConceptStore from '@/bootstrap/stores/concept.js';
 
     import {
         showCreateConcept,
@@ -80,7 +76,6 @@
 
     import {
         getLabel,
-        exportTree,
         toggleTreeNode,
     } from '@/helpers/tree.js';
 
@@ -106,6 +101,7 @@
             const {
                 data,
             } = toRefs(props);
+            const conceptStore = useConceptStore();
 
             // FETCH
 
@@ -151,7 +147,7 @@
             const onExport = _ => {
                 if(!can('thesaurus_share')) return;
 
-                exportTree(data.value.tree, data.value.id);
+                conceptStore.export(data.value.tree, data.value.id);
             };
             const onDelete = _ => {
                 if(!can('thesaurus_delete')) return;
@@ -163,7 +159,7 @@
 
                 const narrower_id = data.value.nid || data.value.id;
                 const broader_id = state.parent.nid || parent.id;
-                removeRelation(narrower_id, broader_id, data.value.tree);
+                conceptStore.removeRelation(narrower_id, broader_id, data.value.tree);
             };
 
             // DATA
@@ -173,7 +169,7 @@
                 bsElem: null,
                 ddVisible: false,
                 label: computed(_ => getLabel(data.value)),
-                concept: computed(_ => store.getters.selectedConcept.data),
+                concept: computed(_ => conceptStore.concept.data),
                 isTopConcept: computed(_ => state.concept.is_top_concept),
                 hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
                 canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
@@ -185,7 +181,7 @@
                 // pop element itself, because we want parent node
                     path.pop();
                     if(path.length == 0) return;
-                    return getNodeFromPath(store.getters.conceptsFromTree(data.value.tree), path);
+                    return getNodeFromPath(conceptStore.concepts[data.value.tree], path);
                 }),
                 parentLabel: computed(_ => getLabel(state.parent)),
                 isSelected: computed(_ => state.concept && state.concept.id === data.value.nid),
@@ -233,31 +229,5 @@
                 state,
             };
         },
-        // methods: {
-        //     onDragEnter() {
-        //         if(!this.data.dragAllowed()) return;
-        //         this.asyncToggle.clear();
-        //         this.asyncToggle();
-        //     },
-        //     onDragLeave(item) {
-        //     },
-        //     doToggle() {
-        //         if(!this.data.state.opened && this.data.state.openable) {
-        //             this.data.onToggle({data: this.data});
-        //         }
-        //     }
-        // },
-        // data() {
-        //     return {
-        //     }
-        // },
-        // computed: {
-        //     asyncToggle() {
-        //         return _debounce(this.doToggle, this.data.dragDelay || 500);
-        //     },
-        //     label() {
-        //         return this.$getLabel(this.data);
-        //     }
-        // }
     }
 </script>

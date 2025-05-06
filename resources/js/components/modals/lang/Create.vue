@@ -97,7 +97,7 @@
     import { useForm, useField } from 'vee-validate';
     import * as yup from 'yup';
 
-    import store from '@/bootstrap/store.js';
+    import useLanguageStore from '@/bootstrap/stores/language.js';
 
     import {
         languageList,
@@ -115,6 +115,7 @@
         emits: ['add', 'cancel'],
         setup(props, context) {
             const { t } = useI18n();
+            const languageStore = useLanguageStore();
 
             // FUNCTIONS
             const isValidated = _ => {
@@ -155,7 +156,7 @@
             const fullLanguageList = languageList();
             const state = reactive({
                 form: formMeta,
-                addedLanguagesIds: computed(_ => store.getters.languages.map(l => l.id)),
+                addedLanguagesIds: computed(_ => languageStore.languages.map(l => l.id)),
                 query: '',
                 languageList: computed(_ => fullLanguageList.filter(l => {
                     return !state.addedLanguagesIds.includes(l.id);

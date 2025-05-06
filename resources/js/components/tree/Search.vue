@@ -157,18 +157,20 @@
             // FETCH
 
             // FUNCTIONS
-            const search = async (query) => {
+            const search = async query => {
                 state.query = query;
                 if(!query) {
                     return await new Promise(r => r([]));
                 }
                 state.searching = true;
+                let result = [];
                 try {
-                    const result = await searchConcept(query, treeName.value, exclude.value);
-                    return result;
+                    result = await searchConcept(query, treeName.value, exclude.value);
+                } catch(e) {
+                    console.error(e);
                 } finally {
                     state.searching = false;
-                    return [];
+                    return result;
                 }
             };
             const optionSelected = option => {
