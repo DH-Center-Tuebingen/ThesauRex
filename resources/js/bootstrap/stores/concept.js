@@ -437,10 +437,6 @@ export const useConceptStore = defineStore('concept', {
                 concept.notes.push(note);
             }
         },
-        async updateNote(conceptId, tree, noteId, text) {
-            await patchNote(noteId, text, tree);
-            this.updateNote(conceptId, tree, noteId, text);
-        },
         async patchNote(conceptId, tree, noteId, text) {
             await patchNote(noteId, text, tree);
             this.updateNote(conceptId, tree, noteId, text);
