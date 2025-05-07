@@ -320,7 +320,7 @@ export const useConceptStore = defineStore('concept', {
                     concept.labels = [];
                 }
                 concept.labels.push(label);
-                handleConceptChange(conceptId, tree, this);
+                this.handleConceptChange(conceptId, tree, this);
             }
         },
         updateLabel(conceptId, tree, labelId, updates = {}) {
@@ -331,7 +331,7 @@ export const useConceptStore = defineStore('concept', {
                     for(let k in updates) {
                         label[k] = updates[k];
                     }
-                    handleConceptChange(conceptId, tree, this);
+                    this.handleConceptChange(conceptId, tree, this);
                 }
             }
         },
@@ -347,7 +347,7 @@ export const useConceptStore = defineStore('concept', {
                             label.concept_label_type = 1;
                         }
                     }
-                    handleConceptChange(conceptId, tree, this);
+                    this.handleConceptChange(conceptId, tree, this);
                 }
             }
         },
