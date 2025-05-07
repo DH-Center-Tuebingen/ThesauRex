@@ -109,7 +109,7 @@
         <ImportingInfoModal></ImportingInfoModal>
         <ModalsContainer></ModalsContainer>
         <div class="toast-container ps-3 pb-3" id="toast-container"></div>
-        <div class="invisible preload-twemoji-font">
+        <div class="position-fixed pe-none invisible preload-twemoji-font">
             &#x1F1E6;
         </div>
     </div>
