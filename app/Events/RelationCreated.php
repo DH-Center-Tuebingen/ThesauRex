@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\ThBroader;
+use App\ThConcept;
 use App\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -21,9 +22,31 @@ class RelationCreated implements ShouldBroadcast {
         public string $tree,
         public User $user
     ) {
-        $this->relation = $relation;
+        $this->relation = $relation;        
         $this->tree = $tree;
         $this->user = $user;
+    }
+    
+    public function broadcastWith(){
+        
+        /**
+         * When creating a new relation, the other client may not
+         * have the relation loaded yet. So we need to pass those 
+         * concepts, that the client can add them to it's store.
+         */
+        
+        $this->relation->load('broader', 'narrower');    
+        $this->relation->broader?->load('labels.language');
+        $this->relation->narrower?->load('labels.language');
+        
+        $this->relation->broader?->setAppends(['parents', 'path']);
+        $this->relation->narrower?->setAppends(['parents', 'path']);
+        
+        return [
+            'relation' => $this->relation->toArray(),
+            'tree' => $this->tree,
+            'user' => $this->user->toArray(),  
+        ]; 
     }
 
     /**

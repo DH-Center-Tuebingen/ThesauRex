@@ -175,7 +175,9 @@ export const useConceptStore = defineStore('concept', {
         // method to add newly created concepts to store
         async addConcept(data, tree, broaderId) {
             const concept = await addConcept(data, tree, broaderId);
-
+            this.addRawConcept(concept, tree);
+        },
+        addRawConcept(concept, tree) {
             const node = new Node({
                 ...concept,
                 tree: tree,
@@ -469,7 +471,7 @@ export const useConceptStore = defineStore('concept', {
             const narrowerIdList = Array.isArray(narrowers) ? narrowers : [narrowers];
 
             broaderIdList.forEach(relBroadId => {
-                narrowerIdList.forEach(relNarrId => {
+                narrowerIdList.forEach(relNarrId => {                    
                     const broader = unnode(this.conceptMap[tree][relBroadId]);
                     const narrower = unnode(this.conceptMap[tree][relNarrId]);
                     const broaderList = this.conceptReferences[tree][relBroadId] || [];

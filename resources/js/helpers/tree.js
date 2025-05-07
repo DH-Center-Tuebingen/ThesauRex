@@ -27,13 +27,15 @@ export function sortParents(parents) {
 
 export function sortTree(tree, dir = 'asc') {
     const sortFn = (a, b) => {
-        let value = 0;
-        const first = getLabel(a, true).toLowerCase();
-        const second = getLabel(b, true).toLowerCase();
-        if(first < second) value = -1;
-        if(first > second) value = 1;
+        const first = getLabel(a, true);
+        const second = getLabel(b, true);
+        if(!first && !second) return 0;
+        if(!first) return 1;
+        if(!second) return -1;
+        
+        let value = first.localeCompare(second);
         if(dir == 'desc') {
-            value = -value;
+            value *= -1;
         }
         return value;
     };

@@ -170,25 +170,11 @@ export const handleConceptRelationAddedEvent = {
     'RelationCreated': e => {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
-        useConceptStore().handleAddRelation(e.relation.broader_id, e.relation.narrower_id, e.tree);
+        const tree = e.tree;
+        useConceptStore().addRawConcept(e.relation.broader, tree);
+        useConceptStore().addRawConcept(e.relation.narrower, tree);
+        useConceptStore().handleAddRelation(e.relation.broader_id, e.relation.narrower_id, tree);
         const message = 'Successfully received RelationCreated Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
-    },
-};
-
-// Relation updates make no sense right now? [VR]
-export const handleConceptRelationUpdatedEvent = {
-    'RelationUpdated': e => {
-        // Only handle event if from different user
-        if(e.user.id == useUserStore().getCurrentUserId) return;
-        const message = '[TODO] Successfully received RelationUpdated Event!';
-        console.log("Relation Updated", e);
         addToast(message, '', {
             duration: 2500,
             autohide: true,

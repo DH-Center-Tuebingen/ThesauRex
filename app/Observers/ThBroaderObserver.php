@@ -17,11 +17,10 @@ class ThBroaderObserver {
         $tree = $relationClass == 'App\\ThBroaderSandbox' ? 'sandbox' : 'project';
         try {
             $user = auth()->user();
-            if($relation->wasRecentlyCreated) {
-                broadcast(new RelationCreated($relation, $tree, $user))->toOthers();
-            } else {
-                broadcast(new RelationUpdated($relation, $tree, $user))->toOthers();
-            }
+            /**
+             * We always create a new relation, so we don't need to use the relation updated separately.
+             */
+            broadcast(new RelationCreated($relation, $tree, $user))->toOthers();
         } catch(BroadcastException $e) {
             if(env('APP_DEBUG')) {
                 info("BroadcastException while handling saved() event in ThBroaderObserver");

@@ -17,4 +17,13 @@ class ThBroaderBase extends Model
         'narrower_id',
     ];
 
+    public function narrower()
+    {
+        return $this->belongsTo(ThConcept::class, 'narrower_id');
+    }
+    
+    public function broader()
+    {
+        return $this->belongsTo(ThConcept::class, 'broader_id');
+    }
 }
