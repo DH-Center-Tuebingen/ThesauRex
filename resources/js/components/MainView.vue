@@ -87,7 +87,7 @@
     } from '@/helpers/websocket.js';
 
     import {
-        handleTestEvent,
+        handleSystemMessageEvent,
         handleConceptAddedEvent,
         handleConceptDeletedEvent,
         handleConceptUpdatedEvent,
@@ -149,7 +149,7 @@
             onMounted(_ => {
                 channels.system = subscribeSystemChannel();
                 listenToList(channels.system, [
-                    handleTestEvent,
+                    handleSystemMessageEvent,
                     handleConceptAddedEvent,
                     handleConceptDeletedEvent,
                     handleConceptUpdatedEvent,

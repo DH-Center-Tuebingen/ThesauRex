@@ -8,18 +8,23 @@ import {
     only,
 } from '@/helpers/helpers.js';
 
-export const handleTestEvent = {
-    'TestEvent': e => {
-        const message = 'Successfully received Test Event! ' + JSON.stringify(e);
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
-    },
-};
+function toastMessage(message, config = {}) {
+    addToast(message, '', Object.assign({
+        duration: 2500,
+        autohide: true,
+        channel: 'info',
+        icon: true,
+        simple: true,
+    }, config));
+}
+
+export const handleSystemMessageEvent = {
+    'SystemMessage': e => {
+        // Only handle event if from different user
+        const message = 'System Message: ' + JSON.stringify(e.message);
+        toastMessage(message, {channel: 'danger'});
+    }   
+}
 
 export const handleConceptAddedEvent = {
     'ConceptCreated': e => {
@@ -27,13 +32,7 @@ export const handleConceptAddedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().fetchAndPushConcept(e.concept.id, e.tree, true);
         const message = 'Successfully received ConceptAdded Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -43,13 +42,7 @@ export const handleConceptUpdatedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         const message = 'Successfully received ConceptUpdated Event!';
         useConceptStore().handleConceptUpdate(e.concept.id, e.tree, e.concept.is_top_concept);
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -59,13 +52,7 @@ export const handleConceptDeletedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         const message = 'Successfully received ConceptDeleted Event!';
         useConceptStore().deleteConceptReferences(e.concept.id, e.tree);
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -75,13 +62,7 @@ export const handleConceptLabelAddedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().pushLabel(e.label, e.label.concept_id, e.tree);
         const message = 'Successfully received ConceptAdded Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -92,13 +73,7 @@ export const handleConceptLabelUpdatedEvent = {
         const updateData = only(e.label, ['label', 'concept_label_type']);
         useConceptStore().updateLabel(e.label.concept_id, e.tree, e.label.id, updateData);
         const message = 'Successfully received ConceptUpdated Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -108,13 +83,7 @@ export const handleConceptLabelDeletedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().removeLabel(e.label.concept_id, e.tree, e.label.id);
         const message = 'Successfully received ConceptDeleted Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -124,13 +93,7 @@ export const handleConceptNoteAddedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().pushNote(e.note, e.note.concept_id, e.tree);
         const message = 'Successfully received NoteCreated Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -140,13 +103,7 @@ export const handleConceptNoteUpdatedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().updateNote(e.note.concept_id, e.tree, e.note.id, e.note.content);
         const message = 'Successfully received NoteUpdated Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -156,13 +113,7 @@ export const handleConceptNoteDeletedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().removeNote(e.note.concept_id, e.tree, e.note.id);
         const message = 'Successfully received NoteDeleted Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -175,13 +126,7 @@ export const handleConceptRelationAddedEvent = {
         useConceptStore().addRawConcept(e.relation.narrower, tree);
         useConceptStore().handleAddRelation(e.relation.broader_id, e.relation.narrower_id, tree);
         const message = 'Successfully received RelationCreated Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -191,13 +136,7 @@ export const handleConceptRelationDeletedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useConceptStore().handleRemoveRelation(e.relation.broader_id, e.relation.narrower_id, e.tree);
         const message = 'Successfully received RelationDeleted Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -207,13 +146,7 @@ export const handleLanguageAddedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useLanguageStore().pushLanguage(e.language);
         const message = 'Successfully received LanguageCreated Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };
 
@@ -239,12 +172,6 @@ export const handleLanguageDeletedEvent = {
         if(e.user.id == useUserStore().getCurrentUserId) return;
         useLanguageStore().removeLanguage(e.language.id);
         const message = 'Successfully received LanguageDeleted Event!';
-        addToast(message, '', {
-            duration: 2500,
-            autohide: true,
-            channel: 'info',
-            icon: true,
-            simple: true,
-        });
+        toastMessage(message);
     },
 };

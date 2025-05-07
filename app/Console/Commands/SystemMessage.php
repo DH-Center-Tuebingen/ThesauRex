@@ -2,24 +2,24 @@
 
 namespace App\Console\Commands;
 
-use App\Events\TestEvent;
+use App\Events\SystemMessage as SystemMessageEvent;
 use Illuminate\Console\Command;
 
-class TestWebsocket extends Command
+class SystemMessage extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:test-websocket {message : Message to send}';
+    protected $signature = 'app:message {message : Message to send}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Sends a message using a predefined Event (using a public and private channel) to test websocket functionality';
+    protected $description = 'Sends a live message via the websocket connection to all active clients.';
 
     /**
      * Create a new command instance.
@@ -37,9 +37,9 @@ class TestWebsocket extends Command
     {
         $message = $this->argument('message');
 
-        TestEvent::dispatch($message);
+        SystemMessageEvent::dispatch($message);
 
-        $this->info("Message \"$message\" successfully send to TestEvent!");
+        $this->info("Message \"$message\" successfully send to SystemMessageEvent!");
         return 0;
     }
 }
