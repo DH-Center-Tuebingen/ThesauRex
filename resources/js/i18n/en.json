@@ -371,5 +371,8 @@
                 "project_lead_former": "Former Project Lead"
             }
         }
+    },
+    "websockets": {
+        "service_unavailable": "Realtime updates are not available."
     }
 }

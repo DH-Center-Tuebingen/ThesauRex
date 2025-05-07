@@ -75,8 +75,8 @@
         onBeforeRouteLeave,
     } from 'vue-router';
 
-    import {useI18n} from 'vue-i18n';
-    import {ResizableColumns} from 'dhc-components';
+    import { useI18n } from 'vue-i18n';
+    import { ResizableColumns } from 'dhc-components';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
@@ -105,20 +105,24 @@
         handleLanguageUpdatedEvent,
     } from '@/handlers/system.js';
 
+    import useWebSocketConnectionToast from '../composables/websockets-connection.toast';
+
     export default {
         components: {
             ResizableColumns,
         },
         setup(props, context) {
-            const {t} = useI18n();
+            const { t } = useI18n();
             const conceptStore = useConceptStore();
+
+            useWebSocketConnectionToast();
 
             // FUNCTIONS
             const changeDragTarget = e => {
                 state.dragTarget = e;
             };
 
-            const toggleSandbox =_ => {
+            const toggleSandbox = _ => {
                 state.showSandbox = !state.showSandbox;
             };
 
