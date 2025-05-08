@@ -15,11 +15,11 @@ class ThLanguageObserver {
     public function saved(ThLanguage $language): void {
         try {
             $user = auth()->user();
-            if($language->wasRecentlyCreated) {
-                broadcast(new LanguageCreated($language, $user))->toOthers();
-            } else {
-                broadcast(new LanguageUpdated($language, $user))->toOthers();
+            // User can be null if a seeder is used.
+            if($user === null){
+                return;
             }
+            broadcast(new LanguageCreated($language, $user))->toOthers();
         } catch(BroadcastException $e) {
             if(env('APP_DEBUG')) {
                 info("BroadcastException while handling saved() event in ThLanguageObserver");

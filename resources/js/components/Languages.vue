@@ -1,8 +1,16 @@
 <template>
-    <div class="d-flex flex-column h-100" v-dcan="'thesaurus_read'">
+    <div
+        class="d-flex flex-column h-100"
+        v-dcan="'thesaurus_read'"
+    >
         <h4 class="d-flex flex-row gap-2 align-items-center">
             {{ t('settings.language.title') }}
-            <button type="button" class="btn btn-outline-success btn-sm" @click="showAddLanguageModal()" :disabled="!can('thesaurus_create')">
+            <button
+                type="button"
+                class="btn btn-outline-success btn-sm"
+                @click="showAddLanguageModal()"
+                :disabled="!can('thesaurus_create')"
+            >
                 <i class="fas fa-fw fa-plus"></i>
                 {{ t('settings.language.add_button') }}
             </button>
@@ -18,7 +26,10 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(language, i) in state.languages" :key="`language-${i}`">
+                <tr
+                    v-for="(language, i) in state.languages"
+                    :key="`language-${i}`"
+                >
                     <td class="align-middle">
                         <div class="d-flex gap-2">
                             <span>
@@ -42,11 +53,25 @@
                     </td>
                     <td>
                         <div class="dropdown">
-                            <span id="dropdownMenuButton" class="clickable" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span
+                                id="dropdownMenuButton"
+                                class="clickable"
+                                data-bs-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                            >
                                 <i class="fas fa-fw fa-ellipsis-h"></i>
                             </span>
-                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <a class="dropdown-item" href="#" :disabled="!can('thesaurus_delete')" @click.prevent="onDeleteLanguage(language.id)">
+                            <div
+                                class="dropdown-menu"
+                                aria-labelledby="dropdownMenuButton"
+                            >
+                                <a
+                                    class="dropdown-item"
+                                    href="#"
+                                    :disabled="!can('thesaurus_delete')"
+                                    @click.prevent="onDeleteLanguage(language.id)"
+                                >
                                     <i class="fas fa-fw fa-trash text-danger"></i> {{ t('global.delete') }}
                                 </a>
                             </div>
@@ -85,6 +110,14 @@
         showDeleteLanguage,
     } from '@/helpers/modal.js';
 
+
+    import {
+        handleLanguageAddedEvent,
+        handleLanguageDeletedEvent,
+        handleLanguageUpdatedEvent,
+    } from '../handlers/system';
+    import useSystemChannel from '@/composables/system-channel';
+
     export default {
         setup(props, context) {
             const { t } = useI18n();
@@ -105,7 +138,11 @@
                 languages: computed(_ => languageStore.languages),
             });
 
-            // ON MOUNTED
+            useSystemChannel([
+                handleLanguageAddedEvent,
+                handleLanguageDeletedEvent,
+                handleLanguageUpdatedEvent,
+            ])
 
             return {
                 t,

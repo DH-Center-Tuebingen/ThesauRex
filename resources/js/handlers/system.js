@@ -150,22 +150,6 @@ export const handleLanguageAddedEvent = {
     },
 };
 
-// Languages can not be updated right now, needs to be implemented
-export const handleLanguageUpdatedEvent = {
-    'LanguageUpdated': e => {
-        // Only handle event if from different user
-        if(e.user.id == useUserStore().getCurrentUserId) return;
-        // const message = '[TODO] Successfully received LanguageUpdated Event! ' + JSON.stringify(e);
-        // addToast(message, '', {
-        //     duration: 2500,
-        //     autohide: true,
-        //     channel: 'info',
-        //     icon: true,
-        //     simple: true,
-        // });
-    },
-};
-
 export const handleLanguageDeletedEvent = {
     'LanguageDeleted': e => {
         // Only handle event if from different user

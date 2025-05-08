@@ -1,5 +1,7 @@
 const activeChannels = {};
 
+export const SYSTEM_CHANNEL_NAME = 'channel.system';
+
 function listen(channelname, event, callback) {
     const channel = activeChannels[channelname];
     if(!channel) return;
@@ -55,17 +57,6 @@ export function join(roomname, callbacks) {
     }
 }
 
-// export function subscribeNotifications(callback) {
-//     const uid = useUserStore().getCurrentUserId;
-//     const channelname = `App.User.${uid}`;
-//     if(!activeChannels[channelname]) {
-//         subscribeTo(channelname, true);
-//     }
-//     const channel = activeChannels[channelname];
-//     channel.notification(callback);
-//     return channelname;
-// }
-
 export function stopListeningTo(channelname, event) {
     const channel = activeChannels[channelname];
     if(!channel) return;
@@ -74,31 +65,13 @@ export function stopListeningTo(channelname, event) {
 }
 
 export function subscribeSystemChannel() {
-    const channelname = 'channel.system';
+    const channelname = SYSTEM_CHANNEL_NAME;
     subscribeTo(channelname, true);
     return channelname;
 }
 
 export function unsubscribeSystemChannel() {
-    unsubscribeFrom('channel.system');
-}
-
-export function joinConceptRoom(conceptId) {
-    const roomname = `room.concept.${conceptId}`;
-    // const entityStore = useEntityStore();
-    // join(roomname, {
-    //     init: users => entityStore.setActiveUserIds(users),
-    //     join: user => entityStore.addActiveUserId(user),
-    //     leave: user => entityStore.removeActiveUserId(user.id),
-    //     error: error => {
-    //         console.error('[WS] Error occured!', error);
-    //     },
-    // });
-    return roomname;
-}
-
-export function leaveConceptRoom(roomname) {
-    unsubscribeFrom(roomname);
+    unsubscribeFrom(SYSTEM_CHANNEL_NAME);
 }
 
 /**
