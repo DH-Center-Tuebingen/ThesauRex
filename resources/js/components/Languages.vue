@@ -114,7 +114,6 @@
     import {
         handleLanguageAddedEvent,
         handleLanguageDeletedEvent,
-        handleLanguageUpdatedEvent,
     } from '../handlers/system';
     import useSystemChannel from '@/composables/system-channel';
 
@@ -141,7 +140,6 @@
             useSystemChannel([
                 handleLanguageAddedEvent,
                 handleLanguageDeletedEvent,
-                handleLanguageUpdatedEvent,
             ])
 
             return {

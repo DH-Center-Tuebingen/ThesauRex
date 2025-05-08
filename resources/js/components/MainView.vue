@@ -90,7 +90,6 @@
         handleConceptRelationDeletedEvent,
         handleLanguageAddedEvent,
         handleLanguageDeletedEvent,
-        handleLanguageUpdatedEvent,
     } from '@/handlers/system.js';
 
     import useSystemChannel from '@/composables/system-channel';
@@ -149,7 +148,6 @@
                 handleConceptRelationDeletedEvent,
                 handleLanguageAddedEvent,
                 handleLanguageDeletedEvent,
-                handleLanguageUpdatedEvent,
             ])
 
             // RETURN
