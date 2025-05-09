@@ -21,9 +21,7 @@ class ThLanguageObserver {
             }
             broadcast(new LanguageCreated($language, $user))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling saved() event in ThLanguageObserver");
-            }
+            info("BroadcastException while handling saved() event in ThLanguageObserver: " . $e->getMessage());
         }
     }
 
@@ -34,9 +32,7 @@ class ThLanguageObserver {
         try {
             broadcast(new LanguageDeleted($language, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling deleting() event in ThLanguageObserver");
-            }
+            info("BroadcastException while handling deleting() event in ThLanguageObserver: " . $e->getMessage());
         }
     }
 }

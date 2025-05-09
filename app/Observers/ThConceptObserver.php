@@ -23,9 +23,7 @@ class ThConceptObserver {
                 broadcast(new ConceptUpdated($thConcept, $tree, $user))->toOthers();
             }
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling saved() event in ThConceptObserver");
-            }
+            info("BroadcastException while handling saved() event in ThConceptObserver: " . $e->getMessage());
         }
     }
 
@@ -38,9 +36,7 @@ class ThConceptObserver {
         try {
             broadcast(new ConceptDeleted($thConcept, $tree, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling deleting() event in ThConceptObserver");
-            }
+            info("BroadcastException while handling deleting() event in ThConceptObserver: " . $e->getMessage());
         }
     }
 }

@@ -24,9 +24,7 @@ class ThConceptNoteObserver {
                 broadcast(new NoteUpdated($note, $tree, $user))->toOthers();
             }
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling saved() event in ThConceptNoteObserver");
-            }
+            info("BroadcastException while handling saved() event in ThConceptNoteObserver: " . $e->getMessage());
         }
     }
 
@@ -40,9 +38,7 @@ class ThConceptNoteObserver {
             $note->load('language');
             broadcast(new NoteDeleted($note, $tree, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling deleting() event in ThConceptNoteObserver");
-            }
+            info("BroadcastException while handling deleting() event in ThConceptNoteObserver: " . $e->getMessage());
         }
     }
 }

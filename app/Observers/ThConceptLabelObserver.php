@@ -24,9 +24,7 @@ class ThConceptLabelObserver {
                 broadcast(new LabelUpdated($label, $tree, $user))->toOthers();
             }
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling saved() event in ThConceptLabelObserver");
-            }
+            info("BroadcastException while handling saved() event in ThConceptLabelObserver: " . $e->getMessage());
         }
     }
 
@@ -40,9 +38,7 @@ class ThConceptLabelObserver {
             $label->load('language');
             broadcast(new LabelDeleted($label, $tree, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling deleting() event in ThConceptLabelObserver");
-            }
+            info("BroadcastException while handling deleting() event in ThConceptLabelObserver: " . $e->getMessage());
         }
     }
 }

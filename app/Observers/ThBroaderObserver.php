@@ -5,7 +5,6 @@ namespace App\Observers;
 use App\ThBroaderBase;
 use App\Events\RelationCreated;
 use App\Events\RelationDeleted;
-use App\Events\RelationUpdated;
 use Illuminate\Broadcasting\BroadcastException;
 
 class ThBroaderObserver {
@@ -22,9 +21,7 @@ class ThBroaderObserver {
              */
             broadcast(new RelationCreated($relation, $tree, $user))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling saved() event in ThBroaderObserver");
-            }
+            info("BroadcastException while handling saved() event in ThBroaderObserver: " . $e->getMessage());
         }
     }
 
@@ -37,9 +34,7 @@ class ThBroaderObserver {
         try {
             broadcast(new RelationDeleted($relation, $tree, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {
-            if(env('APP_DEBUG')) {
-                info("BroadcastException while handling deleting() event in ThBroaderObserver");
-            }
+            info("BroadcastException while handling deleting() event in ThBroaderObserver: " . $e->getMessage());
         }
     }
 }
