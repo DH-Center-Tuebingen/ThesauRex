@@ -1,4 +1,4 @@
-import {defineStore} from 'pinia';
+import { defineStore } from 'pinia';
 
 import {
     addConcept,
@@ -250,17 +250,17 @@ export const useConceptStore = defineStore('concept', {
                 // Fetch all required narrowers that are not alreaday fetched,
                 // because they need to be added to the tree
                 if(loadNarrowers) {
-                    for(let i=0; i<narrowerIds.length; i++) {
+                    for(let i = 0; i < narrowerIds.length; i++) {
                         const narrowerId = narrowerIds[i];
                         if(!this.conceptMap[tree][narrowerId]) {
                             await this.fetchAndPushConcept(narrowerId, tree, false);
                         }
                     }
-                    
+
                     // Add all narrower relations to their new parent
                     this.handleAddRelation(broaders, narrowerIds, tree);
                 }
-                
+
                 // Remove all relations of the deleted concept to its narrowers
                 this.handleRemoveRelation(id, narrowerIds, tree);
             }
@@ -467,7 +467,7 @@ export const useConceptStore = defineStore('concept', {
             const narrowerIdList = Array.isArray(narrowers) ? narrowers : [narrowers];
 
             broaderIdList.forEach(relBroadId => {
-                narrowerIdList.forEach(relNarrId => {                    
+                narrowerIdList.forEach(relNarrId => {
                     const broader = unnode(this.conceptMap[tree][relBroadId]);
                     const narrower = unnode(this.conceptMap[tree][relNarrId]);
                     const broaderList = this.conceptReferences[tree][relBroadId] || [];
@@ -492,12 +492,14 @@ export const useConceptStore = defineStore('concept', {
                             const broaderConcept = this.conceptMap[tree][broaderList[i]];
                             if(broaderConcept) {
                                 if(broaderConcept.children) {
-                                    const node = new Node({
-                                        ...narrower,
-                                        tree: tree,
-                                    });
-                                    broaderConcept.children.push(node);
-                                    sortTree(broaderConcept.children);
+                                    if(broaderConcept.children.findIndex(c => c.nid == narrower.id) == -1) {
+                                        const node = new Node({
+                                            ...narrower,
+                                            tree: tree,
+                                        });
+                                        broaderConcept.children.push(node);
+                                        sortTree(broaderConcept.children);
+                                    }
                                 }
                                 if(broaderConcept.narrowers) {
                                     if(!broaderConcept.narrowers.some(n => n.id == narrower.id)) {
