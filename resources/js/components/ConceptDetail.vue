@@ -95,10 +95,10 @@
                             <a href="" @click.prevent="gotoConcept(narrower.id)">
                                 {{ getLabel(narrower) }}
                             </a>
-                            <span v-show="canRemoveNarrower(narrower)" @click="removeNarrower(i)">
+                            <span v-show="isHovered('narrowers', i,) && canRemoveNarrower(narrower)" @click="removeNarrower(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
                             </span>
-                            <span v-show="!canRemoveNarrower(narrower)" class="not-allowed-handle" :title="t('detail.narrower.remove_not_possible')">
+                            <span v-show="isHovered('narrowers', i,) && !canRemoveNarrower(narrower)" class="not-allowed-handle" :title="t('detail.narrower.remove_not_possible')">
                                 <i class="fas fa-fw fa-ban"></i>
                             </span>
                         </li>
@@ -344,6 +344,17 @@
             const resetLanguageToDefault = _ => {
                 state.addLabel.language = languageStore.activeLanguage;
                 state.addNote.language = languageStore.activeLanguage;
+            };
+            const isHovered = (prop, index) => {
+                switch(prop) {
+                    case 'labels':
+                    case 'notes':
+                    case 'broaders':
+                    case 'narrowers':
+                        return state.hoverStates[prop][index];
+                    default:
+                        return false;
+                }
             };
             const setHoverState = (prop, index, hoverState) => {
                 switch(prop) {
@@ -620,6 +631,7 @@
                 getLabel,
                 // LOCAL
                 canRemoveNarrower,
+                isHovered,
                 setHoverState,
                 handleAddBroader,
                 handleAddNarrower,
