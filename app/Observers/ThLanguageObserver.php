@@ -5,7 +5,6 @@ namespace App\Observers;
 use App\ThLanguage;
 use App\Events\LanguageCreated;
 use App\Events\LanguageDeleted;
-use App\Events\LanguageUpdated;
 use Illuminate\Broadcasting\BroadcastException;
 
 class ThLanguageObserver {
@@ -19,7 +18,11 @@ class ThLanguageObserver {
             if($user === null){
                 return;
             }
-            broadcast(new LanguageCreated($language, $user))->toOthers();
+            if($language->wasRecentlyCreated) {
+                broadcast(new LanguageCreated($language, $user))->toOthers();
+            } else {
+                throw new \Exception("Updating language is not yet supported.");
+            }
         } catch(BroadcastException $e) {
             info("BroadcastException while handling saved() event in ThLanguageObserver: " . $e->getMessage());
         }

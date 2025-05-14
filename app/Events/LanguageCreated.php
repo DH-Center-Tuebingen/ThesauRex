@@ -23,6 +23,14 @@ class LanguageCreated implements ShouldBroadcast {
         $this->language = $language;
         $this->user = $user;
     }
+    
+    public function broadcastWith(): array {
+        $data = [
+            'language' => $this->language->toArray(),
+            'user' => $this->user->toArray(),
+        ];
+        return $data;
+    }
 
     /**
      * Get the channels the event should broadcast on.

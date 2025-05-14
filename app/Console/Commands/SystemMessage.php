@@ -36,9 +36,7 @@ class SystemMessage extends Command
     public function handle()
     {
         $message = $this->argument('message');
-
         SystemMessageEvent::dispatch($message);
-
         $this->info("Message \"$message\" successfully send to SystemMessageEvent!");
         return 0;
     }

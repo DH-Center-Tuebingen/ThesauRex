@@ -21,7 +21,7 @@ export function can(permissionString, oneOf) {
     if(!user) return false;
     const permissions = permissionString.split('|');
     const hasPermission = permission => {
-        return user.permissions[permission] === 1;
+        return user?.permissions?.[permission] && user.permissions[permission] === 1;
     };
 
     if(oneOf) {
@@ -120,7 +120,7 @@ export function slugify(s, delimiter = '-') {
     };
 
     // Transliterate characters to ASCII
-    for (var k in char_map) {
+    for(var k in char_map) {
         s = s.replace(RegExp(k, 'g'), char_map[k]);
     }
 
@@ -206,7 +206,7 @@ export function isStandalone() {
 };
 
 export function throwError(error) {
-    if (error.response) {
+    if(error.response) {
         const r = error.response;
         const req = {
             status: r.status,
@@ -214,7 +214,7 @@ export function throwError(error) {
             method: r.config.method.toUpperCase()
         };
         showErrorModal(r.data, r.headers, req);
-    } else if (error.request) {
+    } else if(error.request) {
         showErrorModal(error.request);
     } else {
         showErrorModal(error.message || error);
@@ -277,7 +277,7 @@ export function getValidClass(msgObject, field) {
 
     let isInvalid = false;
     field.split('|').forEach(f => {
-        if (!!msgObject[f]) {
+        if(!!msgObject[f]) {
             isInvalid = true;
         }
     });
