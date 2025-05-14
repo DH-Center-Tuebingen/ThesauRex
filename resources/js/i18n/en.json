@@ -95,7 +95,12 @@
         "preference": "Preference | Preferences",
         "value": "Value",
         "allow_override": "Allow Override?",
-        "set": "Set"
+        "set": "Set",
+        "page_not_found": {
+            "title": "Page not found",
+            "message": "The page you are looking for could not be found. Please check the URL or contact the administrator.",
+            "back": "Back to Home"
+        }
     },
     "tree": {
         "search": {
@@ -374,6 +379,6 @@
     },
     "websockets": {
         "service_unavailable": "Realtime updates are not available.",
-        "service_available_again": "Realtime updates are available again. Please refresh the page."
+        "service_available_again": "Realtime updates are available again., Please refresh the page."
     }
 }

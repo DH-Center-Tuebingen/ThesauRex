@@ -22,6 +22,7 @@ import Languages from '@/components/Languages.vue';
 import Preferences from '@/components/Preferences.vue';
 import UserPreferences from '@/components/UserPreferences.vue';
 import UserProfile from '@/components/UserProfile.vue';
+import NotFound from '@/components/views/NotFound.vue';
 
 export const router = createRouter({
     history: createWebHashHistory(),
@@ -129,6 +130,7 @@ export const router = createRouter({
                 auth: true,
             },
         },
+        { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
     ],
 });
 

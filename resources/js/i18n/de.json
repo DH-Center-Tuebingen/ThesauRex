@@ -95,7 +95,12 @@
         "preference": "Einstellung | Einstellungen",
         "value": "Wert",
         "allow_override": "Überschreibbar?",
-        "set": "Setzen"
+        "set": "Setzen",
+        "page_not_found": {
+            "title": "Seite nicht gefunden",
+            "message": "Die angeforderte Seite wurde nicht gefunden. Bitte überprüfe die URL oder kontaktiere einen Administrator.",
+            "back": "Zurück zur Startseite"
+        }
     },
     "tree": {
         "search": {
