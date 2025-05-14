@@ -468,6 +468,17 @@ export const useConceptStore = defineStore('concept', {
 
             broaderIdList.forEach(relBroadId => {
                 narrowerIdList.forEach(relNarrId => {
+                    /**
+                    * When the narrower is loaded via websockets, it will contain the broaders_count but not all broader concepts.
+                    * If not, we need to write the broaders_count manually.
+                    */
+                    const narrowerNode = this.conceptMap[tree][relNarrId];
+
+                    if(!narrowerNode.broaders_count) {
+                        narrowerNode.broaders_count = narrowerNode.broaders?.length ? narrowerNode.broaders.length : 0;
+                    }
+                    narrowerNode.broaders_count++;
+
                     const broader = unnode(this.conceptMap[tree][relBroadId]);
                     const narrower = unnode(this.conceptMap[tree][relNarrId]);
                     const broaderList = this.conceptReferences[tree][relBroadId] || [];

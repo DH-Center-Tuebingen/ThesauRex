@@ -95,10 +95,10 @@
                             <a href="" @click.prevent="gotoConcept(narrower.id)">
                                 {{ getLabel(narrower) }}
                             </a>
-                            <span v-show="state.hoverStates.narrowers[i] && narrower.broaders_count > 1" @click="removeNarrower(i)">
+                            <span v-show="canRemoveNarrower(narrower)" @click="removeNarrower(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
                             </span>
-                            <span v-show="state.hoverStates.narrowers[i] && narrower.broaders_count <= 1" class="not-allowed-handle" :title="t('detail.narrower.remove_not_possible')">
+                            <span v-show="!canRemoveNarrower(narrower)" class="not-allowed-handle" :title="t('detail.narrower.remove_not_possible')">
                                 <i class="fas fa-fw fa-ban"></i>
                             </span>
                         </li>
@@ -382,9 +382,12 @@
                 const bid = broader.nid || broader.id;
                 conceptStore.removeRelation(nid, bid, state.tree);
             };
+            const canRemoveNarrower = narrower => {
+                return narrower.broaders_count > 1 || (narrower.broaders_count > 0 && narrower.is_top_concept);
+            }
             const removeNarrower = idx => {
                 const narrower = state.concept.narrowers[idx];
-                if(narrower.broaders_count <= 1) return;
+                if(!canRemoveNarrower(narrower)) return;
                 const nid = narrower.nid || narrower.id;
                 const bid = state.concept.nid || state.concept.id;
                 conceptStore.removeRelation(nid, bid, state.tree);
@@ -616,6 +619,7 @@
                 gotoConcept,
                 getLabel,
                 // LOCAL
+                canRemoveNarrower,
                 setHoverState,
                 handleAddBroader,
                 handleAddNarrower,

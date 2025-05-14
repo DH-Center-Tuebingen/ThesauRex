@@ -152,7 +152,7 @@ export function unnode(node) {
     }
 
     return only(node, [
-        'concept_scheme', 'concept_url', 'created_at', 'id', 'is_top_concept', 'labels', 'pivot', 'updated_at', 'user_id'
+        'concept_scheme', 'concept_url', 'created_at', 'id', 'is_top_concept', 'labels', 'pivot', 'updated_at', 'user_id', 'broaders_count'
     ]);
 };
 
