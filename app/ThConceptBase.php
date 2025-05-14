@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ThConceptBase extends Model
+abstract class ThConceptBase extends Model
 {
     protected $table;
     protected $broader;
@@ -73,4 +73,10 @@ class ThConceptBase extends Model
 
         return $paths;
     }
+    
+    abstract public function getBroadersCountAttribute();
+    abstract public function labels();
+    abstract public function notes();
+    abstract public function narrowers();
+    abstract public function broaders();
 }

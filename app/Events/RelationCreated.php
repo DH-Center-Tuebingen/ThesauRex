@@ -2,8 +2,7 @@
 
 namespace App\Events;
 
-use App\ThBroader;
-use App\ThConcept;
+use App\ThBroaderBase;
 use App\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -18,7 +17,7 @@ class RelationCreated implements ShouldBroadcast {
      * Create a new event instance.
      */
     public function __construct(
-        public ThBroader $relation,
+        public ThBroaderBase $relation,
         public string $tree,
         public User $user
     ) {
@@ -39,8 +38,8 @@ class RelationCreated implements ShouldBroadcast {
         $this->relation->broader?->load('labels.language');
         $this->relation->narrower?->load('labels.language');
         
-        $this->relation->broader?->setAppends(['parents', 'path']);
-        $this->relation->narrower?->setAppends(['parents', 'path']);
+        $this->relation->broader?->setAppends(['parents', 'path', 'broaders_count']);
+        $this->relation->narrower?->setAppends(['parents', 'path', 'broaders_count']);
         
         return [
             'relation' => $this->relation->toArray(),
