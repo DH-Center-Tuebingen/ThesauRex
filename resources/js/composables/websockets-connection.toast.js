@@ -68,13 +68,12 @@ export default function useWebSocketConnectionToast() {
         }
     });
 
-
     const bsToast = ref(null);
     function createToastIfNecessary() {
         if(!bsToast.value) {
             bsToast.value = toast.$toast(message.value, '', {
                 autohide: false,
-                channel: 'danger',
+                channel: isConnected.value ? 'info' : 'danger',
                 simple: true,
             });
         }
@@ -85,15 +84,14 @@ export default function useWebSocketConnectionToast() {
     }
 
     watch(isConnected, (newVal, oldVal) => {
-        if(!bsToast.value) {
-            createToastIfNecessary();
+        if(newVal === oldVal) {
+            return;
         }
-
-        if(!isConnected.value) {
-            bsToast.value.show();
-        } else {
-            bsToast.value.hide();
+        if(bsToast.value?._element) {
+            bsToast.value._element.remove();
             bsToast.value = null;
+            console.log('removed toast');
         }
+        createToastIfNecessary();
     });
 }

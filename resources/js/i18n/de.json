@@ -373,6 +373,7 @@
         }
     },
     "websockets": {
-        "service_unavailable": "Echtzeitupdates sind nicht verfügbar."
+        "service_unavailable": "Echtzeitupdates sind nicht verfügbar.",
+        "service_available_again": "Echtzeitupdates sind wieder verfügbar. Bitte lade die Seite neu."
     }
 }
