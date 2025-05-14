@@ -22,6 +22,7 @@ export function subscribeTo(channelname, isPrivate = false, listenTo = null, cal
 
 export function unsubscribeFrom(channelname) {
     window.Echo.leave(channelname);
+    delete activeChannels[channelname];
 }
 
 // Listen for a specific event of an already subscribed channel
@@ -43,25 +44,6 @@ export function listenToList(channelname, eventHandlerList) {
             listen(channelname, k, eventHandlers[k]);
         }
     });
-}
-
-// Join a presence channel
-export function join(roomname, callbacks) {
-    const room = window.Echo.join(roomname)
-        .here(callbacks.init)
-        .joining(callbacks.join)
-        .leaving(callbacks.leave)
-        .error(callbacks.error);
-    if(!activeChannels[roomname]) {
-        activeChannels[roomname] = room;
-    }
-}
-
-export function stopListeningTo(channelname, event) {
-    const channel = activeChannels[channelname];
-    if(!channel) return;
-
-    channel.stopListening(event);
 }
 
 export function subscribeSystemChannel() {
