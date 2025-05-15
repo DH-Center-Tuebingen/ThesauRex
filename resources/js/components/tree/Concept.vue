@@ -199,7 +199,7 @@
 
             // FUNCTIONS
             const itemClick = item => {
-                if(state.isFromTree && state.concept.data.id == item.data.id) {
+                if(state.isFromTree && conceptStore.selectedConcept?.id == item.data.id) {
                     router.push({
                         append: true,
                         name: 'home',
@@ -347,9 +347,8 @@
                 uploadType: '',
                 isUploading: false,
                 treeId: computed(_ => `concept-tree-${treeName.value}`),
-                concept: computed(_ => conceptStore.concept),
-                conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
-                isFromTree: computed(_ => state.conceptSelected && state.concept.from == treeName.value),
+                conceptSelected: computed(_ => conceptStore.selectedConcept != null),
+                isFromTree: computed(_ => state.conceptSelected && state.conceptSelected.from == treeName.value),
                 dragAllowed: computed(_ => true),
             });
 

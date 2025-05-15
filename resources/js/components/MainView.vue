@@ -53,7 +53,7 @@
                 <div class="h-100 p-3">
                     <router-view @added="addConceptTo('selection')"></router-view>
                     <div
-                        v-if="!state.conceptSelected"
+                        v-if="!conceptStore.isConceptSelected"
                         class="alert alert-info"
                     >
                         {{ t('detail.none_selected') }}
@@ -119,8 +119,6 @@
                 showSandbox: false,
                 sandboxConcepts: computed(_ => conceptStore.concepts.sandbox),
                 projectConcepts: computed(_ => conceptStore.concepts.project),
-                concept: computed(_ => conceptStore.concept),
-                conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
             });
 
             const columns = reactive([{
@@ -156,6 +154,7 @@
                 // HELPERS
                 // LOCAL
                 columns,
+                conceptStore,
                 changeDragTarget,
                 toggleSandbox,
                 // STATE

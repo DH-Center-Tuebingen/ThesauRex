@@ -95,6 +95,11 @@
                             <a href="" @click.prevent="gotoConcept(narrower.id)">
                                 {{ getLabel(narrower) }}
                             </a>
+                            <!-- TODO: Delete when these values are updated correctly after local/remote add/remove   -->
+                            <ul>
+                                <li>is top: {{narrower.is_top_concept}}</li>
+                                <li>broaders_count: {{narrower.broaders_count}}</li>
+                            </ul>
                             <span v-show="isHovered('narrowers', i,) && canRemoveNarrower(narrower)" @click="removeNarrower(i)">
                                 <i class="fas fa-fw fa-times clickable"></i>
                             </span>
@@ -564,7 +569,7 @@
                 updatingTopLevelState: false,
                 addLabelValidated: computed(_ => state.addLabel.language.short_name && state.addLabel.value && state.addLabel.value.length),
                 addNoteValidated: computed(_ => state.addNote.language.short_name && state.addNote.value && state.addNote.value.length),
-                concept: computed(_ => conceptStore.concept.data),
+                concept: computed(_ => conceptStore.selectedConcept),
                 tree: computed(_ => conceptStore.concept.from),
                 isTopConcept: computed(_ => state.concept.is_top_concept),
                 hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),

@@ -1,20 +1,45 @@
 <template>
-    <div :ref="el => nodeRef = el" @dragenter="onDragEnter" @dragleave="onDragLeave"
-        :id="`${data.tree}-tree-node-${data.id}`" class="dropdown" v-show="!data.is_placeholder">
-        <a href="" :id="`${data.tree}-tree-node-cm-toggle-${data.id}`" @click.prevent @contextmenu.stop.prevent="togglePopup()"
-            class="text-body text-decoration-none disabled" data-bs-toggle="dropdown" :data-path="join(data.path)">
-            <span :class="{'fw-bold': state.isSelected}">
+    <div
+        :ref="el => nodeRef = el"
+        @dragenter="onDragEnter"
+        @dragleave="onDragLeave"
+        :id="`${data.tree}-tree-node-${data.id}`"
+        class="dropdown"
+        v-show="!data.is_placeholder"
+    >
+        <a
+            href=""
+            :id="`${data.tree}-tree-node-cm-toggle-${data.id}`"
+            @click.prevent
+            @contextmenu.stop.prevent="togglePopup()"
+            class="text-body text-decoration-none disabled"
+            data-bs-toggle="dropdown"
+            :data-path="join(data.path)"
+        >
+            <span :class="{ 'fw-bold': state.isSelected }">
                 {{ state.label }}
             </span>
         </a>
-        <ul class="dropdown-menu" :id="`${data.tree}-tree-node-${data.id}-contextmenu`">
+        <ul
+            class="dropdown-menu"
+            :id="`${data.tree}-tree-node-${data.id}-contextmenu`"
+        >
             <li>
-                <h6 class="dropdown-header" @click.stop.prevent="" @dblclick.stop.prevent="">
+                <h6
+                    class="dropdown-header"
+                    @click.stop.prevent=""
+                    @dblclick.stop.prevent=""
+                >
                     {{ state.label }}
                 </h6>
             </li>
             <li v-if="can('thesaurus_write')">
-                <a class="dropdown-item py-2" href="#" @click.stop.prevent="onAdd()" @dblclick.stop.prevent="">
+                <a
+                    class="dropdown-item py-2"
+                    href="#"
+                    @click.stop.prevent="onAdd()"
+                    @dblclick.stop.prevent=""
+                >
                     <i class="fas fa-fw fa-plus text-success"></i>
                     <span class="ms-2">
                         {{ t('tree.contextmenu.add') }}
@@ -22,7 +47,12 @@
                 </a>
             </li>
             <li v-if="can('thesaurus_share')">
-                <a class="dropdown-item py-2" href="#" @click.stop.prevent="onExport()" @dblclick.stop.prevent="">
+                <a
+                    class="dropdown-item py-2"
+                    href="#"
+                    @click.stop.prevent="onExport()"
+                    @dblclick.stop.prevent=""
+                >
                     <i class="fas fa-fw fa-upload text-primary"></i>
                     <span class="ms-2">
                         {{ t('tree.contextmenu.export') }}
@@ -30,7 +60,12 @@
                 </a>
             </li>
             <li v-if="can('thesaurus_delete')">
-                <a class="dropdown-item py-2" href="#" @click.stop.prevent="onDelete()" @dblclick.stop.prevent="">
+                <a
+                    class="dropdown-item py-2"
+                    href="#"
+                    @click.stop.prevent="onDelete()"
+                    @dblclick.stop.prevent=""
+                >
                     <i class="fas fa-fw fa-trash text-danger"></i>
                     <span class="ms-2">
                         {{ t('tree.contextmenu.delete') }}
@@ -38,11 +73,24 @@
                 </a>
             </li>
             <li v-if="can('thesaurus_write')">
-                <a class="dropdown-item py-2" :class="state.disabledAnchorClasses" href="#" @click.stop.prevent="onRemoveRelation()"
-                    @dblclick.stop.prevent="">
+                <a
+                    class="dropdown-item py-2"
+                    :class="state.disabledAnchorClasses"
+                    href="#"
+                    @click.stop.prevent="onRemoveRelation()"
+                    @dblclick.stop.prevent=""
+                >
                     <i class="fas fa-fw fa-times text-danger"></i>
-                    <span class="ms-2" v-if="state.hasParent" v-html="t('tree.contextmenu.remove_relation_to', {parent: state.parentLabel})" />
-                    <span class="ms-2" v-else v-html="t('tree.contextmenu.remove_relation_as_tlc')" />
+                    <span
+                        class="ms-2"
+                        v-if="state.hasParent"
+                        v-html="t('tree.contextmenu.remove_relation_to', { parent: state.parentLabel })"
+                    />
+                    <span
+                        class="ms-2"
+                        v-else
+                        v-html="t('tree.contextmenu.remove_relation_as_tlc')"
+                    />
                 </a>
             </li>
         </ul>
@@ -169,23 +217,26 @@
                 bsElem: null,
                 ddVisible: false,
                 label: computed(_ => getLabel(data.value)),
-                concept: computed(_ => conceptStore.concept.data),
+                concept: computed(_ => conceptStore.selectedConcept),
                 conceptTree: computed(_ => conceptStore.concept.from),
                 isTopConcept: computed(_ => state.concept.is_top_concept),
-                hasBroaders: computed(_ => state.concept.broaders && state.concept.broaders.length > 0),
+                hasBroaders: computed(_ => state.selectedConcept && state.concept.broaders && state.concept.broaders.length > 0),
                 canDeleteBroader: computed(_ => state.hasBroaders && (state.concept.broaders.length >= 2 || state.isTopConcept)),
                 hasParent: computed(_ => !!state.parent),
                 parent: computed(_ => {
                     if(!nodeRef || !nodeRef.value.parentElement) return;
 
                     const path = nodeRef.value.parentElement.getAttribute('data-path').split(',');
-                // pop element itself, because we want parent node
+                    // pop element itself, because we want parent node
                     path.pop();
                     if(path.length == 0) return;
                     return getNodeFromPath(conceptStore.concepts[data.value.tree], path);
                 }),
                 parentLabel: computed(_ => getLabel(state.parent)),
-                isSelected: computed(_ => state.concept && state.concept.id === data.value.nid && state.conceptTree == data.value.tree),
+                isSelected: computed(_ => {
+                    if(!state.concept) return false;
+                    return state.concept && state.concept.id === data.value.nid && state.conceptTree == data.value.tree
+                }),
                 asyncToggle: computed(_ => _debounce(doToggle, 500)),
                 disabledAnchorClasses: computed(_ => {
                     if(state.canDeleteBroader) {

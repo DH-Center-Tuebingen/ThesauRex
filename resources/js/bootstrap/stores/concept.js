@@ -46,8 +46,8 @@ export const useConceptStore = defineStore('concept', {
             sandbox: {},
         },
         conceptReferences: {
-            project: {},
-            sandbox: {},
+            project: [],
+            sandbox: [],
         },
         conceptParents: {
             project: {},
@@ -55,10 +55,21 @@ export const useConceptStore = defineStore('concept', {
         },
         concept: {
             from: null,
-            data: {},
+            dataMapId: 0,
         },
     }),
     getters: {
+        isConceptSelected: state => {
+            return !!state.concept.from && !!state.concept.mapId;
+        },
+        selectedConcept: state => {
+            const mapId = state.concept.mapId;
+            const tree = state.concept.from;
+            if(!mapId || ! tree) {
+                return null;
+            }
+            return state.conceptMap?.[tree]?.[mapId] || null;
+        },
     },
     actions: {
         async uploadFile(file, tree, actionType) {
@@ -300,7 +311,7 @@ export const useConceptStore = defineStore('concept', {
         async setSelected(id, tree) {
             if(!id || !tree) {
                 this.concept.from = null;
-                this.concept.data = {};
+                this.concept.mapId = 0;
             } else {
                 let concept = this.conceptMap[tree][id];
                 if(!concept) {
@@ -312,7 +323,7 @@ export const useConceptStore = defineStore('concept', {
                     concept = this.conceptMap[tree][id];
                 }
                 this.concept.from = tree;
-                this.concept.data = concept;
+                this.concept.mapId = id;
             }
         },
         pushLabel(label, conceptId, tree) {
@@ -468,17 +479,6 @@ export const useConceptStore = defineStore('concept', {
 
             broaderIdList.forEach(relBroadId => {
                 narrowerIdList.forEach(relNarrId => {
-                    /**
-                    * When the narrower is loaded via websockets, it will contain the broaders_count but not all broader concepts.
-                    * If not, we need to write the broaders_count manually.
-                    */
-                    const narrowerNode = this.conceptMap[tree][relNarrId];
-
-                    if(!narrowerNode.broaders_count) {
-                        narrowerNode.broaders_count = narrowerNode.broaders?.length ? narrowerNode.broaders.length : 0;
-                    }
-                    narrowerNode.broaders_count++;
-
                     const broader = unnode(this.conceptMap[tree][relBroadId]);
                     const narrower = unnode(this.conceptMap[tree][relNarrId]);
                     const broaderList = this.conceptReferences[tree][relBroadId] || [];
@@ -530,6 +530,17 @@ export const useConceptStore = defineStore('concept', {
                                         narrowerConcept.broaders.push(broader);
                                         sortTree(narrowerConcept.broaders);
                                     }
+                                }
+
+                                /* 
+                                * If the concept was added via websockets, it will not have broaders but
+                                * the broaders_count will be set, so we can't solely rely on the 'broaders.length' check.
+                                */
+                                if(!narrowerConcept.broaders_count) {
+                                    narrowerConcept.broaders_count = narrowerConcept.broaders?.length ? narrowerConcept.broaders.length : 0;
+                                } else {
+                                    console.log('incrementing broaders_count', narrowerConcept.broaders_count);
+                                    narrowerConcept.broaders_count++;
                                 }
                             }
                         }
@@ -586,6 +597,16 @@ export const useConceptStore = defineStore('concept', {
                                     if(idx > -1) {
                                         narrowerConcept.broaders.splice(idx, 1);
                                     }
+                                }
+                                
+                                                                /* 
+                                * If the concept was added via websockets, it will not have broaders but
+                                * the broaders_count will be set, so we can't solely rely on the 'broaders.length' check.
+                                */
+                                if(!narrowerConcept.broaders_count) {
+                                    narrowerConcept.broaders_count = narrowerConcept.broaders?.length ? narrowerConcept.broaders.length : 0;
+                                } else {
+                                    narrowerConcept.broaders_count--;
                                 }
                             }
                         }
