@@ -90,7 +90,6 @@ export default function useWebSocketConnectionToast() {
         if(bsToast.value?._element) {
             bsToast.value._element.remove();
             bsToast.value = null;
-            console.log('removed toast');
         }
         createToastIfNecessary();
     });

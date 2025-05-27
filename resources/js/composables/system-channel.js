@@ -8,7 +8,7 @@ import {
     SYSTEM_CHANNEL_NAME,
 } from '@/helpers/websocket.js';
 
-export default function useSystemChannel (listOfEvents = []) {
+export default function useSystemChannel(listOfEvents = []) {
     onMounted(_ => {
         subscribeSystemChannel();
         listenToList(SYSTEM_CHANNEL_NAME, listOfEvents);

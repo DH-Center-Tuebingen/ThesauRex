@@ -94,6 +94,7 @@
     import { useI18n } from 'vue-i18n';
 
     import useLanguageStore from '@/bootstrap/stores/language.js';
+    import useSystemChannel from '@/composables/system-channel.js';
 
     import {
         can,
@@ -110,12 +111,10 @@
         showDeleteLanguage,
     } from '@/helpers/modal.js';
 
-
     import {
         handleLanguageAddedEvent,
         handleLanguageDeletedEvent,
-    } from '../handlers/system';
-    import useSystemChannel from '@/composables/system-channel';
+    } from '@/handlers/system.js';
 
     export default {
         setup(props, context) {

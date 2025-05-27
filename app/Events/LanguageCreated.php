@@ -23,13 +23,12 @@ class LanguageCreated implements ShouldBroadcast {
         $this->language = $language;
         $this->user = $user;
     }
-    
+
     public function broadcastWith(): array {
-        $data = [
+        return [
             'language' => $this->language->toArray(),
             'user' => $this->user->toArray(),
         ];
-        return $data;
     }
 
     /**

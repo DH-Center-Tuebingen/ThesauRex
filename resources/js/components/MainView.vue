@@ -75,6 +75,10 @@
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
+    import useSystemChannel from '@/composables/system-channel.js';
+
+    import useWebSocketConnectionToast from '@/composables/websockets-connection.toast.js';
+
     import {
         handleSystemMessageEvent,
         handleConceptAddedEvent,
@@ -91,9 +95,6 @@
         handleLanguageAddedEvent,
         handleLanguageDeletedEvent,
     } from '@/handlers/system.js';
-
-    import useSystemChannel from '@/composables/system-channel';
-    import useWebSocketConnectionToast from '../composables/websockets-connection.toast';
 
     export default {
         components: {
