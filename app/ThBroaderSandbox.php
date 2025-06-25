@@ -6,5 +6,8 @@ class ThBroaderSandbox extends ThBroaderBase
 {
     protected $table = 'th_broaders_master';
 
-    protected $conceptClass = ThConceptSandbox::class;
+    public function getConceptClass(): string
+    {
+        return ThConceptSandbox::class;
+    }
 }

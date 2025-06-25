@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ThBroaderBase extends Model
+abstract class ThBroaderBase extends Model
 {
     protected $table;
     /**
@@ -17,13 +17,13 @@ class ThBroaderBase extends Model
         'narrower_id',
     ];
 
-    protected $conceptClass;
+    abstract public function getConceptClass(): string;
 
     public function narrower() {
-        return $this->belongsTo(self::$conceptClass, 'narrower_id');
+        return $this->belongsTo($this->getConceptClass(), 'narrower_id');
     }
 
     public function broader() {
-        return $this->belongsTo(self::$conceptClass, 'broader_id');
+        return $this->belongsTo($this->getConceptClass(), 'broader_id');
     }
 }
