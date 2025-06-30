@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Str;
 
+use App\Utils\UrlUtils;
+
 return [
 
     /*
@@ -140,7 +142,7 @@ return [
     |
     */
 
-    'path' => '/',
+    'path' => UrlUtils::getSubPath(env('APP_URL', '/')),
 
     /*
     |--------------------------------------------------------------------------

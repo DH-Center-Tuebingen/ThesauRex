@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Flickering of text after first selection of a concept
 - Highlighting and selection of concept in tree if a concept with the same ID exists in the other tree
+### Changed
+- Cookies now contain the sub-path when spacialist is not deployed on the domain root
 
 ## 0.10 - Jelling
 ### Added
