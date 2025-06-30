@@ -142,7 +142,7 @@
             const onAdd = _ => {
                 if(!can('thesaurus_write')) return;
 
-                showCreateConcept(data.value.tree, data.value.id);
+                showCreateConcept(data.value.tree, data.value.nid);
             };
             const onExport = _ => {
                 if(!can('thesaurus_share')) return;
