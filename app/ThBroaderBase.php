@@ -25,5 +25,5 @@ abstract class ThBroaderBase extends Model
 
     public function broader() {
         return $this->belongsTo($this->getConceptClass(), 'broader_id');
-    }
+    }    
 }

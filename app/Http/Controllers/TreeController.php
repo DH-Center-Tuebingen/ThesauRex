@@ -673,70 +673,52 @@ class TreeController extends Controller
                 'error' => 'You do not have the permission to call this method'
             ], 403);
         }
-
+        
+        $removeFromTop = $bid == -1;
         $treeName = $request->query('t', 'project');
-
+        
+        $ThClass = $treeName == 'sandbox' ? ThConceptSandbox::class : ThConcept::class;
         try {
-            if($treeName === 'sandbox') {
-                $concept = ThConceptSandbox::findOrFail($id);
-            } else {
-                $concept = ThConcept::findOrFail($id);
-            }
+            $concept = $ThClass::findOrFail($id);
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
             ], 400);
         }
-        if($bid != -1) {
+        if(!$removeFromTop) {
             try {
-                if($treeName === 'sandbox') {
-                    ThConceptSandbox::findOrFail($bid);
-                } else {
-                    ThConcept::findOrFail($bid);
-                }
+                $ThClass::findOrFail($bid);
             } catch(ModelNotFoundException $e) {
                 return response()->json([
                     'error' => 'This concept does not exist'
                 ], 400);
             }
         }
-
-        // if narrower is not a top concept
-        // check if there are other broader-narrower
-        // relations. If not, delete the concept
-        if(!$concept->is_top_concept || $bid == -1) {
-            if($treeName == 'sandbox') {
-                $query = ThBroaderSandbox::query();
-            } else {
-                $query = ThBroader::query();
-            }
-
-            $broadCnt = $query->where('narrower_id', $id)->count();
-
-            $cntForReject = $bid == -1 ? 0 : 1;
-
-            if($broadCnt === $cntForReject) {
-                return response()->json([
-                    'error' => 'This concept is neither a top level concept nor does it have other broader concepts. Thus, removing this relation would result in deleting that concept. Please use the delete functionality to delete it.'
-                ], 400);
-            }
+        
+        if($concept->relationsCount() <= 1){
+            return response()->json([
+                'error' => 'This is the concepts last relation, it cannot be removed. Please use the delete functionality to delete it.'
+            ], 400);
         }
-
-        if($bid != -1) {
-            if($treeName == 'sandbox') {
-                $query = ThBroaderSandbox::query();
-            } else {
-                $query = ThBroader::query();
-            }
-
-            $query->where('broader_id', $bid)
-                ->where('narrower_id', $id)
-                ->first()
-                ->delete();
-        } else {
+        
+        $ThBroaderClass = $treeName == 'sandbox' ? ThBroaderSandbox::class : ThBroader::class;
+        if($removeFromTop) {
             $concept->is_top_concept = false;
             $concept->save();
-        }
+        } else {
+            $query = $ThBroaderClass::query();
+            $result = $query->where('broader_id', $bid)
+                ->where('narrower_id', $id)
+                ->first();
+                
+            if(!isset($result)) {
+                return response()->json([
+                    'error' => 'This relation does not exist'
+                ], 400);
+            } else {
+                $result->delete();
+            }
+        } 
 
         return response()->json(null, 204);
     }

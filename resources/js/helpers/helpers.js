@@ -263,6 +263,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import _debounce from 'lodash/debounce';
 import _orderBy from 'lodash/orderBy';
 import _throttle from 'lodash/throttle';
+import useConceptStore from '../bootstrap/stores/concept';
 
 export {
     _cloneDeep,
@@ -318,8 +319,9 @@ export function languageList() {
     return list;
 };
 
-export function gotoConcept(id, tree = null) {
+export async function gotoConcept(id, tree) {
     const query = tree ? {...router.currentRoute.value.query, t: tree} : router.currentRoute.value.query;
+    await useConceptStore().openAllConceptPaths(tree, id);
     router.push({
         name: 'conceptdetail',
         params: {

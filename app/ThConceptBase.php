@@ -79,4 +79,18 @@ abstract class ThConceptBase extends Model
     abstract public function notes();
     abstract public function narrowers();
     abstract public function broaders();
+    
+    
+    /**
+     * Get the number of relations this concept has. This is the cound of all broaders and wheather it's a top concept. 
+     *
+     * @return string
+     */
+    public function relationsCount(){
+        $count = $this->broaders()->count();
+        if($this->is_top_concept) {
+            $count++;
+        }
+        return $count; 
+    }
 }

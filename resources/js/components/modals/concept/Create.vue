@@ -79,14 +79,20 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button
-                    type="submit"
-                    class="btn btn-outline-success"
+                <LoadingButton
+                    color="success"
+                    :outlined="true"
+                    :loading="loading"
                     :disabled="!state.conceptValidated"
                     form="create-concept-form"
                 >
-                    <i class="fas fa-fw fa-plus" /> {{ t('global.add') }}
-                </button>
+                    <template #icon>
+                        <i class="fas fa-fw fa-plus" />
+                    </template>
+                    <span>
+                        {{ t('global.add') }}
+                    </span>
+                </LoadingButton>
                 <button
                     type="button"
                     class="btn btn-outline-secondary"
@@ -113,6 +119,8 @@
 
     import { useI18n } from 'vue-i18n';
 
+    import {LoadingButton} from 'dhc-components';
+    
     import useLanguageStore from '@/bootstrap/stores/language.js';
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
@@ -125,6 +133,9 @@
     } from '@/helpers/tree.js';
 
     export default {
+        components: {
+            LoadingButton,
+        },
         props: {
             tree: {
                 type: String,
@@ -138,6 +149,10 @@
                 type: String,
                 required: false,
                 default: '',
+            },
+            loading: {
+                type: Boolean,
+                required: false,
             },
         },
         emits: ['add', 'cancel'],
@@ -171,7 +186,7 @@
                     label: initialValue.value,
                 },
                 hasParent: computed(_ => parentId.value > 0),
-                parentConcept: computed(_ => state.hasParent ? conceptStore.conceptMap[tree.value][parentId.value] : null),
+                parentConcept: computed(_ => state.hasParent ? conceptStore.dictionary[tree.value][parentId.value] : null),
                 conceptValidated: computed(_ => state.concept.language.short_name && state.concept.label && state.concept.label.length),
                 languages: computed(_ => languageStore.languages),
             });

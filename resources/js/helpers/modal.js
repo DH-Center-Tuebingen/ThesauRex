@@ -29,6 +29,7 @@ import CreateConcept from '@/components/modals/concept/Create.vue';
 import DeleteConcept from '@/components/modals/concept/Delete.vue';
 import AddLanguage from '@/components/modals/lang/Create.vue';
 import DeleteLanguage from '@/components/modals/lang/Delete.vue';
+import { ref } from 'vue';
 
 export function showAbout() {
     const uid = `AboutModal-${getTs()}`;
@@ -62,7 +63,7 @@ export function showDiscard(target, resetData, onBeforeConfirm) {
                 pushRoute();
             },
             onSaveConfirm(e) {
-                if (!!onBeforeConfirm) {
+                if(!!onBeforeConfirm) {
                     onBeforeConfirm().then(_ => {
                         pushRoute();
                     }).catch(e => {
@@ -239,6 +240,7 @@ export function showDeleteRole(role, onDeleted) {
 
 export function showCreateConcept(tree, pid, initValue = '') {
     const uid = `CreateConcept-${getTs()}`;
+    const loading = ref(false);
     const modal = useModal({
         component: CreateConcept,
         attrs: {
@@ -246,11 +248,15 @@ export function showCreateConcept(tree, pid, initValue = '') {
             tree: tree,
             parentId: pid,
             initialValue: initValue,
+            loading: loading,
             onAdd(concept) {
                 if(!can('thesaurus_create')) return;
-
+                if(loading.value) return; // Prevent multiple submissions
+                loading.value = true;
                 useConceptStore().addConcept(concept, tree, pid).then(_ => {
                     modal.destroy();
+                }).finally(() => {
+                    loading.value = false;
                 });
             },
             onCancel(e) {
@@ -272,6 +278,7 @@ export function showDeleteConcept(tree, conceptId) {
             onConfirm(e) {
                 if(!can('thesaurus_delete')) return;
 
+                console.log("Deleting concept", e);
                 useConceptStore().deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
                     modal.destroy();
                 });

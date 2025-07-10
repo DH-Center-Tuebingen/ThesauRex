@@ -118,23 +118,23 @@ export const handleConceptNoteDeletedEvent = {
 };
 
 export const handleConceptRelationAddedEvent = {
-    'RelationCreated': e => {
+    'RelationCreated': async e => {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
         const tree = e.tree;
         useConceptStore().addRawConcept(e.relation.broader, tree);
         useConceptStore().addRawConcept(e.relation.narrower, tree);
-        useConceptStore().handleAddRelation(e.relation.broader_id, e.relation.narrower_id, tree);
+        await useConceptStore().handleAddRelation(e.relation.narrower_id, e.relation.broader_id, tree);
         const message = 'Successfully received RelationCreated Event!';
         toastMessage(message);
     },
 };
 
 export const handleConceptRelationDeletedEvent = {
-    'RelationDeleted': e => {
+    'RelationDeleted': async e => {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
-        useConceptStore().handleRemoveRelation(e.relation.broader_id, e.relation.narrower_id, e.tree);
+        await useConceptStore().handleRemoveRelation(e.relation.narrower_id, e.relation.broader_id, e.tree);
         const message = 'Successfully received RelationDeleted Event!';
         toastMessage(message);
     },

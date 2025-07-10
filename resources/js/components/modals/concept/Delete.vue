@@ -117,7 +117,6 @@
         computed,
         onMounted,
         reactive,
-        toRefs,
         watch,
     } from 'vue';
 
@@ -146,10 +145,6 @@
         },
         emits: ['confirm', 'cancel'],
         setup(props, context) {
-            const {
-                tree,
-                conceptId,
-            } = toRefs(props);
             const { t } = useI18n();
             const conceptStore = useConceptStore();
 
@@ -158,8 +153,9 @@
                 context.emit('cancel', false);
             };
             const onConfirm = _ => {
+                console.log(conceptStore.dictionary[props.tree][props.conceptId], props.conceptId)
                 context.emit('confirm', {
-                    nid: state.concept.nid,
+                    nid: state.concept.id,
                     action: state.action,
                     params: state.params,
                 });
@@ -178,7 +174,7 @@
                 action: 'cascade',
                 relateConcept: null,
                 params: {},
-                concept: computed(_ => conceptStore.conceptMap[tree.value][conceptId.value] || {}),
+                concept: computed(_ => conceptStore.dictionary[props.tree][props.conceptId] || {}),
                 isValid: computed(_ => !!state.action && (state.action != 'rerelate' || !!state.relateConcept)),
             });
 

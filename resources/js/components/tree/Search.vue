@@ -22,7 +22,7 @@
         :ref="el => msRef = el"
         :placeholder="t('tree.search.placeholder')"
         @select="optionSelected"
-        @keyup.enter="selectCurrentOrCreateNew"
+        @keydown.enter="selectCurrentOrCreateNew"
     >
         <template v-slot:singlelabel="{ value }">
             <div class="multiselect-single-label">
@@ -201,7 +201,7 @@
                 // search to prevent the user from creating
                 // a new concept with the same name as an existing one.
                 if(state.searching) return;
-
+                
                 if(msRef.value.filteredOptions.length == 0) {
                     addOptionSelected();
                 }

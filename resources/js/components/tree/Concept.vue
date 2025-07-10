@@ -138,17 +138,14 @@
         onMounted,
         reactive,
         ref,
-        toRefs,
     } from 'vue';
 
-    import {useRoute} from 'vue-router';
-    import {useI18n} from 'vue-i18n';
+    import { useI18n } from 'vue-i18n';
     import {
         getNodeFromPath,
     } from 'tree-component';
 
     import {
-        toggleTreeNode,
         uploadConceptsFile,
     } from '@/helpers/tree.js';
 
@@ -162,6 +159,7 @@
 
     import router from '@/bootstrap/router.js';
     import useConceptStore from '@/bootstrap/stores/concept.js';
+import { useRoute } from 'vue-router';
 
     const DropPosition = {
         empty: 0,
@@ -187,38 +185,52 @@
         },
         emits: ['change-drag-target', 'toggle-sandbox'],
         setup(props, context) {
-            const {t} = useI18n();
-            const currentRoute = useRoute();
+            const { t } = useI18n();
             const conceptStore = useConceptStore();
-            const {
-                dragTarget,
-                treeData,
-                treeName,
-            } = toRefs(props);
-            // FETCH
-
+            
             // FUNCTIONS
             const itemClick = item => {
-                if(state.isFromTree && state.concept.data.id == item.data.id) {
+                const nid = item?.data?.nid || null;
+                const tree = item?.data?.tree || null;
+
+                if(nid == null || tree == null) {
+                    return;
+                }
+
+                if(conceptStore.isSelected(nid, tree)) {
+                    conceptStore.setSelected(null)
+                    pushRoute(null, null);
+                } else {
+                    const nid = item.data.nid;
+                    conceptStore.setSelected(nid, props.treeName);
+                    pushRoute(nid);
+                }
+            }
+
+            const currentRoute = useRoute();
+            const pushRoute = (id) => {
+                if(props.treeName != null && id) {
+                    router.push({
+                        name: 'conceptdetail',
+                        params: {
+                            id: id,
+                        },
+                        query: {
+                            ...currentRoute.query,
+                            t: props.treeName,
+                        }
+                    });
+                } else {
                     router.push({
                         append: true,
                         name: 'home',
                     });
-                } else {
-                    router.push({
-                        name: 'conceptdetail',
-                        params: {
-                            id: item.data.nid
-                        },
-                        query: {
-                            ...currentRoute.query,
-                            t: treeName.value,
-                        }
-                    });
                 }
-            };
-            const itemToggle = eventData => {
-                toggleTreeNode(eventData.data, treeName.value);
+            }
+
+            const itemToggle = async eventData => {
+                const node = eventData.data;
+                await node.toggle();
             };
             const itemDrop = eventData => {
                 if(!dropAllowed(eventData)) {
@@ -232,7 +244,7 @@
                 if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
-                    parentNode = getNodeFromPath(conceptStore[treeName.value], eventData.targetPath.slice(0, eventData.targetPath.length - 1));
+                    parentNode = getNodeFromPath(conceptStore.selected[props.treeName], eventData.targetPath.slice(0, eventData.targetPath.length - 1));
                 }
                 const nid = srcNode.nid;
                 const bid = parentNode ? parentNode.nid : -1;
@@ -275,7 +287,7 @@
                         name: 'home',
                     });
                 }
-                return uploadConceptsFile(file.file, treeName.value, state.uploadType).then(_ => {
+                return uploadConceptsFile(file.file, props.treeName, state.uploadType).then(_ => {
                     state.uploadType = '';
                     state.isUploading = false;
                 }).catch(e => {
@@ -285,11 +297,11 @@
                 });
             };
             const onExport = _ => {
-                conceptStore.export(treeName.value);
+                conceptStore.export(props.treeName);
             };
             const onAddTopConcept = _ => {
                 if(!can('thesaurus_write')) return;
-                showCreateConcept(treeName.value);
+                showCreateConcept(props.treeName);
             };
             const dropAllowed = dropData => {
                 if(!can('thesaurus_write')) return false;
@@ -301,7 +313,7 @@
                 if(tgtNode.state.dropPosition == DropPosition.inside) {
                     parentNode = tgtNode;
                 } else {
-                    parentNode = getNodeFromPath(conceptStore.concepts[treeName.value], dropData.targetPath.slice(0, dropData.targetPath.length - 1));
+                    parentNode = getNodeFromPath(conceptStore.tree[props.treeName], dropData.targetPath.slice(0, dropData.targetPath.length - 1));
                 }
                 const nid = srcNode.nid;
                 const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
@@ -331,7 +343,7 @@
                         if(srcIsParent) return false;
                     }
                     // ... source is added on same level (as child of parent/target)
-                    const srcParentNode = getNodeFromPath(conceptStore.concepts[treeName.value], dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
+                    const srcParentNode = getNodeFromPath(conceptStore.tree[props.treeName], dropData.sourcePath.slice(0, dropData.sourcePath.length - 1));
                     if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
                         return false;
                     }
@@ -346,18 +358,13 @@
                 highlightedItems: [],
                 uploadType: '',
                 isUploading: false,
-                treeId: computed(_ => `concept-tree-${treeName.value}`),
-                concept: computed(_ => conceptStore.concept),
+                treeId: computed(_ => `concept-tree-${props.treeName}`),
+                concept: computed(_ => conceptStore.selected),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
-                isFromTree: computed(_ => state.conceptSelected && state.concept.from == treeName.value),
+                isFromTree: computed(_ => state.conceptSelected && state.concept.from == props.treeName),
                 dragAllowed: computed(_ => true),
             });
-
-            // ON MOUNTED
-            onMounted(_ => {
-                console.log("concept tree component mounted");
-            });
-
+            
             return {
                 t,
                 // HELPERS
@@ -374,275 +381,10 @@
                 onExport,
                 onAddTopConcept,
                 dropAllowed,
-                // PROPS
-                dragTarget,
-                treeData,
                 // STATE
                 uploadRef,
                 state,
             };
         }
-        // methods: {
-        //     changeDragTarget(e) {
-        //         this.$emit('change-drag-target', e);
-        //     },
-        //     itemDrop(dropData) {
-        //         if(!this.isDragAllowed || !this.isDropAllowed(dropData)) {
-        //             return;
-        //         }
-
-        //         const srcNode = dropData.sourceData;
-        //         const tgtNode = dropData.targetData;
-
-        //         let parentNode;
-        //         if(tgtNode.state.dropPosition == DropPosition.inside) {
-        //             parentNode = tgtNode;
-        //         } else {
-        //             parentNode = treeUtility.getNodeFromPath(this.tree, dropData.targetPath.slice(0, dropData.targetPath.length-1));
-        //         }
-        //         const nid = srcNode.id;
-        //         const bid = parentNode ? parentNode.id : -1;
-
-        //         const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
-
-        //         if(isFromOtherTree) {
-        //             const from = this.treeName === 'sandbox' ? '' : 'sandbox';
-        //             $httpQueue.add(() => $http.put(`/tree/concept/clone/${nid}/to/${bid}?t=${this.treeName}&s=${from}`).then(response => {
-        //                 this.eventBus.$emit(`concept-created-${this.treeName}`, {
-        //                     parent_id: parentNode ? parentNode.id : undefined,
-        //                     concept: response.data
-        //                 });
-        //             }));
-        //         } else {
-        //             $httpQueue.add(() => $http.put(`/tree/concept/${nid}/broader/${bid}?t=${this.treeName}`).then(response => {
-        //                 this.eventBus.$emit(`relation-updated-${this.treeName}`, {
-        //                     type: 'add',
-        //                     concept: this.concepts[nid],
-        //                     broader_id: bid,
-        //                     narrower_id: nid
-        //                 });
-        //             }));
-        //         }
-
-        //         return;
-        //     },
-        //     triggerFileUpload(type) {
-        //         this.importType = type;
-        //         this.$refs.upload.$el.children.file.click();
-        //     },
-        //     importFile(newFile, oldFile) {
-        //         // Wait for response
-        //         if(newFile && oldFile && newFile.success && !oldFile.success) {
-        //             this.filesUploaded++;
-        //         }
-        //         if(newFile && oldFile && newFile.error && !oldFile.error) {
-        //             this.filesErrored++;
-        //         }
-        //         // Enable automatic upload
-        //         if(Boolean(newFile) !== Boolean(oldFile) || oldFile.error !== newFile.error) {
-        //             if(!this.$refs.upload.active) {
-        //                 this.$refs.upload.active = true
-        //             }
-        //         }
-        //         if(this.filesUploaded + this.filesErrored == this.uploadFiles.length) {
-        //             if(this.filesUploaded > 0) {
-        //                 this.filesUploaded = 0;
-        //                 this.filesErrored = 0;
-        //                 // TODO handle update
-        //             }
-        //         }
-        //     },
-        //     uploadFile(file, component) {
-        //         this.$modal.show('importing-info-modal');
-        //         let formData = new FormData();
-        //         formData.append('file', file.file);
-        //         formData.append('type', this.importType);
-        //         return $http.post(`tree/file?t=${this.treeName}`, formData).then(res => {
-        //             this.$modal.hide('importing-info-modal');
-        //             return res;
-        //         }).catch(error => {
-        //             this.$modal.hide('importing-info-modal');
-        //             return error;
-        //         });
-        //     },
-        //     handleDeleteAll(e) {
-        //         if(!this.$can('delete_move_concepts')) return;
-        //         const id = e.element.id;
-        //         $httpQueue.add(() => $http.delete(`/tree/concept/${id}?t=${this.treeName}`).then(response => {
-        //             if(id == this.$route.params.id && this.treeName === this.$route.query.t) {
-        //                 this.$router.push({
-        //                     name: 'home'
-        //                 });
-        //             }
-        //             // TODO handle update (sub-tree deleted)
-        //             const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
-        //             this.removeFromTree(e.element, path);
-        //         }));
-        //     },
-        //     handleDeleteOneUp(e) {
-        //         const el = e.element;
-        //         const id = el.id;
-        //         $httpQueue.add(() => $http.delete(`/tree/concept/${id}/move?t=${this.treeName}`).then(response => {
-        //             // TODO handle update (concept deleted, descs one level up)
-        //             let newParent;
-        //             if(!el.parents.length) {
-        //                 this.tree.children_count += el.children.length;
-        //                 newParent = this.tree;
-        //             } else {
-        //                 const parent = el.parents[el.parents.length - 1];
-        //                 const parentNode = this.concepts[parent.id];
-        //                 parentNode.children_count += el.children.length;
-        //                 newParent = parentNode.children;
-        //             }
-        //             el.children.forEach(c => {
-        //                 c.parents.pop();
-        //                 c.path.splice(c.path.length-2, 1);
-        //                 newParent.push(c);
-        //             });
-        //             const path = document.getElementById(`tree-node-${id}`).parentElement.getAttribute('data-path').split(',');
-        //             this.removeFromTree(el, path);
-        //             this.sortTree(newParent);
-        //             if(id == this.$route.params.id && this.treeName === this.$route.query.t) {
-        //                 this.$router.push({
-        //                     name: 'home'
-        //                 });
-        //             }
-        //         }));
-        //     },
-        //     handleConceptRemoveRelation(e) {
-        //         const parentNode = treeUtility.getNodeFromPath(this.tree, e.path.slice(0, e.path.length-1));
-        //         const id = e.element.id;
-        //         const bid = parentNode ? parentNode.id : -1;
-        //         $httpQueue.add(() => $http.delete(`/tree/concept/${id}/broader/${bid}?t=${this.treeName}`).then(response => {
-        //             this.eventBus.$emit(`relation-updated-${this.treeName}`, {
-        //                 type: 'remove',
-        //                 broader_id: bid != -1 ? bid : undefined,
-        //                 narrower_id: id
-        //             });
-        //         }));
-        //     },
-        //     handleRelationUpdate(e) {
-        //         let broader;
-        //         let narrower;
-        //         let siblings;
-        //         switch(e.type) {
-        //             case 'add':
-        //                 broader = this.concepts[e.broader_id];
-        //                 narrower = this.concepts[e.narrower_id];
-        //                 if(e.broader_id && !broader.childrenLoaded) {
-        //                     broader.children_count++;
-        //                     break;
-        //                 }
-        //                 siblings = e.broader_id ? broader.children : this.tree;
-        //                 siblings.push(narrower);
-        //                 this.sortTree(siblings);
-        //                 break;
-        //             case 'remove':
-        //                 broader = this.concepts[e.broader_id];
-        //                 narrower = this.concepts[e.narrower_id];
-        //                 if(e.broader_id && !broader.childrenLoaded) {
-        //                     broader.children_count--;
-        //                     break;
-        //                 }
-        //                 siblings = e.broader_id ? broader.children : this.tree;
-        //                 const childIndex = siblings.findIndex(c => {
-        //                     return c.id == narrower.id;
-        //                 });
-        //                 if(childIndex > -1) {
-        //                     siblings.splice(childIndex, 1);
-        //                 }
-        //                 break;
-        //         }
-        //     },
-        //     isDropAllowed(dropData) {
-        //         const srcNode = dropData.sourceData;
-        //         const tgtNode = dropData.targetData;
-
-        //         let parentNode;
-        //         if(tgtNode.state.dropPosition == DropPosition.inside) {
-        //             parentNode = tgtNode;
-        //         } else {
-        //             parentNode = treeUtility.getNodeFromPath(this.tree, dropData.targetPath.slice(0, dropData.targetPath.length-1));
-        //         }
-        //         const nid = srcNode.id;
-        //         const isFromOtherTree = srcNode.treeName != tgtNode.treeName;
-
-        //         // Cancel drop if from same tree and ...
-        //         if(!isFromOtherTree) {
-        //             // ... target is same node or ...
-        //             if(nid == tgtNode.id) return false;
-        //             // ... source is a parent of target (would result in circle) or ...
-        //             if(dropData.targetPath.length > dropData.sourcePath.length) {
-        //                 let srcIsParent = true;
-        //                 for(let i=0; i<dropData.sourcePath.length; i++) {
-        //                     const p = dropData.sourcePath[i];
-        //                     const pt = dropData.targetPath[i];
-        //                     if(p !== pt) {
-        //                         srcIsParent = false;
-        //                         break;
-        //                     }
-        //                 }
-        //                 if(srcIsParent) return false;
-        //             }
-        //             // ... source is added on same level (as child of parent/target)
-        //             const srcParentNode = treeUtility.getNodeFromPath(this.tree, dropData.sourcePath.slice(0, dropData.sourcePath.length-1));
-        //             if((!parentNode && !srcParentNode) || (parentNode && srcParentNode && parentNode.id === srcParentNode.id)) {
-        //                 return false;
-        //             }
-        //         }
-        //         // In any other cases allow drop
-        //         return true;
-        //     },
-        //     onSearchMultiSelect(items) {
-        //         this.resetHighlighting();
-        //         this.highlightItems(items);
-        //     },
-        //     onSearchClear() {
-        //         this.resetHighlighting();
-        //     },
-        //     highlightItems(items) {
-        //         items.forEach(i => {
-        //             return this.openPath(i.path).then(targetNode => {
-        //                 targetNode.state.highlighted = true;
-        //                 this.highlightedItems.push(targetNode);
-        //             });
-        //         });
-        //     },
-        //     resetHighlighting() {
-        //         this.highlightedItems.forEach(i => i.state.highlighted = false);
-        //         this.highlightedItems = [];
-        //     },
-        // },
-        // data() {
-        //     return {
-        //         concepts: [],
-        //         tree: [],
-        //         highlightedItems: [],
-        //         selectedConceptId: -1,
-        //         uploadFiles: [],
-        //         filesUploaded: 0,
-        //         filesErrored: 0
-        //     }
-        // },
-        // computed: {
-        //     topLevelCount() {
-        //         return this.tree.length || 0;
-        //     },
-        //     isDragAllowed() {
-        //         return true;
-        //     },
-        //     scrollTo() {
-        //         return {
-        //             duration: 500,
-        //             options: {
-        //                 container: `#${this.treeId}`,
-        //                 force: false,
-        //                 cancelable: true,
-        //                 x: false,
-        //                 y: true
-        //             }
-        //         };
-        //     }
-        // }
     }
 </script>

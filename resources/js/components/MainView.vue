@@ -51,9 +51,12 @@
             <!-- Right Column -->
             <template #detail>
                 <div class="h-100 p-3">
-                    <router-view @added="addConceptTo('selection')"></router-view>
+                    <router-view
+                        v-if="state.conceptSelected"
+                        @added="addConceptTo('selection')"
+                    ></router-view>
                     <div
-                        v-if="!state.conceptSelected"
+                        v-else
                         class="alert alert-info"
                     >
                         {{ t('detail.none_selected') }}
@@ -70,10 +73,12 @@
         reactive,
     } from 'vue';
 
+    import { useRoute } from 'vue-router';
     import { useI18n } from 'vue-i18n';
     import { ResizableColumns } from 'dhc-components';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
+    import router from '@/bootstrap/router.js';
 
     import useSystemChannel from '@/composables/system-channel.js';
 
@@ -95,6 +100,8 @@
         handleLanguageAddedEvent,
         handleLanguageDeletedEvent,
     } from '@/handlers/system.js';
+    import { watch } from 'vue';
+    import { onMounted } from 'vue';
 
     export default {
         components: {
@@ -118,9 +125,9 @@
             // DATA
             const state = reactive({
                 showSandbox: false,
-                sandboxConcepts: computed(_ => conceptStore.concepts.sandbox),
-                projectConcepts: computed(_ => conceptStore.concepts.project),
-                concept: computed(_ => conceptStore.concept),
+                sandboxConcepts: computed(_ => conceptStore.tree.sandbox),
+                projectConcepts: computed(_ => conceptStore.tree.project),
+                concept: computed(_ => conceptStore.selected),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
             });
 
@@ -150,6 +157,14 @@
                 handleLanguageAddedEvent,
                 handleLanguageDeletedEvent,
             ])
+
+            const currentRoute = useRoute();
+            onMounted(async () => {
+                if(currentRoute.params.id && currentRoute.query.t) {
+                    await conceptStore.openAllConceptPaths(currentRoute.query.t, currentRoute.params.id);
+                    conceptStore.setSelected(currentRoute.params.id, currentRoute.query.t);
+                }
+            });
 
             // RETURN
             return {

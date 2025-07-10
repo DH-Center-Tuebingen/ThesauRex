@@ -37,6 +37,14 @@ export const router = createRouter({
             name: 'home',
             component: MainView,
             children: [
+                // When visiting /c, the router won't use MainView as route, 
+                // but when using c/:id? it will use MainView as parent component.
+                // but will render the concept detail without a selected concept.
+                // therefore we redirect /c to /. 
+                {
+                    path: '/c',
+                    redirect: '/'
+                },
                 {
                     path: 'c/:id',
                     name: 'conceptdetail',
