@@ -200,8 +200,6 @@ export class Concept {
 
     static removeNarrowers(concept, narrowerConcept) {
         const narrowerId = narrowerConcept.id;
-        const narrowerIndex = concept.narrowers.findIndex(n => n.id == narrowerId);
-        console.log(concept.narrowers);
         concept.narrowers = concept.narrowers || [];
         concept.narrowers = concept.narrowers.filter(n => n.id != narrowerId);
     }
@@ -289,6 +287,10 @@ export class Node {
 
     set children(children) {
         this._children.value = children;
+    }
+    
+    get hasNarrowers() {
+        return this.narrowersCount > 0;
     }
 
     get childCount() {

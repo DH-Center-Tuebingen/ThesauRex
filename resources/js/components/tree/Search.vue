@@ -1,6 +1,7 @@
 <template>
     <multiselect
         v-model="state.entry"
+        :appendToBody="appendToBody"
         :name="state.id"
         :id="state.id"
         :object="true"
@@ -118,6 +119,11 @@
 
     export default {
         props: {
+            appendToBody: {
+                type: Boolean,
+                required: false,
+                default: false,
+            },
             delay: {
                 type: Number,
                 required: false,

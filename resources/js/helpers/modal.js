@@ -269,18 +269,21 @@ export function showCreateConcept(tree, pid, initValue = '') {
 
 export function showDeleteConcept(tree, conceptId) {
     const uid = `DeleteConcept-${getTs()}`;
+    const loading = ref(false);
     const modal = useModal({
         component: DeleteConcept,
         attrs: {
             name: uid,
             tree: tree,
+            loading: loading,
             conceptId: conceptId,
             onConfirm(e) {
                 if(!can('thesaurus_delete')) return;
-
-                console.log("Deleting concept", e);
+                loading.value = true;
                 useConceptStore().deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
                     modal.destroy();
+                }).finally(() => {
+                    loading.value = false
                 });
             },
             onCancel(e) {

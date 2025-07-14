@@ -62,9 +62,14 @@ export const useConceptStore = defineStore('concept', {
             project: {},
             sandbox: {},
         },
+        // Map of top-level nodes in a tree.
+        topNodes: {
+            project: {},
+            sandbox: {},
+        },
         // Maps the nid of a concept to its parents.
         // Maps: nid -> [parent_nid_1, parent_nid_2, ...]
-        parentNodeMap: { // a.k.a parents
+        parentMap: { // a.k.a parents
             project: {},
             sandbox: {},
         },
@@ -125,27 +130,26 @@ export const useConceptStore = defineStore('concept', {
         },
         addParentNode(treeName, node, broaderId) {
             if(broaderId == -1) return;
-            if(!this.parentNodeMap[treeName][node.id]) {
-                this.parentNodeMap[treeName][node.id] = [];
-            } else if(this.parentNodeMap[treeName][node.id].includes(broaderId)) {
+            if(!this.parentMap[treeName][node.nid]) {
+                this.parentMap[treeName][node.nid] = [];
+            } else if(this.parentMap[treeName][node.nid].includes(broaderId)) {
                 return; // already added
             }
-            this.parentNodeMap[treeName][node.id].push(broaderId);
+            this.parentMap[treeName][node.nid].push(broaderId);
         },
         removeFromParentNodes(treeName, node, broaderId) {
-            if(!this.parentNodeMap[treeName][node.id]) return;
-
+            if(!this.parentMap[treeName][node.nid]) return;
             const parentNodes = this.nodes[treeName][broaderId] || [];
 
             for(let i = 0; i < parentNodes.length; i++) {
                 const parentNode = this.nodesMap[treeName][parentNodes[i]];
-                const parents = this.parentNodeMap[treeName][nodeId];
+                const parents = this.parentMap[treeName][node.nid];
                 const index = parents.indexOf(parentNode.id);
                 if(index == -1) {
                     parents.splice(index, 1);
                 }
                 if(parents.length == 0) {
-                    delete this.parentNodeMap[treeName][nodeId];
+                    delete this.parentMap[treeName][node.nid];
                 }
             }
         },
@@ -187,30 +191,10 @@ export const useConceptStore = defineStore('concept', {
             }
             return subtree != null
         },
-
-        // handleAddNodeParentsPath(tree, node, { doCount = true } = {}) {
-        //     let added = false;
-        //     for(let i = 0; i < node.path.length; i++) {
-        //         const path = node.path[i];
-        //         // second element in path is always direct parent (first is self)
-        //         const parentId = path[1];
-        //         if(!!parentId) {
-        //             this.handleAddToParents(tree, parentId, node.nid, { doCount });
-        //         } else {
-        //             if(!added) {
-        //                 added = true;
-        //                 const idx = this.tree[tree].findIndex(treeNode => treeNode.nid == node.nid);
-        //                 if(idx == -1) {
-        //                     this.tree[tree].push(node);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // },
         resetConcepts(treeName) {
             this.tree[treeName] = [];
             this.nodesMap[treeName] = {};
-            this.parentNodeMap[treeName] = {};
+            this.parentMap[treeName] = {};
         },
         async initialize() {
             const result = {};
@@ -296,12 +280,18 @@ export const useConceptStore = defineStore('concept', {
             // return nodes;
         },
         async deleteConcept(id, treeName, action, parameters) {
+            await deleteConcept(id, treeName, action, parameters);
             // use 'cascade' as default action
             action = (action == 'level' || action == 'top' || action == 'rerelate') ? action : 'cascade';
 
             const concept = this.dictionary[treeName][id];
             const parentRefs = concept.broaders.map(broader => broader.id);
             
+            // Top level referce is not stored in broaders, so we need to add it manually
+            if(concept.is_top_concept) {
+                parentRefs.push(-1); 
+            }
+
             if(action != 'cascade') {
                 let loadNarrowers = false;
                 const narrowerIds = concept.narrowers.map(narrower => narrower.id);
@@ -313,64 +303,37 @@ export const useConceptStore = defineStore('concept', {
                     loadNarrowers = true;
                     broaders = [-1];
                 } else if(action == 'rerelate') {
-                    const newParent = this.nodesMap[treeName][parameters.p];
-                    loadNarrowers = newParent.childrenLoaded;
+                    const allParentNodes = this.nodes[treeName][parameters.p] || [];
+                    loadNarrowers = allParentNodes.some(nodeId => {
+                        const node = this.nodesMap[treeName][nodeId];
+                        return node.hasNarrowers && node?.state?.opened;
+                    })
                     broaders = [parameters.p];
                 }
 
                 // Fetch all required narrowers that are not already fetched,
-                // because they need to be added to the tree
-                if(loadNarrowers) {
-                    for(let i = 0; i < narrowerIds.length; i++) {
+                for(let i = 0; i < narrowerIds.length; i++) {
+                    // because they need to be added to the tree
+                    if(loadNarrowers) {
                         const narrowerId = narrowerIds[i];
-                        if(!this.nodesMap[treeName][narrowerId]) {
+                        if(!this.dictionary[treeName][narrowerId]) {
                             await this.fetchAndPushConcept(narrowerId, treeName, false);
                         }
                     }
-
-                    // Add all narrower relations to their new parent
-                    await this.handleAddRelation(narrowerIds, broaders, treeName);
+                    // Remove all narrower relations from the concept
+                    await this.handleRemoveRelation(narrowerIds[i], concept.id, treeName);
                 }
+                // Add all narrower relations to their new parent
+                await this.handleAddRelation(narrowerIds, broaders, treeName);
             }
 
-            console.log(parentRefs, treeName);
             await this.handleRemoveRelation(id, parentRefs, treeName);
 
             // Unselect the concept if it was selected
             if(this.isSelected(id, treeName)) {
                 this.setSelected(null, null);
             }
-
-            await deleteConcept(id, treeName, action, parameters);
         },
-        // deleteConceptReferences(id, treeName) {
-        //     const conceptRefs = this.nodes[treeName][id];
-        //     conceptRefs.forEach(refId => {
-        //         delete this.nodesMap[treeName][refId];
-        //         const idx = this.tree[treeName].findIndex(concept => concept.id == refId);
-        //         if(idx > -1) {
-        //             this.tree[treeName].splice(idx, 1);
-        //         }
-        //     });
-        //     delete this.nodes[treeName][id];
-        //     delete this.parentNodeMap[treeName][id];
-
-        //     const loadedConcepts = this.tree[treeName];
-        //     loadedConcepts.forEach(concept => {
-        //         if(concept.children_count > 0 && !concept.childrenLoaded && concept.state.openable && concept.narrowers) {
-        //             concept.narrowers = concept.narrowers.filter(narrower => {
-        //                 const hit = id == narrower.id;
-        //                 if(hit) {
-        //                     c.children_count--;
-        //                 }
-        //                 return !hit;
-        //             });
-        //             if(concept.narrowers.length == 0) {
-        //                 concept.state.openable = false;
-        //             }
-        //         }
-        //     });
-        // },
         isSelected(id, treeName) {
             if(!id || !treeName) {
                 return false;
@@ -485,7 +448,7 @@ export const useConceptStore = defineStore('concept', {
         },
         handleConceptChange(conceptId, treeName) {
             const concept = this.dictionary[treeName][conceptId];
-            const parents = this.parentNodeMap[treeName][conceptId] || [];
+            const parents = this.parentMap[treeName][conceptId] || [];
             if(concept.is_top_concept) {
                 sortTree(this.tree[treeName]);
             }
@@ -585,46 +548,21 @@ export const useConceptStore = defineStore('concept', {
             }
         },
         handleAddNodeToTop(treeName, concept, broaderId) {
-            if(broaderId == -1) {
+            if(broaderId == -1 && !this.topNodes[treeName][concept.id]) {
                 const node = this.handleCreateNode(treeName, concept, broaderId);
+                this.topNodes[treeName][concept.id] = node;
                 this.tree[treeName].push(node);
                 node.is_top_concept = true;
                 concept.is_top_concept = true;
                 sortTree(this.tree[treeName]);
             }
         },
-        // handleAddAllNarrowerReferences(treeName, broaderId, narrowerId) {
-        //     const narrowerReferences = this.nodes[treeName][narrowerId] || [];
-        //     for(let i = 0; i < narrowerReferences.length; i++) {
-        //         const narrowerNode = this.nodesMap[treeName][narrowerReferences[i]];
-        //         if(narrowerNode) {
-        //             if(broaderId == -1) {
-        //                 narrowerNode.is_top_concept = true;
-        //             } else if(narrowerNode.broaders) {
-        //                narrowerNode 
-
-        //                 // if(!narrowerNode.broaders.some(b => b.id == broaderId)) {
-        //                 //     const broader = this.dictionary[treeName][broaderId];
-        //                 //     if(broader) {
-        //                 //         narrowerNode.broaders.push(broader);
-        //                 //         sortTree(narrowerNode.broaders);
-        //                 //     }
-        //                 // }
-        //             }
-        //         } else {
-        //             // This should not happen, but if it does, we log an error.
-        //             console.error(`Concept with id ${narrowerReferences[i]} not found in nodesMap for tree ${treeName}`);
-        //         }
-        //     }
-        // },
         async handleRemoveRelation(narrowers, broaders, treeName) {
-            console.log(`Removing relation between ${narrowers} and ${broaders} in tree ${treeName}`);
             const broaderIdList = Array.isArray(broaders) ? broaders : [broaders];
             const narrowerIdList = Array.isArray(narrowers) ? narrowers : [narrowers];
 
             for(let i = 0; i < broaderIdList.length; i++) {
                 for(let j = 0; j < narrowerIdList.length; j++) {
-                    console.log(`Removing relation between narrower ${narrowerIdList[j]} and broader ${broaderIdList[i]} in tree ${treeName}`);
                     await this.handleRemoveSingleRelation(narrowerIdList[j], broaderIdList[i], treeName);
                 }
             }
@@ -648,66 +586,8 @@ export const useConceptStore = defineStore('concept', {
 
             this.handleRemoveFromReferences(treeName, broaderId, concept);
         },
-        // handleRemoveParent(treeName, broaderId, narrowerId) {
-        //     this.handleRemoveChildrenFromBroader(treeName, broaderId, narrowerId);
-
-        //     if(!this.parentNodeMap[treeName][narrowerId]) {
-        //         return;
-        //     }
-
-        //     const parents = this.parentNodeMap[treeName][narrowerId];
-        //     const idx = parents.indexOf(broaderId);
-        //     if(idx > -1) {
-        //         parents.splice(idx, 1);
-        //         if(parents.length == 0) {
-        //             delete this.parentNodeMap[treeName][narrowerId];
-        //         }
-        //     }
-        // },
-        // handleRemoveChildrenFromBroader(treeName, broaderId, narrowerId) {
-        //     if(broaderId == -1) return;
-
-        //     const parentConcept = this.nodesMap[treeName][broaderId];
-        //     if(parentConcept) {
-        //         for(let i = parentConcept.children.length - 1; i >= 0; i--) {
-        //             const child = parentConcept.children[i];
-        //             if(child.nid == narrowerId) {
-        //                 parentConcept.children.splice(i, 1);
-        //             }
-        //         }
-
-        //         // Remove the narrower from the parent's narrowers
-        //         parentConcept.narrowers = parentConcept.narrowers.filter(narrower => {
-        //             const hit = narrower.nid == narrowerId;
-        //             if(hit) {
-        //                 parentConcept.children_count--;
-        //                 if(parentConcept.children_count == 0) {
-        //                     parentConcept.state.openable = false;
-        //                 }
-        //             }
-        //             return !hit;
-        //         })
-        //     } else {
-        //         console.error(`Parent concept with id ${broaderId} not found in nodesMap for tree ${treeName}`);
-        //     }
-        // },
-        // handleRemoveAllNarrowerReferences(treeName, broaderId, narrowerConcept) {
-        //     const narrowerNodes = this.nodes[treeName][narrowerConcept.id] || [];
-        //     for(let i = 0; i < narrowerNodes.length; i++) {
-        //         if(narrowerConcept.broaders) {
-        //             const idx = narrowerConcept.broaders.findIndex(b => b.nid === broaderId || b.id == broaderId);
-        //             if(idx > -1) {
-        //                 narrowerConcept.broaders.splice(idx, 1);
-        //             }
-        //         } else {
-        //             // This should not happen, but if it does, we log an error.
-        //             console.error(`Concept with id ${narrowerNodes[i]} not found in nodesMap for tree ${treeName}`);
-        //         }
-        //     }
-        // },
         handleRemoveFromReferences(treeName, broaderId, narrowerConcept) {
             this.handleRemoveFromTop(treeName, broaderId, narrowerConcept);
-            console.log(`Removing concept ${narrowerConcept.id} from broader concept ${broaderId} in tree ${treeName}`);
             // We must remove the narrower nodes from all existing nodes of it's broader concept:
             // 1) A -> X
             // 2) B -> A -> X
@@ -715,37 +595,18 @@ export const useConceptStore = defineStore('concept', {
             const broaderReferences = this.nodes[treeName][broaderId] || [];
             for(let i = broaderReferences.length - 1; i >= 0; i--) {
                 const broaderNode = this.nodesMap[treeName][broaderReferences[i]];
-                console.log(broaderNode)
                 if(broaderNode) {
                     broaderNode.removeNarrower(narrowerConcept);
                 }
             }
         },
         handleRemoveFromTop(treeName, broaderId, narrowerConcept) {
-            if(broaderId == -1) {
+            if(broaderId == -1 && this.topNodes[treeName][narrowerConcept.id]) {
                 // Remove the concept from the top level concepts
                 narrowerConcept.is_top_concept = false;
                 this.handleDeleteNode(treeName, this.tree[treeName], narrowerConcept, broaderId);
+                delete this.topNodes[treeName][narrowerConcept.id];
             }
-            // if()
-
-
-            // // Remove the concept from the tree
-            // const idx = this.tree[tree].findIndex(c => c.nid == narrowerId);
-            // if(idx > -1) {
-            //     this.tree[tree].splice(idx, 1);
-            // }
-
-            // // Remove all nodes to this concept from the nodes
-            // const nodes = this.nodes[tree][narrowerId] || [];
-            // nodes.forEach(refId => {
-            //     const node = this.nodesMap[tree][refId];
-            //     if(node) {
-            //         node.is_top_concept = false;
-            //     } else {
-            //         console.error(`Concept with id ${refId} not found in nodesMap for tree ${tree}`);
-            //     }
-            // });
         },
         handleDeleteNode(treeName, subtree, narrowerConcept, broaderId) {
             const index = subtree.findIndex((node) => node.nid == narrowerConcept.id);
@@ -764,7 +625,7 @@ export const useConceptStore = defineStore('concept', {
         // currently only updating is_top_concept is allowed/handled
         async handleConceptUpdate(conceptId, treeName, isTopConcept) {
             let fetched = false;
-            if(!this.nodesMap[treeName][conceptId]) {
+            if(!this.dictionary[treeName][conceptId]) {
                 fetched = true;
                 await this.fetchAndPushConcept(conceptId, treeName);
             }

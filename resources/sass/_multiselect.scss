@@ -9,3 +9,7 @@
 .multiselect-search {
     position: relative !important;
 }
+
+.multiselect-dropdown {
+    z-index: 2000 !important;
+}
