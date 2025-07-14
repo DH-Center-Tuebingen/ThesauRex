@@ -51,7 +51,7 @@ export const handleConceptDeletedEvent = {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
         const message = 'Successfully received ConceptDeleted Event!';
-        useConceptStore().deleteConceptReferences(e.concept.id, e.tree);
+        useConceptStore().conceptDeleted(e.concept.id, e.tree, 'cascade');
         toastMessage(message);
     },
 };
@@ -122,8 +122,6 @@ export const handleConceptRelationAddedEvent = {
         // Only handle event if from different user
         if(e.user.id == useUserStore().getCurrentUserId) return;
         const tree = e.tree;
-        useConceptStore().addRawConcept(e.relation.broader, tree);
-        useConceptStore().addRawConcept(e.relation.narrower, tree);
         await useConceptStore().handleAddRelation(e.relation.narrower_id, e.relation.broader_id, tree);
         const message = 'Successfully received RelationCreated Event!';
         toastMessage(message);

@@ -291,9 +291,9 @@ import { useRoute } from 'vue-router';
                     state.uploadType = '';
                     state.isUploading = false;
                 }).catch(e => {
-                    console.log("error occurred", e);
                     state.uploadType = '';
                     state.isUploading = false;
+                    console.error("error occurred", e);
                 });
             };
             const onExport = _ => {

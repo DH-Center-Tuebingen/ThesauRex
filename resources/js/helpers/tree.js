@@ -108,19 +108,6 @@ export async function openPath(ids, tree = 'project', parent = null) {
     await openPath(ids, tree, nextNode);
 };
 
-// export function toggleTreeNode(node, tree) {
-//     console.log('Toggling node', node, tree);
-//     if(node.children.length < node.children_count) {
-//         node.state.loading = true;
-//         fetchChildren(node.nid, tree).then(response => {
-//             node.children = response;
-//             node.state.loading = false;
-//             node.childrenLoaded = true;
-//         });
-//     }
-//     node.state.opened = !node.state.opened;
-// };
-
 export function getLabel(conceptOrNode, displayForeign = false) {
     // The getLabel is called either with a node or a concept.
     // This solution is not ideal, but it works for now.
@@ -175,11 +162,6 @@ export function getLabel(conceptOrNode, displayForeign = false) {
 // };
 
 export class Concept {
-    
-    sortByLabel(tree, dir = 'asc') {
-        
-    }
-
     static removeRelation(concept, broaderConcept) {
         Concept.removeNarrowerFromBroader(concept, broaderConcept);
         Concept.removeBroader(concept, broaderConcept);
@@ -370,22 +352,6 @@ export class Node {
         if(!this._concept) console.error("No concept set for node", this);
         return `${this.nid}_${count}`
     }
-
-
-    // addBroaderConcept(broaderConcept) {
-    //     // Add the newly added broader (if it does not exist yet) to the narrower's broaders
-    //     this.concept.broaders = this.concept.broaders || [];
-    //     if(!this.concept.broaders.some(b => b.id == broaderConcept.id)) {
-    //         this.concept.broaders.push(broaderConcept);
-    //         sortTree(this.concept.broaders);
-    //     }
-
-    //     // Update the count of broaders on the narrower node
-    //     if(!this.concept.broaders_count) {
-    //         this.concept.broaders_count = this.concept.broaders?.length ? this.concept.broaders.length : 0;
-    //     }
-    //     this.concept.broaders_count++;
-    // }
 
     hasChild(narrowerConcept) {
         if(!this.children || !this.children.length) return false;

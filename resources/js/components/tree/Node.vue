@@ -151,7 +151,6 @@
 
             // FUNCTIONS
             const doToggle = async _ => {
-                console.log("Toggling node", props.data.nid, props.data.tree);
                 await props.data.toggle();
                 context.emit('Ended');
             };
