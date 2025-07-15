@@ -86,7 +86,7 @@ class User extends Authenticatable
     }
 
     public function getAvatarUrlAttribute() {
-        return isset($this->avatar) ? sp_get_public_url($this->avatar) : null;
+        return isset($this->avatar) ? 'download/' . $this->avatar : null;
     }
 
     public function preferences() {
