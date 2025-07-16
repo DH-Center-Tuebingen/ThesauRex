@@ -1,12 +1,5 @@
 <?php
 
-function ensurePathIsAbsolute($path) {
-    if(str_starts_with($path, "..")){
-        $path = base_path($path);
-    }
-    return $path;
-}
-
 return [
 
     /*
@@ -62,10 +55,10 @@ return [
             'url' => './storage',
             'visibility' => 'public',
         ],
-        
+
         'avatars' => [
             'driver' => 'local',
-            'root' => ensurePathIsAbsolute(env('APP_AVATAR_STORAGE_LOCATION', storage_path('app/public'))),
+            'root' => ensure_path_is_absolute(env('APP_AVATAR_STORAGE_LOCATION', storage_path('app/public'))),
             'visibility' => env('APP_AVATAR_STORAGE_LOCATION', false) ? 'private' : 'public',
         ],
 
