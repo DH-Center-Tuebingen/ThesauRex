@@ -28,4 +28,12 @@ class ThConceptSandbox extends ThConceptBase
     public function broaders() {
         return $this->belongsToMany('App\ThConceptSandbox', 'th_broaders_master', 'narrower_id', 'broader_id');
     }
+    
+    public static function getLabelClass() {
+        return ThConceptLabelSandbox::class;
+    }
+
+    public static function getBroaderClass() {
+        return ThBroaderSandbox::class;
+    }
 }

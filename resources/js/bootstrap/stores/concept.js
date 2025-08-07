@@ -359,8 +359,16 @@ export const useConceptStore = defineStore('concept', {
             } else {
                 let concept = this.dictionary[treeName][id];
                 if(!concept) {
-                    this.selected.from = null;
-                    this.selected.data = {};
+                    // We need to load the concept that we cannot find in the dictionary.
+                    // This can happen when the concept is not yet loaded (collapsed in tree).
+                    await this.openAllConceptPaths(treeName, id);
+                    concept = this.dictionary[treeName][id];
+                }
+
+                if(!concept) {
+                    this.selected.from = treeName;
+                    this.selected.data = concept;
+                    console.error(`Concept with id ${id} not found in dictionary for tree ${treeName}`);
                 } else {
                     this.selected.from = treeName;
                     this.selected.data = concept;

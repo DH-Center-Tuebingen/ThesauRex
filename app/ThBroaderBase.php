@@ -25,5 +25,27 @@ abstract class ThBroaderBase extends Model
 
     public function broader() {
         return $this->belongsTo($this->getConceptClass(), 'broader_id');
-    }    
+    }
+
+    public static function exists($broaderId, $narrowerId): bool{
+        return self::where('broader_id', $broaderId)
+            ->where('narrower_id', $narrowerId)
+            ->exists();
+    }
+
+    public static function add($broaderId, $narrowerId, $quietly = false): ?self {
+        if(self::exists($broaderId, $narrowerId)) {
+            return null;
+        }
+        $relation = new static();
+        $relation->broader_id = $broaderId;
+        $relation->narrower_id = $narrowerId;
+        if($quietly) {
+            $relation->saveQuietly();
+        }else {
+            $relation->save();
+        }
+        
+        return $relation;
+    }
 }

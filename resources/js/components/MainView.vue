@@ -73,12 +73,19 @@
         reactive,
     } from 'vue';
 
-    import { useRoute } from 'vue-router';
+    import {
+        onBeforeRouteLeave,
+        onBeforeRouteUpdate,
+        useRoute,
+    } from 'vue-router';
+    
     import { useI18n } from 'vue-i18n';
     import { ResizableColumns } from 'dhc-components';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
     import router from '@/bootstrap/router.js';
+
+
 
     import useSystemChannel from '@/composables/system-channel.js';
 
@@ -159,11 +166,27 @@
             ])
 
             const currentRoute = useRoute();
+
+            // Open only the paths. the concept will be selected in the concept detail.
             onMounted(async () => {
                 if(currentRoute.params.id && currentRoute.query.t) {
                     await conceptStore.openAllConceptPaths(currentRoute.query.t, currentRoute.params.id);
-                    conceptStore.setSelected(currentRoute.params.id, currentRoute.query.t);
+                    await conceptStore.setSelected(currentRoute.params.id, currentRoute.query.t);
                 }
+            });
+
+            onBeforeRouteUpdate(async (to, from) => {
+                const fromTree = from.query.t || 'project';
+                const toTree = to.query.t || 'project';
+                if(toTree != fromTree || to.params.id != from.params.id) {
+                    await conceptStore.setSelected(to.params.id, toTree);
+                }
+            });
+
+            // ON BEFORE LEAVE
+            onBeforeRouteLeave(async (to, from) => {
+                await conceptStore.setSelected();
+                return true;
             });
 
             // RETURN

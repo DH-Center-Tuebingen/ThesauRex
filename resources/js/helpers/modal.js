@@ -109,21 +109,15 @@ export function showUserInfo(user) {
     modal.open();
 }
 
-export function showAddUser(onAdded) {
+export function showAddUser() {
     const uid = `AddUser-${getTs()}`;
     const modal = useModal({
         component: AddUser,
         attrs: {
             name: uid,
-            onAdd(e) {
-                if(!can('users_roles_create')) return;
-                useUserStore().addUser(e).then(user => {
-                    if(!!onAdded) {
-                        onAdded(user);
-                    }
-                    modal.destroy();
-                });
-            },
+            onClose(){
+                modal.destroy();
+            }, 
             onCancel(e) {
                 modal.destroy();
             }

@@ -20,7 +20,7 @@ class Role extends \Spatie\Permission\Models\Role
         'name'          => 'required|alpha_dash|max:255|unique:roles',
         'display_name'  => 'string|max:255',
         'description'   => 'string|max:255',
-        'derived_from'  => 'integer|exists:role_presets,id'
+        'derived_from'  => 'nullable|integer|exists:role_presets,id'
     ];
     const patchRules = [
         'display_name'  => 'string|max:255',

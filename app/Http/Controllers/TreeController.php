@@ -291,49 +291,15 @@ class TreeController extends Controller
             'parent_id' => "integer|exists:th_concept$suffix,id"
         ]);
 
-        $projectName = Preference::getUserPreference($user->id, 'prefs.project-name')->value;
 
         $label = $request->get('label');
         $labelLangId = $request->get('language_id');
         $parentId = $request->get('parent_id');
         $isTop = !$request->has('parent_id');
 
-        if($which === 'sandbox') {
-            $thConcept = new ThConceptSandbox();
-            $thBroader = new ThBroaderSandbox();
-            $thConceptLabel = new ThConceptLabelSandbox();
-        } else {
-            $thConcept = new ThConcept();
-            $thBroader = new ThBroader();
-            $thConceptLabel = new ThConceptLabel();
-        }
+        $ThConceptClass = ($which === 'sandbox') ? new ThConceptSandbox() : new ThConcept();
+        $thConcept = $ThConceptClass::create($user, $label, $labelLangId, $parentId, $isTop);
 
-        $slugLabel = Str::slug($label);
-        $slugProjectName = Str::slug($projectName);
-        $scheme = 'no scheme';
-        $ts = date("YmdHis");
-
-        $url = "https://spacialist.escience.uni-tuebingen.de/$slugProjectName/$slugLabel#$ts";
-
-        $thConcept->concept_url = $url;
-        $thConcept->concept_scheme = $scheme;
-        $thConcept->is_top_concept = $isTop;
-        $thConcept->user_id = $user->id;
-        $thConcept->save();
-
-        if(!$isTop) {
-            $thBroader->broader_id = $parentId;
-            $thBroader->narrower_id = $thConcept->id;
-            // Do not fire event, because it is part of ThConcept event
-            $thBroader->saveQuietly();
-        }
-
-        $thConceptLabel->label = $label;
-        $thConceptLabel->concept_id = $thConcept->id;
-        $thConceptLabel->language_id = $labelLangId;
-        $thConceptLabel->user_id = $user->id;
-        // Do not fire event, because it is part of ThConcept event
-        $thConceptLabel->saveQuietly();
 
         $thConcept->loadMissing('labels.language');
         $thConcept->children_count = 0;
@@ -596,15 +562,18 @@ class TreeController extends Controller
 
         $treeName = $request->query('t', 'project');
         $addAsRoot = $bid === -1;
-
+        
+        if($treeName === 'sandbox') {
+            $ThConceptClass = ThConceptSandbox::class;
+            $ThBroaderClass = ThBroaderSandbox::class;
+        } else {
+            $ThConceptClass = ThConcept::class;
+            $ThBroaderClass = ThBroader::class;
+        }
+        
         try {
-            if($treeName === 'sandbox') {
-                $concept = ThConceptSandbox::findOrFail($id);
-                $broaderTable = (new ThBroaderSandbox())->getTable();
-            } else {
-                $concept = ThConcept::findOrFail($id);
-                $broaderTable = (new ThBroader())->getTable();
-            }
+            $concept = $ThConceptClass::findOrFail($id);
+            $broaderTable = (new $ThBroaderClass())->getTable();
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
@@ -612,11 +581,7 @@ class TreeController extends Controller
         }
         if(!$addAsRoot) {
             try {
-                if($treeName === 'sandbox') {
-                    ThConceptSandbox::findOrFail($bid);
-                } else {
-                    ThConcept::findOrFail($bid);
-                }
+                $ThConceptClass::findOrFail($bid);
             } catch(ModelNotFoundException $e) {
                 return response()->json([
                     'error' => 'This concept does not exist'
@@ -640,15 +605,14 @@ class TreeController extends Controller
             $concept->is_top_concept = true;
             $concept->save();
         } else {
-            if($treeName == 'sandbox') {
-                $entry = new ThBroaderSandbox();
-            } else {
-                $entry = new ThBroader();
+            $entry = $concept->addBroader($bid);
+            
+            if(!$entry) {
+                DB::rollBack();
+                return response()->json([
+                    'error' => 'This relation could not be added'
+                ], 400);
             }
-
-            $entry->broader_id = $bid;
-            $entry->narrower_id = $id;
-            $entry->save();
         }
 
         // check circles
@@ -732,12 +696,16 @@ class TreeController extends Controller
         }
 
         $treeName = $request->query('t', 'project');
+        if($treeName === 'sandbox') {
+            $ThConceptClass = ThConceptSandbox::class;
+            $ThBroaderClass = ThBroaderSandbox::class;
+        } else {
+            $ThConceptClass = ThConcept::class;
+            $ThBroaderClass = ThBroader::class;
+        }
+        
         try {
-            if($treeName === 'sandbox') {
-                $concept = ThConceptSandbox::findOrFail($id);
-            } else {
-                $concept = ThConcept::findOrFail($id);
-            }
+            $concept = $ThConceptClass::findOrFail($id);
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
@@ -772,21 +740,7 @@ class TreeController extends Controller
                 }
                 foreach($broaders as $broaderId) {
                     foreach($narrowers as $narrowerId) {
-                        $exists = th_broader_builder($treeName)
-                            ->where('broader_id', $broaderId)
-                            ->where('narrower_id', $narrowerId)
-                            ->exists();
-                        if(!$exists) {
-                            if($treeName === 'sandbox') {
-                                $broaderRelation = new ThBroaderSandbox();
-                            } else {
-                                $broaderRelation = new ThBroader();
-                            }
-
-                            $broaderRelation->broader_id = $broaderId;
-                            $broaderRelation->narrower_id = $narrowerId;
-                            $broaderRelation->save();
-                        }
+                        $ThBroaderClass::add($broaderId, $narrowerId);
                     }
                 }
                 break;
@@ -809,11 +763,7 @@ class TreeController extends Controller
                     ], 400);
                 }
                 try {
-                    if($treeName === 'sandbox') {
-                        ThConceptSandbox::findOrFail($newParentId);
-                    } else {
-                        ThConcept::findOrFail($newParentId);
-                    }
+                    $ThConceptClass::findOrFail($newParentId);
                 } catch(ModelNotFoundException $e) {
                     DB::rollback();
                     return response()->json([
@@ -821,21 +771,7 @@ class TreeController extends Controller
                     ], 400);
                 }
                 foreach($narrowers as $narrowerId) {
-                    $exists = th_broader_builder($treeName)
-                        ->where('broader_id', $newParentId)
-                        ->where('narrower_id', $narrowerId)
-                        ->exists();
-                    if(!$exists) {
-                        if($treeName === 'sandbox') {
-                            $broaderRelation = new ThBroaderSandbox();
-                        } else {
-                            $broaderRelation = new ThBroader();
-                        }
-
-                        $broaderRelation->broader_id = $newParentId;
-                        $broaderRelation->narrower_id = $narrowerId;
-                        $broaderRelation->save();
-                    }
+                    $ThBroaderClass::add($newParentId, $narrowerId);
                 }
                 break;
         }

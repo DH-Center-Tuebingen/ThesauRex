@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Preference;
+
 use Illuminate\Support\Facades\DB;
 
 class ThConcept extends ThConceptBase
@@ -43,7 +45,7 @@ class ThConcept extends ThConceptBase
 
         $conceptMap = [];
 
-        foreach ($concepts as $concept) {
+        foreach($concepts as $concept) {
             $url = $concept->concept_url;
             unset($concept->concept_url);
             $conceptMap[$url] = $concept;
@@ -78,7 +80,7 @@ class ThConcept extends ThConceptBase
         }
         return DB::select($query);
     }
-
+    
     public function getBroadersCountAttribute() {
         return $this->broaders()->count();
     }
@@ -97,5 +99,13 @@ class ThConcept extends ThConceptBase
 
     public function broaders() {
         return $this->belongsToMany('App\ThConcept', 'th_broaders', 'narrower_id', 'broader_id');
+    }
+    
+    public static function getLabelClass() {
+        return ThConceptLabel::class;
+    }
+
+    public static function getBroaderClass() {
+        return ThBroader::class;
     }
 }

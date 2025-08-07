@@ -1,7 +1,7 @@
 <template>
     <div
-        class="h-100 d-flex flex-column of-hidden"
-        v-if="state.initialized && state.concept"
+        class="concept-detail h-100 d-flex flex-column of-hidden"
+        v-if="state.concept"
     >
         <h4 class="mb-0 d-flex align-items-center gap-2 justify-content-start">
             {{ state.label }}
@@ -60,7 +60,7 @@
         <hr class="w-100" />
         <div class="row flex-grow-1 of-hidden">
             <div class="col-md-6 h-100 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="broaders col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ t('detail.broader.title') }}
                     </h5>
@@ -96,7 +96,7 @@
                                 {{ getLabel(broader) }}
                             </a>
                             <span
-                                class="text-danger help-handle"
+                                class="remove-not-possible text-danger help-handle"
                                 v-if="!state.canDeleteBroader"
                                 :title="t('detail.broader.remove_not_possible')"
                             >
@@ -104,6 +104,7 @@
                             </span>
                             <span
                                 v-show="state.hoverStates.broaders[i] && state.canDeleteBroader"
+                                class="remove-broader-btn"
                                 @click="removeBroader(i)"
                             >
                                 <i class="fas fa-fw fa-times clickable"></i>
@@ -118,7 +119,7 @@
                         {{ t('detail.broader.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="narrowers col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ t('detail.narrower.title') }}
                     </h5>
@@ -143,7 +144,7 @@
                     >
                         <li
                             class="list-group-item d-flex flex-row justify-content-between"
-                            v-for="(narrower, i) in state.concept.narrowers"
+                            v-for="(narrower, i) in sortByLabels(state.concept.narrowers)"
                             @mouseenter="setHoverState('narrowers', i, true)"
                             @mouseleave="setHoverState('narrowers', i, false)"
                             :key="`narrowers-${state.concept.id}-${i}`"
@@ -156,7 +157,8 @@
                             </a>
                             <span
                                 v-show="isHovered('narrowers', i,) && canRemoveNarrower(narrower)"
-                                @click="removeNarrower(i)"
+                                class="remove-narrower-btn"
+                                @click="removeNarrower(narrower)"
                             >
                                 <i class="fas fa-fw fa-times clickable"></i>
                             </span>
@@ -179,7 +181,7 @@
                 </div>
             </div>
             <div class="col-md-6 h-100 d-flex flex-column">
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="labels col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ t('detail.label.title') }}
                         <span
@@ -250,61 +252,17 @@
                         v-if="state.hasLabels"
                     >
                         <li
-                            class="list-group-item d-flex flex-row justify-content-between align-items-center gap-2"
+                            class="list-group-item"
+                            style="padding: 0 !important;"
                             v-for="(label, i) in state.concept.labels"
-                            @mouseenter="setHoverState('labels', i, true)"
-                            @mouseleave="setHoverState('labels', i, false)"
                             :key="`labels-${state.concept.id}-${i}`"
                         >
-                            <div class="col">
-                                <span v-if="!(state.editLabel.active && state.editLabel.index === i)">
-                                    {{ label.label }}
-                                </span>
-                                <div
-                                    v-else
-                                    class="d-flex flex-row align-items-center"
-                                >
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        v-model="state.editLabel.value"
-                                    />
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-success btn-sm ms-2"
-                                        @click="updateLabel()"
-                                    >
-                                        <i class="fas fa-fw fa-check"></i>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-danger btn-sm ms-2"
-                                        @click="cancelUpdateLabel()"
-                                    >
-                                        <i class="fas fa-fw fa-ban"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-1">
-                                <div
-                                    v-show="state.hoverStates.labels[i] && !(state.editLabel.active && state.editLabel.index === i)">
-                                    <span @click="setEditMode('label', i, true)">
-                                        <i class="fas fa-fw fa-edit clickable"></i>
-                                    </span>
-                                    <span
-                                        @click="deleteLabel(label.id)"
-                                        v-if="state.labelCount > 1"
-                                    >
-                                        <i class="fas fa-fw fa-trash text-danger clickable"></i>
-                                    </span>
-                                </div>
-                                <span v-show="label.concept_label_type == 1">
-                                    <i class="fas fa-fw fa-star color-yellow"></i>
-                                </span>
-                                <span>
-                                    {{ emojiFlag(label.language.short_name) }}
-                                </span>
-                            </div>
+                            <ConceptLabelInput
+                                class="col px-3 py-2"
+                                :concept="state.concept"
+                                :label="label"
+                                :tree="state.tree"
+                            />
                         </li>
                     </ul>
                     <p
@@ -315,7 +273,7 @@
                         {{ t('detail.label.empty') }}
                     </p>
                 </div>
-                <div class="col px-0 d-flex flex-column mb-2 of-hidden">
+                <div class="notes col px-0 d-flex flex-column mb-2 of-hidden">
                     <h5>
                         {{ t('detail.note.title') }}
                     </h5>
@@ -453,9 +411,8 @@
     } from 'vue';
 
     import {
-        onBeforeRouteLeave,
-        onBeforeRouteUpdate,
         useRoute,
+        onBeforeRouteUpdate,
     } from 'vue-router';
 
     import { useI18n } from 'vue-i18n';
@@ -478,7 +435,12 @@
         getLabel,
     } from '@/helpers/tree.js';
 
+    import ConceptLabelInput from '@/components/concept/ConceptLabelInput.vue';
+
     export default {
+        components: {
+            ConceptLabelInput
+        },
         setup(props, context) {
             const { t } = useI18n();
             const route = useRoute();
@@ -489,11 +451,12 @@
             // FETCH
 
             // FUNCTIONS
-            const setConcept = async (id, tree) => {
-                state.initialized = false;
-                await conceptStore.setSelected(id, tree);
-                state.initialized = true;
-            };
+            // const setConcept = async (id, tree) => {
+            //     state.initialized = false;
+            //     await conceptStore.setSelected(id, tree);
+            //     state.initialized = true;
+            //     console.log("INITIALIZED CONCEPT DETAIL", state.concept);
+            // };
             const resetLanguageToDefault = _ => {
                 state.addLabel.language = languageStore.activeLanguage;
                 state.addNote.language = languageStore.activeLanguage;
@@ -549,8 +512,7 @@
             const canRemoveNarrower = narrower => {
                 return narrower.broaders_count > 1 || (narrower.broaders_count > 0 && narrower.is_top_concept);
             }
-            const removeNarrower = idx => {
-                const narrower = state.concept.narrowers[idx];
+            const removeNarrower = narrower => {
                 if(!canRemoveNarrower(narrower)) return;
                 conceptStore.removeRelation(narrower.id, state.concept.id, state.tree);
             };
@@ -566,34 +528,20 @@
                 state[property].language = lang;
             };
             const setEditMode = (type, idx, editState) => {
-                if(type == 'label') {
-                    if(editState) {
-                        state.editLabel.index = idx;
-                        const label = state.concept.labels[idx];
-                        state.editLabel.value = label.label;
-                        // disable edit note
-                        state.editNote.index = -1;
-                        state.editNote.value = null;
-                        state.editNote.active = false;
-                    } else {
-                        state.editLabel.index = -1;
-                        state.editLabel.value = null;
-                    }
-                    state.editLabel.active = editState;
-                } else if(type == 'note') {
+                if(type == 'note') {
                     if(editState) {
                         state.editNote.index = idx;
                         const note = state.concept.notes[idx];
                         state.editNote.value = note.content;
-                        // disable edit label
-                        state.editLabel.index = -1;
-                        state.editLabel.value = null;
-                        state.editLabel.active = false;
+                        // disableEditLabel();
                     } else {
                         state.editNote.index = -1;
                         state.editNote.value = null;
                     }
                     state.editNote.active = editState;
+                } else {
+                    console.error("Unknown edit type:", type);
+                    return;
                 }
             };
             const resetLabel = _ => {
@@ -605,36 +553,7 @@
                     resetLabel();
                 });
             };
-            const cancelUpdateLabel = _ => {
-                setEditMode('label', state.editLabel.index, false);
-            };
-            const updateLabel = async _ => {
-                const label = state.concept.labels[state.editLabel.index];
-                if(label.label == state.editLabel.value) {
-                    return;
-                }
-                try {
-                    await conceptStore.patchLabel(state.concept.id, state.tree, label.id, state.editLabel.value)
-                } catch(err) {
-                    console.error("Error updating label:", err);
-                    return;
-                }
 
-                cancelUpdateLabel();
-            };
-            const deleteLabel = id => {
-                const label = state.concept.labels.find(l => l.id == id);
-                conceptStore.deleteLabel(state.concept.id, state.tree, id).then(_ => {
-                    const title = t('detail.label.toasts.deleted.title');
-                    const msg = t('detail.label.toasts.deleted.message', {
-                        label: label.label,
-                    });
-                    toast.$toast(msg, title, {
-                        channel: 'info',
-                        html: true,
-                    });
-                });
-            };
             const resetNote = _ => {
                 // state.addNote.language = {};
                 state.addNote.value = '';
@@ -692,19 +611,22 @@
                 }
             };
 
+            function sortByLabels(list) {
+                return list.toSorted((a, b) => {
+                    const labelA = getLabel(a).toLowerCase();
+                    const labelB = getLabel(b).toLowerCase();
+                    return labelA.localeCompare(labelB);
+                });
+            }
+
             // DATA
             const state = reactive({
-                initialized: false,
+                // initialized: false,
                 addLabel: {
                     language: {},
                 },
                 addNote: {
                     language: {},
-                },
-                editLabel: {
-                    active: false,
-                    index: -1,
-                    value: null,
                 },
                 editNote: {
                     active: false,
@@ -730,7 +652,6 @@
                 hasNotes: computed(_ => state.concept.notes && state.concept.notes.length > 0),
                 label: computed(_ => getLabel(state.concept)),
                 languages: computed(_ => languageStore.languages),
-                labelCount: computed(_ => state.hasLabels ? state.concept.labels.length : 0),
                 prefLabelCount: computed(_ => {
                     if(!state.hasLabels) {
                         return 0;
@@ -751,7 +672,6 @@
             // ON MOUNTED
             onMounted(_ => {
                 resetLanguageToDefault();
-                setConcept(route.params.id, route.query.t);
             });
 
             // WATCHER
@@ -763,19 +683,10 @@
                 }
             );
 
-            // ON BEFORE UPDATE
+            // Resets the language to default when moving to a different concept.
             onBeforeRouteUpdate(async (to, from) => {
-                if(to.query.t != from.query.t || to.params.id != from.params.id) {
-                    await setConcept(to.params.id, to.query.t);
-                }
                 if(to.params.id == from.params.id) return;
                 resetLanguageToDefault();
-            });
-
-            // ON BEFORE LEAVE
-            onBeforeRouteLeave(async (to, from) => {
-                await conceptStore.setSelected();
-                return true;
             });
 
             // RETURN
@@ -786,30 +697,27 @@
                 gotoConcept,
                 getLabel,
                 // LOCAL
-                conceptStore,
+                addLabel,
+                addNote,
+                cancelUpdateNote,
                 canRemoveNarrower,
-                isHovered,
-                setHoverState,
+                copyToClipboard,
+                deleteNote,
                 handleAddBroader,
                 handleAddNarrower,
                 handleAddNewConcept,
-                updateTopLevelState,
+                isHovered,
                 removeBroader,
                 removeNarrower,
-                setLanguageFor,
                 setEditMode,
-                addLabel,
-                updateLabel,
-                cancelUpdateLabel,
-                deleteLabel,
-                addNote,
+                setHoverState,
+                setLanguageFor,
+                sortByLabels,
                 updateNote,
-                cancelUpdateNote,
-                deleteNote,
-                copyToClipboard,
-                // PROPS
-                // STATE
+                updateTopLevelState,
+                // Data
                 state,
+                conceptStore,
             };
         }
     }

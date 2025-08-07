@@ -1,7 +1,8 @@
 <template>
     <vue-final-modal
         class="modal-container modal"
-        name="add-user-modal">
+        name="add-user-modal"
+    >
         <div class="sp-modal-content sp-modal-content-xs">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -9,64 +10,132 @@
                         t('settings.user.modal.add.title')
                     }}
                 </h5>
-                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Close"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                 </button>
             </div>
             <div class="modal-body">
-                <form id="newUserForm" name="newUserForm" role="form" @submit.prevent="onAdd()">
+                <form
+                    id="newUserForm"
+                    name="newUserForm"
+                    role="form"
+                    @submit.prevent="submit()"
+                >
                     <div class="mb-3">
-                        <label class="col-form-label col-12" for="name">
+                        <label
+                            class="col-form-label col-12"
+                            for="name"
+                        >
                             {{ t('global.name') }}
                             <span class="text-danger">*</span>:
                         </label>
                         <div class="col-12">
-                            <input class="form-control" :class="getClassByValidation(v.fields.name.errors)" type="text" id="name" v-model="v.fields.name.value" @input="v.fields.name.handleChange" required />
+                            <input
+                                class="form-control"
+                                :class="getClassByValidation(v.fields.name.errors)"
+                                type="text"
+                                id="name"
+                                v-model="v.fields.name.value"
+                                @input="v.fields.name.handleChange"
+                                required
+                            />
 
                             <div class="invalid-feedback">
-                                <span v-for="(msg, i) in v.fields.name.errors" :key="i">
+                                <span
+                                    v-for="(msg, i) in v.fields.name.errors"
+                                    :key="i"
+                                >
                                     {{ msg }}
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label col-12" for="nickname">
+                        <label
+                            class="col-form-label col-12"
+                            for="nickname"
+                        >
                             {{ t('global.nickname') }}
                             <span class="text-danger">*</span>:
                         </label>
                         <div class="col-12">
-                            <input class="form-control" :class="getClassByValidation(v.fields.nickname.errors)" type="text" id="nickname" v-model="v.fields.nickname.value" @input="v.fields.nickname.handleChange" required />
+                            <input
+                                class="form-control"
+                                :class="getClassByValidation(v.fields.nickname.errors)"
+                                type="text"
+                                id="nickname"
+                                v-model="v.fields.nickname.value"
+                                @input="v.fields.nickname.handleChange"
+                                required
+                            />
 
                             <div class="invalid-feedback">
-                                <span v-for="(msg, i) in v.fields.nickname.errors" :key="i">
+                                <span
+                                    v-for="(msg, i) in v.fields.nickname.errors"
+                                    :key="i"
+                                >
                                     {{ msg }}
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label col-12" for="email">
+                        <label
+                            class="col-form-label col-12"
+                            for="email"
+                        >
                             {{ t('global.email') }}
                             <span class="text-danger">*</span>:
                         </label>
                         <div class="col-12">
-                            <input class="form-control" :class="getClassByValidation(v.fields.email.errors)" type="email" id="email" v-model="v.fields.email.value" @input="v.fields.email.handleChange" required />
+                            <input
+                                class="form-control"
+                                :class="getClassByValidation(v.fields.email.errors)"
+                                type="email"
+                                id="email"
+                                v-model="v.fields.email.value"
+                                @input="v.fields.email.handleChange"
+                                required
+                            />
 
                             <div class="invalid-feedback">
-                                <span v-for="(msg, i) in v.fields.email.errors" :key="i">
+                                <span
+                                    v-for="(msg, i) in v.fields.email.errors"
+                                    :key="i"
+                                >
                                     {{ msg }}
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label col-12" for="password">
+                        <label
+                            class="col-form-label col-12"
+                            for="password"
+                        >
                             {{ t('global.password') }}
                             <span class="text-danger">*</span>:
                         </label>
                         <div class="col-12">
-                            <input class="form-control d-inline" :class="getClassByValidation(v.fields.password.errors)" type="password" id="password" v-model="v.fields.password.value" @input="v.fields.password.handleChange" required />
-                            <a href="#" class="text-muted ms--4-5" @click.prevent="togglePasswordVisibility()">
+                            <input
+                                class="form-control d-inline"
+                                :class="getClassByValidation(v.fields.password.errors)"
+                                type="password"
+                                id="password"
+                                v-model="v.fields.password.value"
+                                @input="v.fields.password.handleChange"
+                                required
+                            />
+                            <a
+                                href="#"
+                                class="text-muted ms--4-5"
+                                @click.prevent="togglePasswordVisibility()"
+                            >
                                 <span v-show="!state.showPassword">
                                     <i class="fas fa-fw fa-eye"></i>
                                 </span>
@@ -76,22 +145,39 @@
                             </a>
 
                             <div class="invalid-feedback">
-                                <span v-for="(msg, i) in v.fields.password.errors" :key="i">
+                                <span
+                                    v-for="(msg, i) in v.fields.password.errors"
+                                    :key="i"
+                                >
                                     {{ msg }}
                                 </span>
                             </div>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label col-12" for="password_confirm">
+                        <label
+                            class="col-form-label col-12"
+                            for="password_confirm"
+                        >
                             {{ t('global.confirm_password') }}
                             <span class="text-danger">*</span>:
                         </label>
                         <div class="col-12">
-                            <input class="form-control" :class="getClassByValidation(v.fields.password_confirm.errors)" type="password" id="password_confirm" v-model="v.fields.password_confirm.value" @input="v.fields.password_confirm.handleChange" required />
+                            <input
+                                class="form-control"
+                                :class="getClassByValidation(v.fields.password_confirm.errors)"
+                                type="password"
+                                id="password_confirm"
+                                v-model="v.fields.password_confirm.value"
+                                @input="v.fields.password_confirm.handleChange"
+                                required
+                            />
 
                             <div class="invalid-feedback">
-                                <span v-for="(msg, i) in v.fields.password_confirm.errors" :key="i">
+                                <span
+                                    v-for="(msg, i) in v.fields.password_confirm.errors"
+                                    :key="i"
+                                >
                                     {{ msg }}
                                 </span>
                             </div>
@@ -99,11 +185,27 @@
                     </div>
                 </form>
             </div>
+            <Alert
+                v-if="state.error"
+                class="mx-3"
+                :message="state.error"
+                type="error"
+            />
             <div class="modal-footer">
-                <button type="submit" class="btn btn-outline-success" :disabled="!state.form.dirty || !state.form.valid" form="newUserForm">
+                <button
+                    type="submit"
+                    class="btn btn-outline-success"
+                    :disabled="!state.form.dirty || !state.form.valid || state.loading"
+                    form="newUserForm"
+                >
                     <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
                 </button>
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                     <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
                 </button>
             </div>
@@ -120,33 +222,52 @@
 
     import { useI18n } from 'vue-i18n';
     import { useForm, useField } from 'vee-validate';
-
     import * as yup from 'yup';
+    
+    import { Alert } from "dhc-components";
 
     import {
-        can,
+        getError,
         getClassByValidation,
     } from '@/helpers/helpers.js';
 
+    import useUserStore from "@/bootstrap/stores/user"
+
+
     export default {
-        props: {
+        components: {
+            Alert,
         },
-        emits: ['add', 'cancel'],
+        emits: ['close', 'cancel'],
         setup(props, context) {
             const { t } = useI18n();
+
+            const userStore = useUserStore();
 
             // FUNCTIONS
             const closeModal = _ => {
                 context.emit('cancel', false);
             };
-            const onAdd = _ => {
+            const submit = async _ => {
+                state.error = "";
+                state.loading = true;
                 const user = {
                     name: v.fields.name.value,
                     nickname: v.fields.nickname.value,
                     email: v.fields.email.value,
                     password: v.fields.password.value,
                 };
-                context.emit('add', user);
+                try {
+                    await userStore.addUser(user);
+                    context.emit('close');
+                } catch(e) {
+                    const error = getError(e);
+                    state.error = error
+                    console.error('Error adding user:', error);
+                    return;
+                } finally {
+                    state.loading = false;
+                }
             };
             const togglePasswordVisibility = _ => {
                 state.showPassword = !state.showPassword;
@@ -164,7 +285,9 @@
                 nickname: yup.string().required().matches(/^[0-9a-zA-Z-_]+$/).max(255),
                 email: yup.string().required().email().max(255),
                 password: yup.string().required().min(6),
-                password_confirm: yup.string().oneOf([yup.ref('password'), null]).required(),
+                password_confirm: yup.string()
+                    .required()
+                    .oneOf([yup.ref('password')], 'Passwords must match'),
             });
             const {
                 meta: formMeta
@@ -205,6 +328,8 @@
             const state = reactive({
                 showPassword: false,
                 form: formMeta,
+                error: "",
+                loading: false,
             });
             const v = reactive({
                 fields: {
@@ -242,10 +367,6 @@
                 schema: schema,
             });
 
-            // ON MOUNTED
-            onMounted(_ => {
-            });
-
             // RETURN
             return {
                 t,
@@ -254,7 +375,7 @@
                 // PROPS
                 // LOCAL
                 closeModal,
-                onAdd,
+                submit,
                 togglePasswordVisibility,
                 // STATE
                 state,

@@ -67,7 +67,7 @@
             v-slot:beforelist="{ }"
             v-if="addOption && state.query.length > 0"
         >
-            <div class="d-flex flex-column py-2 px-2-5 fs-6">
+            <div class="d-flex flex-column py-2 px-2-5 fs-6" aria-label="add new concept">
                 <span @click="addOptionSelected()">
                     {{ t('modals.new_concept.add_new_info') }}
                     <span class="fw-bold">{{ state.query }}</span>

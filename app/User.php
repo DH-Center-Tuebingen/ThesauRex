@@ -52,10 +52,8 @@ class User extends Authenticatable
     }
 
     public function uploadAvatar($file) {
-        info($this->avatar);
         Storage::delete($this->avatar);
         $filename = $this->id . "." . $file->getClientOriginalExtension();
-        info($filename);
         return $file->storeAs(
             'avatars',
             $filename

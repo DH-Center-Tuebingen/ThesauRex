@@ -25,3 +25,6 @@ yarn.lock
 ## Thesaurex
 cypress.config.js
 /tests/cypress
+
+## Testing
+.phpunit.cache

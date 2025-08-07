@@ -25,7 +25,7 @@ export const useLanguageStore = defineStore('language', {
             const languages = await fetchLanguages();
             this.setLanguages(languages);
             if(locale?.value) {
-                locale.value = useUserStore().getPreferenceByKey('prefs.gui-language');
+                locale.value = useUserStore().getPreferenceByKey('prefs.gui-language') ?? 'en';
             }
         },
         pushLanguage(languageData) {

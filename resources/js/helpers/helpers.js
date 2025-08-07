@@ -13,7 +13,7 @@ import {
     showError,
 } from '@/helpers/modal.js';
 
-export const multiselectResetClasslist = {clear: 'multiselect-clear multiselect-clear-reset'};
+export const multiselectResetClasslist = { clear: 'multiselect-clear multiselect-clear-reset' };
 
 export function can(permissionString, oneOf) {
     oneOf = oneOf || false;
@@ -31,8 +31,46 @@ export function can(permissionString, oneOf) {
     }
 };
 
+export function getError(error) {
+    const allErrors = [];
+
+    if(error.response) {
+        const response = error.response;
+        const data = response?.data;
+
+        if(data) {
+            if(data.message) {
+                allErrors.push(data.message);
+            }
+            if(response.data && response.data.error) {
+                allErrors.push(response.data.error);
+            }
+            if(response.data && response.data.errors) {
+                for(let k in response.data.errors) {
+                    allErrors.push(response.data.errors[k]);
+                }
+            }
+        }
+
+    } else if(error.message) {
+        console.alert("FOUND MESSAGE: " + error.message);
+        allErrors.push(error.message);
+    }
+
+    if(allErrors.length === 0) {
+        allErrors.push('An unknown error occurred.');
+    }
+
+    return allErrors.join(';  ');
+}
+
 export function getErrorMessages(error, suffix = '') {
     let msgObject = {};
+    if(!error || !error.response) {
+        msgObject.global = error.message || error;
+        return msgObject;
+    }
+
     const r = error.response;
     if(r.status == 422) {
         if(r.data.errors) {
@@ -234,8 +272,8 @@ export function only(object, allows = []) {
         .filter(key => allows.includes(key))
         .reduce((obj, key) => {
             return {
-            ...obj,
-            [key]: object[key]
+                ...obj,
+                [key]: object[key]
             };
         }, {});
 };
@@ -245,8 +283,8 @@ export function except(object, excepts = []) {
         .filter(key => !excepts.includes(key))
         .reduce((obj, key) => {
             return {
-            ...obj,
-            [key]: object[key]
+                ...obj,
+                [key]: object[key]
             };
         }, {});
 };
@@ -320,7 +358,7 @@ export function languageList() {
 };
 
 export async function gotoConcept(id, tree) {
-    const query = tree ? {...router.currentRoute.value.query, t: tree} : router.currentRoute.value.query;
+    const query = tree ? { ...router.currentRoute.value.query, t: tree } : router.currentRoute.value.query;
     await useConceptStore().openAllConceptPaths(tree, id);
     router.push({
         name: 'conceptdetail',

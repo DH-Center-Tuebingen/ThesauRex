@@ -97,25 +97,32 @@ class UserController extends Controller
 
     public function login(Request $request) {
         $this->validate($request, [
-            'email' => 'required_without:nickname|email|max:255|exists:users,email',
-            'nickname' => 'required_without:email|alpha_num|max:255|exists:users,nickname',
+            'email' => 'required_without:nickname|email|max:255',
+            'nickname' => 'required_without:email|alpha_num|max:255',
             'password' => 'required'
         ]);
+        
+        $invalidCredentialsError = __('Invalid Credentials');
 
         $creds = ['password'];
         $userProp = '';
         if($request->has('nickname')) {
             $creds[] = 'nickname';
             $userProp = 'nickname';
-        } else {
+        } else if($request->has('email')) {
             $creds[] = 'email';
             $userProp = 'email';
+        } else {
+            return response()->json([
+                'error' => $invalidCredentialsError
+            ], 400);
         }
+        
         $user = User::where($userProp, $request->get($userProp))->withoutTrashed()->first();
         if(!isset($user)) {
             Sleep::for(2)->seconds();
             return response()->json([
-                'error' => __('Invalid Credentials')
+                'error' => $invalidCredentialsError
             ], 400);
         }
         if($user->login_attempts === 0) {
@@ -126,7 +133,7 @@ class UserController extends Controller
         $credentials = request($creds);
 
         if(!Auth::guard('web')->attempt($credentials, true)) {
-            return response()->json(['error' => __('Invalid Credentials')], 400);
+            return response()->json(['error' => $invalidCredentialsError], 400);
         }
 
         $request->session()->regenerate();
@@ -166,6 +173,9 @@ class UserController extends Controller
         $user->password = $password;
         $user->save();
 
+        // Load roles relationship for the response
+        $user->load('roles');
+
         return response()->json($user);
     }
 
@@ -185,7 +195,6 @@ class UserController extends Controller
 
         $file = $request->file('file');
         $path = $user->uploadAvatar($file);
-        info($path);
         $user->avatar = $path;
         $user->save();
 
@@ -296,8 +305,8 @@ class UserController extends Controller
             $user->setMetadata(['phonenumber' => $request->get('phonenumber')]);
         }
 
-        // return user without roles relation
-        $user->unsetRelation('roles');
+        // Load roles relationship for the response
+        $user->load('roles');
 
         return response()->json($user);
     }

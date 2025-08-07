@@ -9,7 +9,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>ThesauRex - {{ $p['prefs.project-name'] }}</title>
+    <title>ThesauRex{{ (isset($p['prefs.project-name'])) ? ' - ' . $p['prefs.project-name'] : '' }}</title>
 
     <!-- Styles -->
     @vite([
