@@ -41,7 +41,7 @@ export const useUserStore = defineStore('user', {
             return state.user.id == userId;
         },
         getPreferenceByKey: state => key => {
-            return state.preferences[key];
+            return state.preferences[key] ?? null;
         },
         getAllUsers: state => {
             return [

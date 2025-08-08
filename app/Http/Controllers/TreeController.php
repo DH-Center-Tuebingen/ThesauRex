@@ -112,7 +112,7 @@ class TreeController extends Controller
             ->first();
         $concept->broaders->loadMissing('labels.language');
         $concept->narrowers->loadMissing('labels.language');
-        $concept->setAppends(['parents', 'path']);
+        $concept->setAppends(['broaders_count', 'parents', 'path']);
         return response()->json($concept);
     }
 
@@ -251,7 +251,7 @@ class TreeController extends Controller
         } else if($format === 'js') {
             $data = $graph->serialise('json');
         }
-        if (!is_scalar($data)) {
+        if(!is_scalar($data)) {
             $data = var_export($data, true);
         }
 
@@ -291,47 +291,15 @@ class TreeController extends Controller
             'parent_id' => "integer|exists:th_concept$suffix,id"
         ]);
 
-        $projectName = Preference::getUserPreference($user->id, 'prefs.project-name')->value;
 
         $label = $request->get('label');
         $labelLangId = $request->get('language_id');
         $parentId = $request->get('parent_id');
         $isTop = !$request->has('parent_id');
 
-        if($which === 'sandbox') {
-            $thConcept = new ThConceptSandbox();
-            $thBroader = new ThBroaderSandbox();
-            $thConceptLabel = new ThConceptLabelSandbox();
-        } else {
-            $thConcept = new ThConcept();
-            $thBroader = new ThBroader();
-            $thConceptLabel = new ThConceptLabel();
-        }
+        $ThConceptClass = ($which === 'sandbox') ? new ThConceptSandbox() : new ThConcept();
+        $thConcept = $ThConceptClass::create($user, $label, $labelLangId, $parentId, $isTop);
 
-        $slugLabel = Str::slug($label);
-        $slugProjectName = Str::slug($projectName);
-        $scheme = 'no scheme';
-        $ts = date("YmdHis");
-
-        $url = "https://spacialist.escience.uni-tuebingen.de/$slugProjectName/$slugLabel#$ts";
-
-        $thConcept->concept_url = $url;
-        $thConcept->concept_scheme = $scheme;
-        $thConcept->is_top_concept = $isTop;
-        $thConcept->user_id = $user->id;
-        $thConcept->save();
-
-        if(!$isTop) {
-            $thBroader->broader_id = $parentId;
-            $thBroader->narrower_id = $thConcept->id;
-            $thBroader->save();
-        }
-
-        $thConceptLabel->label = $label;
-        $thConceptLabel->concept_id = $thConcept->id;
-        $thConceptLabel->language_id = $labelLangId;
-        $thConceptLabel->user_id = $user->id;
-        $thConceptLabel->save();
 
         $thConcept->loadMissing('labels.language');
         $thConcept->children_count = 0;
@@ -447,11 +415,7 @@ class TreeController extends Controller
         // If label updated, return new pref label id
         // otherwise return empty success
         if($prefLabelUpdated) {
-            return response()->json([
-                'updated' => true,
-                'id' => $newPrefLabel->id,
-                'type' => $newPrefLabel->concept_label_type
-            ]);
+            return response()->json($newPrefLabel->id);
         } else {
             return response()->json(null, 204);
         }
@@ -470,9 +434,14 @@ class TreeController extends Controller
 
         $noteTable = th_note_builder($treeName);
 
-        $noteTable
-            ->where('id', $id)
-            ->delete();
+        try {
+            $note = $noteTable->findOrFail($id);
+            $note->delete();
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'This note does not exist'
+            ], 400);
+        }
 
         return response()->json(null, 204);
     }
@@ -593,15 +562,18 @@ class TreeController extends Controller
 
         $treeName = $request->query('t', 'project');
         $addAsRoot = $bid === -1;
-
+        
+        if($treeName === 'sandbox') {
+            $ThConceptClass = ThConceptSandbox::class;
+            $ThBroaderClass = ThBroaderSandbox::class;
+        } else {
+            $ThConceptClass = ThConcept::class;
+            $ThBroaderClass = ThBroader::class;
+        }
+        
         try {
-            if($treeName === 'sandbox') {
-                $concept = ThConceptSandbox::findOrFail($id);
-                $broaderTable = (new ThBroaderSandbox())->getTable();
-            } else {
-                $concept = ThConcept::findOrFail($id);
-                $broaderTable = (new ThBroader())->getTable();
-            }
+            $concept = $ThConceptClass::findOrFail($id);
+            $broaderTable = (new $ThBroaderClass())->getTable();
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
@@ -609,11 +581,7 @@ class TreeController extends Controller
         }
         if(!$addAsRoot) {
             try {
-                if($treeName === 'sandbox') {
-                    ThConceptSandbox::findOrFail($bid);
-                } else {
-                    ThConcept::findOrFail($bid);
-                }
+                $ThConceptClass::findOrFail($bid);
             } catch(ModelNotFoundException $e) {
                 return response()->json([
                     'error' => 'This concept does not exist'
@@ -637,15 +605,14 @@ class TreeController extends Controller
             $concept->is_top_concept = true;
             $concept->save();
         } else {
-            if($treeName == 'sandbox') {
-                $entry = new ThBroaderSandbox();
-            } else {
-                $entry = new ThBroader();
+            $entry = $concept->addBroader($bid);
+            
+            if(!$entry) {
+                DB::rollBack();
+                return response()->json([
+                    'error' => 'This relation could not be added'
+                ], 400);
             }
-
-            $entry->broader_id = $bid;
-            $entry->narrower_id = $id;
-            $entry->save();
         }
 
         // check circles
@@ -670,69 +637,52 @@ class TreeController extends Controller
                 'error' => 'You do not have the permission to call this method'
             ], 403);
         }
-
+        
+        $removeFromTop = $bid == -1;
         $treeName = $request->query('t', 'project');
-
+        
+        $ThClass = $treeName == 'sandbox' ? ThConceptSandbox::class : ThConcept::class;
         try {
-            if($treeName === 'sandbox') {
-                $concept = ThConceptSandbox::findOrFail($id);
-            } else {
-                $concept = ThConcept::findOrFail($id);
-            }
+            $concept = $ThClass::findOrFail($id);
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
             ], 400);
         }
-        if($bid != -1) {
+        if(!$removeFromTop) {
             try {
-                if($treeName === 'sandbox') {
-                    ThConceptSandbox::findOrFail($bid);
-                } else {
-                    ThConcept::findOrFail($bid);
-                }
+                $ThClass::findOrFail($bid);
             } catch(ModelNotFoundException $e) {
                 return response()->json([
                     'error' => 'This concept does not exist'
                 ], 400);
             }
         }
-
-        // if narrower is not a top concept
-        // check if there are other broader-narrower
-        // relations. If not, delete the concept
-        if(!$concept->is_top_concept || $bid == -1) {
-            if($treeName == 'sandbox') {
-                $query = ThBroaderSandbox::query();
-            } else {
-                $query = ThBroader::query();
-            }
-
-            $broadCnt = $query->where('narrower_id', $id)->count();
-
-            $cntForReject = $bid == -1 ? 0 : 1;
-
-            if($broadCnt === $cntForReject) {
-                return response()->json([
-                    'error' => 'This concept is neither a top level concept nor does it have other broader concepts. Thus, removing this relation would result in deleting that concept. Please use the delete functionality to delete it.'
-                ], 400);
-            }
+        
+        if($concept->relationsCount() <= 1){
+            return response()->json([
+                'error' => 'This is the concepts last relation, it cannot be removed. Please use the delete functionality to delete it.'
+            ], 400);
         }
-
-        if($bid != -1) {
-            if($treeName == 'sandbox') {
-                $query = ThBroaderSandbox::query();
-            } else {
-                $query = ThBroader::query();
-            }
-
-            $query->where('broader_id', $bid)
-                ->where('narrower_id', $id)
-                ->delete();
-        } else {
+        
+        $ThBroaderClass = $treeName == 'sandbox' ? ThBroaderSandbox::class : ThBroader::class;
+        if($removeFromTop) {
             $concept->is_top_concept = false;
             $concept->save();
-        }
+        } else {
+            $query = $ThBroaderClass::query();
+            $result = $query->where('broader_id', $bid)
+                ->where('narrower_id', $id)
+                ->first();
+                
+            if(!isset($result)) {
+                return response()->json([
+                    'error' => 'This relation does not exist'
+                ], 400);
+            } else {
+                $result->delete();
+            }
+        } 
 
         return response()->json(null, 204);
     }
@@ -746,12 +696,16 @@ class TreeController extends Controller
         }
 
         $treeName = $request->query('t', 'project');
+        if($treeName === 'sandbox') {
+            $ThConceptClass = ThConceptSandbox::class;
+            $ThBroaderClass = ThBroaderSandbox::class;
+        } else {
+            $ThConceptClass = ThConcept::class;
+            $ThBroaderClass = ThBroader::class;
+        }
+        
         try {
-            if($treeName === 'sandbox') {
-                $concept = ThConceptSandbox::findOrFail($id);
-            } else {
-                $concept = ThConcept::findOrFail($id);
-            }
+            $concept = $ThConceptClass::findOrFail($id);
         } catch(ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'This concept does not exist'
@@ -772,41 +726,33 @@ class TreeController extends Controller
 
         switch($action) {
             case 'cascade':
-                $concept->delete();
-                self::deleteOrphanedConcepts($narrowers, $treeName);
                 break;
             case 'level':
                 if($concept->is_top_concept) {
-                    th_tree_builder($treeName)
+                    $narrowersAsTopConcepts = th_tree_builder($treeName)
                         ->whereIn('id', $narrowers)
-                        ->update(['is_top_concept' => true]);
+                        ->whereNot('is_top_concept')
+                        ->get();
+                    foreach($narrowersAsTopConcepts as $updateConcept) {
+                        $updateConcept->is_top_concept = true;
+                        $updateConcept->save();
+                    }
                 }
-                $concept->delete();
                 foreach($broaders as $broaderId) {
                     foreach($narrowers as $narrowerId) {
-                        $exists = th_broader_builder($treeName)
-                            ->where('broader_id', $broaderId)
-                            ->where('narrower_id', $narrowerId)
-                            ->exists();
-                        if(!$exists) {
-                            if($treeName === 'sandbox') {
-                                $broaderRelation = new ThBroaderSandbox();
-                            } else {
-                                $broaderRelation = new ThBroader();
-                            }
-
-                            $broaderRelation->broader_id = $broaderId;
-                            $broaderRelation->narrower_id = $narrowerId;
-                            $broaderRelation->save();
-                        }
+                        $ThBroaderClass::add($broaderId, $narrowerId);
                     }
                 }
                 break;
             case 'top':
-                $concept->delete();
-                th_tree_builder($treeName)
+                $narrowersAsTopConcepts = th_tree_builder($treeName)
                     ->whereIn('id', $narrowers)
-                    ->update(['is_top_concept' => true]);
+                    ->whereNot('is_top_concept')
+                    ->get();
+                foreach($narrowersAsTopConcepts as $updateConcept) {
+                    $updateConcept->is_top_concept = true;
+                    $updateConcept->save();
+                }
                 break;
             case 'rerelate':
                 $newParentId = $request->query('p');
@@ -817,37 +763,20 @@ class TreeController extends Controller
                     ], 400);
                 }
                 try {
-                    if($treeName === 'sandbox') {
-                        ThConceptSandbox::findOrFail($newParentId);
-                    } else {
-                        ThConcept::findOrFail($newParentId);
-                    }
+                    $ThConceptClass::findOrFail($newParentId);
                 } catch(ModelNotFoundException $e) {
                     DB::rollback();
                     return response()->json([
                         'error' => 'This concept does not exist'
                     ], 400);
                 }
-                $concept->delete();
                 foreach($narrowers as $narrowerId) {
-                    $exists = th_broader_builder($treeName)
-                        ->where('broader_id', $newParentId)
-                        ->where('narrower_id', $narrowerId)
-                        ->exists();
-                    if(!$exists) {
-                        if($treeName === 'sandbox') {
-                            $broaderRelation = new ThBroaderSandbox();
-                        } else {
-                            $broaderRelation = new ThBroader();
-                        }
-
-                        $broaderRelation->broader_id = $newParentId;
-                        $broaderRelation->narrower_id = $narrowerId;
-                        $broaderRelation->save();
-                    }
+                    $ThBroaderClass::add($newParentId, $narrowerId);
                 }
                 break;
         }
+        $concept->delete();
+        self::deleteOrphanedConcepts($narrowers, $treeName);
 
         DB::commit();
 

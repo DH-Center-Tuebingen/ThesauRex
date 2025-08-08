@@ -2,19 +2,12 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
-
-class ThBroader extends Model
+class ThBroader extends ThBroaderBase
 {
     protected $table = 'th_broaders';
-    /**
-     * The attributes that are assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'broader_id',
-        'narrower_id',
-    ];
-
+    
+    public function getConceptClass(): string
+    {
+        return ThConcept::class;
+    }
 }

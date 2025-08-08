@@ -16,4 +16,9 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/', 'HomeController@index')->name('home');
 
+// FILES 
+Route::middleware('auth:sanctum')->prefix('download')->group(function() {
+    Route::get('/avatars/{filename}', 'AvatarController@download');
+});
+
 Auth::routes(["middleware" => ["auth:sanctum"]]);

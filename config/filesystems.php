@@ -56,6 +56,12 @@ return [
             'visibility' => 'public',
         ],
 
+        'avatars' => [
+            'driver' => 'local',
+            'root' => ensure_path_is_absolute(env('APP_AVATAR_STORAGE_LOCATION', storage_path('app/public'))),
+            'visibility' => env('APP_AVATAR_STORAGE_LOCATION', false) ? 'private' : 'public',
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

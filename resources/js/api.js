@@ -14,7 +14,7 @@ import {
 
 // GET AND STORE (FETCH)
 export async function getCsrfCookie() {
-    await $httpQueue.add(() => web_http.get('/sanctum/csrf-cookie').then(_ => {}));
+    await $httpQueue.add(() => web_http.get('sanctum/csrf-cookie').then(_ => {}));
 }
 
 export async function logout() {

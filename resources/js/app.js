@@ -23,6 +23,11 @@ import ConceptSearch from '@/components/tree/Search.vue';
 const queue = new PQueue({concurrency: 1});
 window.$httpQueue = queue;
 
+// Components
+import App from './App.vue';
+
+import 'dhc-components/css';
+
 // Third-Party Components
 import Multiselect from '@vueform/multiselect';
 import VueUploadComponent from 'vue-upload-component';
@@ -47,11 +52,8 @@ import '@/bootstrap/http.js';
 import i18n from '@/bootstrap/i18n.js';
 // Font Awesome
 import '@/bootstrap/font.js';
-
-// Components
-import App from './App.vue';
-
-import 'dhc-components/css';
+// Laravel Echo (Frontend part of Reverb aka WebSockets)
+import '@/bootstrap/websocket.js';
 
 const app = createApp(App);
 app.use(i18n);

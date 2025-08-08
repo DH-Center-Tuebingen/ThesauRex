@@ -33,13 +33,18 @@ class Preference extends Model
         return $prefObj;
     }
 
-    public static function getUserPreference($uid, $label) {
+    public static function getUserPreference($uid, $label): Preference|null {
         $pref = self::where('label', $label)
             ->join('user_preferences', 'pref_id', 'preferences.id')
             ->where('user_id', $uid)
             ->first();
         if(!isset($pref)) {
             $pref = self::where('label', $label)->first();
+            
+            if(!isset($pref)) {
+                return null;
+            }
+            
             $pref->value = $pref->default_value;
             unset($pref->default_value);
         }

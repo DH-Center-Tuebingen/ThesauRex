@@ -52,10 +52,8 @@ class User extends Authenticatable
     }
 
     public function uploadAvatar($file) {
-        info($this->avatar);
         Storage::delete($this->avatar);
         $filename = $this->id . "." . $file->getClientOriginalExtension();
-        info($filename);
         return $file->storeAs(
             'avatars',
             $filename
@@ -86,7 +84,7 @@ class User extends Authenticatable
     }
 
     public function getAvatarUrlAttribute() {
-        return isset($this->avatar) ? sp_get_public_url($this->avatar) : null;
+        return isset($this->avatar) ? 'download/' . $this->avatar : null;
     }
 
     public function preferences() {

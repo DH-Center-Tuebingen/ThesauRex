@@ -25,19 +25,25 @@ export const useLanguageStore = defineStore('language', {
             const languages = await fetchLanguages();
             this.setLanguages(languages);
             if(locale?.value) {
-                locale.value = useUserStore().getPreferenceByKey('prefs.gui-language');
+                locale.value = useUserStore().getPreferenceByKey('prefs.gui-language') ?? 'en';
             }
         },
-        async addLanguage(languageData) {
-            const language = await addLanguage(languageData);
-            this.languages.push(language);
+        pushLanguage(languageData) {
+            this.languages.push(languageData);
         },
-        async deleteLanguage(languageId) {
-            await deleteLanguage(languageId);
+        removeLanguage(languageId) {
             const idx = this.languages.findIndex(language => language.id == languageId);
             if(idx > -1) {
                 this.languages.splice(idx, 1);
             }
+        },
+        async addLanguage(languageData) {
+            const language = await addLanguage(languageData);
+            this.pushLanguage(language);
+        },
+        async deleteLanguage(languageId) {
+            await deleteLanguage(languageId);
+            this.removeLanguage(languageId);
         },
         setActiveLanguage(language) {
             this.activeLanguage = language;

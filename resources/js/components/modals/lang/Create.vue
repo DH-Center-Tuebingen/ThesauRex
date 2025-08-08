@@ -1,7 +1,8 @@
 <template>
     <vue-final-modal
         class="modal-container modal"
-        name="create-language-modal">
+        name="create-language-modal"
+    >
         <div class="sp-modal-content sp-modal-content-xs">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -9,28 +10,27 @@
                         t('modals.language.add.title')
                     }}
                 </h5>
-                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Close"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                 </button>
             </div>
             <div class="modal-body nonscrollable">
-                <form id="add-language-form" name="add-language-form" role="form" @submit.prevent="onAdd()">
+                <form
+                    id="add-language-form"
+                    name="add-language-form"
+                    role="form"
+                    @submit.prevent="onAdd()"
+                >
                     <div class="mb-3">
-                        <label class="col-form-label col-12" for="display_name">
-                            {{ t('global.display_name') }}
-                            <span class="text-danger">*</span>:
-                        </label>
-                        <div class="col-12">
-                            <input class="form-control" :class="getClassByValidation(v.fields.display_name.errors)" type="text" id="display_name" v-model="v.fields.display_name.value" @input="v.fields.display_name.handleInput" required />
-
-                            <div class="invalid-feedback">
-                                <span v-for="(msg, i) in v.fields.display_name.errors" :key="i">
-                                    {{ msg }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="col-form-label col-12" for="add-language-selection">
+                        <label
+                            class="col-form-label col-12"
+                            for="add-language-selection"
+                        >
                             {{ t('global.short_name') }}
                             <span class="text-danger">*</span>:
                         </label>
@@ -48,37 +48,78 @@
                                 :filterResults="false"
                                 :options="state.selectableLanguages"
                                 :placeholder="t('modals.language.add.placeholder')"
-                                @search-change="searchList">
-                                    <template v-slot:option="{ option }">
-                                        <div class="d-flex gap-2">
-                                            {{ emojiFlag(option.code) }}
-                                            <span>
-                                                {{ option.label }}
-                                                <span class="text-muted">
-                                                    -
-                                                    {{ option.code }}
-                                                </span>
+                                @search-change="searchList"
+                                @select="onLanguageSelect"
+                            >
+                                <template v-slot:option="{ option }">
+                                    <div class="d-flex gap-2">
+                                        {{ emojiFlag(option.code) }}
+                                        <span>
+                                            {{ option.label }}
+                                            <span class="text-muted">
+                                                -
+                                                {{ option.code }}
                                             </span>
-                                        </div>
-                                    </template>
-                                    <template v-slot:singlelabel="{ value }">
-                                        <div class="multiselect-single-label d-flex gap-2">
-                                            {{ emojiFlag(value.code) }}
-                                            <span>
-                                                {{ value.code }}
-                                            </span>
-                                        </div>
-                                    </template>
+                                        </span>
+                                    </div>
+                                </template>
+                                <template v-slot:singlelabel="{ value }">
+                                    <div class="multiselect-single-label d-flex gap-2">
+                                        {{ emojiFlag(value.code) }}
+                                        <span>
+                                            {{ value.code }}
+                                        </span>
+                                    </div>
+                                </template>
                             </multiselect>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label
+                            class="col-form-label col-12"
+                            for="display_name"
+                        >
+                            {{ t('global.display_name') }}
+                            <span class="text-danger">*</span>:
+                        </label>
+                        <div class="col-12">
+                            <input
+                                class="form-control"
+                                :class="getClassByValidation(v.fields.display_name.errors)"
+                                type="text"
+                                id="display_name"
+                                v-model="v.fields.display_name.value"
+                                @input="v.fields.display_name.handleInput"
+                                required
+                            />
+
+                            <div class="invalid-feedback">
+                                <span
+                                    v-for="(msg, i) in v.fields.display_name.errors"
+                                    :key="i"
+                                >
+                                    {{ msg }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-outline-success" :disabled="!isValidated()" form="add-language-form">
+                <button
+                    type="submit"
+                    class="btn btn-outline-success"
+                    :disabled="!isValidated()"
+                    form="add-language-form"
+                >
                     <i class="fas fa-fw fa-plus"></i> {{ t('global.add') }}
                 </button>
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                     <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
                 </button>
             </div>
@@ -146,12 +187,6 @@
             } = useForm({
                 validationSchema: schema,
             });
-            const {
-                errors: edn,
-                meta: mdn,
-                value: vdn,
-                handleChange: hcdn,
-            } = useField('display_name');
 
             const fullLanguageList = languageList();
             const state = reactive({
@@ -173,6 +208,14 @@
                     return list;
                 }),
             });
+
+            const {
+                errors: edn,
+                meta: mdn,
+                value: vdn,
+                handleChange: hcdn,
+            } = useField('display_name');
+
             const v = reactive({
                 fields: {
                     display_name: {
@@ -188,9 +231,11 @@
                 schema: schema,
             });
 
-            // ON MOUNTED
-            onMounted(_ => {
-            });
+            // When selecting a value from the list, 
+            // just take the label from the list item as text.
+            const onLanguageSelect = (language) => {
+                v.fields.display_name.value = language.label;
+            };
 
             // RETURN
             return {
@@ -204,6 +249,7 @@
                 isValidated,
                 closeModal,
                 onAdd,
+                onLanguageSelect,
                 searchList,
                 // STATE
                 state,

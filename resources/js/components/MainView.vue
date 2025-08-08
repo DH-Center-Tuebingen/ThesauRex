@@ -51,9 +51,12 @@
             <!-- Right Column -->
             <template #detail>
                 <div class="h-100 p-3">
-                    <router-view @added="addConceptTo('selection')"></router-view>
+                    <router-view
+                        v-if="state.conceptSelected"
+                        @added="addConceptTo('selection')"
+                    ></router-view>
                     <div
-                        v-if="!state.conceptSelected"
+                        v-else
                         class="alert alert-info"
                     >
                         {{ t('detail.none_selected') }}
@@ -67,38 +70,68 @@
 <script>
     import {
         computed,
-        onMounted,
         reactive,
     } from 'vue';
 
-    import {useI18n} from 'vue-i18n';
-    import {ResizableColumns} from 'dhc-components';
+    import {
+        onBeforeRouteLeave,
+        onBeforeRouteUpdate,
+        useRoute,
+    } from 'vue-router';
+    
+    import { useI18n } from 'vue-i18n';
+    import { ResizableColumns } from 'dhc-components';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
+
+    import useSystemChannel from '@/composables/system-channel.js';
+
+    import useWebSocketConnectionToast from '@/composables/websockets-connection.toast.js';
+
+    import {
+        handleSystemMessageEvent,
+        handleConceptAddedEvent,
+        handleConceptDeletedEvent,
+        handleConceptUpdatedEvent,
+        handleConceptLabelAddedEvent,
+        handleConceptLabelDeletedEvent,
+        handleConceptLabelUpdatedEvent,
+        handleConceptNoteAddedEvent,
+        handleConceptNoteDeletedEvent,
+        handleConceptNoteUpdatedEvent,
+        handleConceptRelationAddedEvent,
+        handleConceptRelationDeletedEvent,
+        handleLanguageAddedEvent,
+        handleLanguageDeletedEvent,
+    } from '@/handlers/system.js';
+    
+    import { onMounted } from 'vue';
 
     export default {
         components: {
             ResizableColumns,
         },
         setup(props, context) {
-            const {t} = useI18n();
+            const { t } = useI18n();
             const conceptStore = useConceptStore();
+
+            useWebSocketConnectionToast();
 
             // FUNCTIONS
             const changeDragTarget = e => {
                 state.dragTarget = e;
             };
 
-            const toggleSandbox =_ => {
+            const toggleSandbox = _ => {
                 state.showSandbox = !state.showSandbox;
             };
 
             // DATA
             const state = reactive({
                 showSandbox: false,
-                sandboxConcepts: computed(_ => conceptStore.concepts.sandbox),
-                projectConcepts: computed(_ => conceptStore.concepts.project),
-                concept: computed(_ => conceptStore.concept),
+                sandboxConcepts: computed(_ => conceptStore.tree.sandbox),
+                projectConcepts: computed(_ => conceptStore.tree.project),
+                concept: computed(_ => conceptStore.selected),
                 conceptSelected: computed(_ => state.concept.from != null && Object.keys(state.concept.data || {}).length > 0),
             });
 
@@ -110,7 +143,48 @@
             }, {
                 name: 'detail',
                 width: 700,
-            }])
+            }]);
+
+            useSystemChannel([
+                handleSystemMessageEvent,
+                handleConceptAddedEvent,
+                handleConceptDeletedEvent,
+                handleConceptUpdatedEvent,
+                handleConceptLabelAddedEvent,
+                handleConceptLabelDeletedEvent,
+                handleConceptLabelUpdatedEvent,
+                handleConceptNoteAddedEvent,
+                handleConceptNoteDeletedEvent,
+                handleConceptNoteUpdatedEvent,
+                handleConceptRelationAddedEvent,
+                handleConceptRelationDeletedEvent,
+                handleLanguageAddedEvent,
+                handleLanguageDeletedEvent,
+            ])
+
+            const currentRoute = useRoute();
+
+            // Open only the paths. the concept will be selected in the concept detail.
+            onMounted(async () => {
+                if(currentRoute.params.id && currentRoute.query.t) {
+                    await conceptStore.openAllConceptPaths(currentRoute.query.t, currentRoute.params.id);
+                    await conceptStore.setSelected(currentRoute.params.id, currentRoute.query.t);
+                }
+            });
+
+            onBeforeRouteUpdate(async (to, from) => {
+                const fromTree = from.query.t || 'project';
+                const toTree = to.query.t || 'project';
+                if(toTree != fromTree || to.params.id != from.params.id) {
+                    await conceptStore.setSelected(to.params.id, toTree);
+                }
+            });
+
+            // ON BEFORE LEAVE
+            onBeforeRouteLeave(async (to, from) => {
+                await conceptStore.setSelected();
+                return true;
+            });
 
             // RETURN
             return {
@@ -120,95 +194,9 @@
                 columns,
                 changeDragTarget,
                 toggleSandbox,
-                // PROPS
                 // STATE
                 state,
             };
         },
-        // beforeRouteEnter(to, from, next) {
-        //     let projectConcepts, sandboxConcepts;
-        //     $httpQueue.add(() => $http.get('tree?t=').then(response => {
-        //         projectConcepts = response.data;
-        //         return $http.get('tree?t=sandbox');
-        //         }).then(response => {
-        //             sandboxConcepts = response.data
-        //             return $http.get(`language`);
-        //         }).then(response => {
-        //             next(vm => vm.init(projectConcepts, sandboxConcepts, response.data));
-        //         })
-        //     );
-        // },
-        // mounted() {
-        //     this.eventBus.$on('concept-clicked', this.handleConceptClick);
-        // },
-        // methods: {
-        //     changeDragTarget(e) {
-        //         this.dragTarget = e;
-        //     },
-        //     init(projectData, sandboxData, languages) {
-        //         this.languages = [];
-        //         languages.forEach(l => {
-        //             this.languages.push(l);
-        //         });
-        //         this.concepts = [];
-        //         projectData.forEach(d => {
-        //             this.concepts.push(d);
-        //         });
-        //         sandboxData.forEach(d => {
-        //             this.sandbox.concepts.push(d);
-        //         });
-        //         this.dataLoaded = true;
-        //     },
-        //     // openNewConceptModal(e) {
-        //     //     const opts = {
-        //     //         languages: this.languages,
-        //     //         onSubmit: c => this.createNewConceptModal(c)
-        //     //     };
-        //     //     const props = Object.assign({}, e, opts);
-        //     //     this.$modal.show(NewConceptModal, props);
-        //     // },
-        //     // createNewConceptModal(concept) {
-        //     //     let data = {
-        //     //         label: concept.label,
-        //     //         language_id: concept.language.id
-        //     //     };
-        //     //     if(concept.parent) {
-        //     //         data.parent_id = concept.parent.id;
-        //     //     }
-        //     //     $httpQueue.add(() => $http.put(`/tree/concept?t=${concept.tree}`, data).then(response => {
-        //     //         this.eventBus.$emit(`concept-created-${concept.tree}`, {
-        //     //             parent_id: concept.parent ? concept.parent.id : undefined,
-        //     //             concept: response.data
-        //     //         });
-        //     //     }));
-        //     // },
-        //     handleConceptClick(e) {
-        //         this.$router.push({
-        //             name: 'conceptdetail',
-        //             params: {
-        //                 id: e.id
-        //             },
-        //             query: Object.assign({}, this.$route.query, {
-        //                 t: e.from
-        //             })
-        //         });
-        //     }
-        // },
-        // data() {
-        //     return {
-        //         dataLoaded: false,
-        //         concepts: [],
-        //         eventBus: new Vue(),
-        //         languages: [],
-        //         // selectedConcept: {
-        //         //     from: '',
-        //         //     element: {}
-        //         // },
-        //         sandbox: {
-        //             concepts: []
-        //         },
-        //         dragTarget: {}
-        //     }
-        // }
     }
 </script>

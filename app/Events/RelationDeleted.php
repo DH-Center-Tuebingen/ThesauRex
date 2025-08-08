@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Events;
+
+use App\ThBroader;
+use App\User;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class RelationDeleted implements ShouldBroadcast {
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(
+        public ThBroader $relation,
+        public string $tree,
+        public User $user
+    ) {
+        $this->relation = $relation;
+        $this->tree = $tree;
+        $this->user = $user;
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel>
+     */
+    public function broadcastOn(): array {
+        return [
+            new PrivateChannel('channel.system'),
+        ];
+    }
+}

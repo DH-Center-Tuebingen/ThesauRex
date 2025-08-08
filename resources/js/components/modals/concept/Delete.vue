@@ -1,26 +1,46 @@
 <template>
     <vue-final-modal
         class="modal-container modal"
-        name="delete-concept-modal">
+        name="delete-concept-modal"
+    >
         <div class="sp-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
                     {{
-                    t('modals.delete_concept.title', {
-                    name: getLabel(state.concept)
-                    })
+                        t('modals.delete_concept.title', {
+                            name: getLabel(state.concept)
+                        })
                     }}
                 </h5>
-                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
+                <button
+                    type="button"
+                    class="btn-close"
+                    aria-label="Close"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                 </button>
             </div>
             <div class="modal-body">
-                <form role="form" class="mb-2" id="delete-concept-form" name="delete-concept-form"
-                    @submit.prevent="onConfirm()">
+                <form
+                    role="form"
+                    class="mb-2"
+                    id="delete-concept-form"
+                    name="delete-concept-form"
+                    @submit.prevent="onConfirm()"
+                >
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" id="delete-concept-action-cascade" value="cascade"
-                            v-model="state.action">
-                        <label class="form-check-label" for="delete-concept-action-cascade">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            id="delete-concept-action-cascade"
+                            value="cascade"
+                            v-model="state.action"
+                        >
+                        <label
+                            class="form-check-label"
+                            for="delete-concept-action-cascade"
+                        >
                             <div class="d-flex flex-row gap-1 align-items-center">
                                 <i class="fas fa-fw fa-stairs fa-flip-vertical text-danger"></i>
                                 <span class="fs-5">
@@ -33,45 +53,82 @@
                         </label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" id="delete-concept-action-level" value="level"
-                            v-model="state.action">
-                        <label class="form-check-label" for="delete-concept-action-level">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            id="delete-concept-action-level"
+                            value="level"
+                            v-model="state.action"
+                        >
+                        <label
+                            class="form-check-label"
+                            for="delete-concept-action-level"
+                        >
                             <div class="d-flex flex-row gap-1 align-items-center">
                                 <i class="fas fa-fw fa-arrow-up text-danger"></i>
                                 <span class="fs-5">
                                     {{ t('modals.delete_concept.actions.level.title') }}
                                 </span>
                             </div>
-                            <p class="text-muted" v-html="t('modals.delete_concept.actions.level.description')" />
+                            <p
+                                class="text-muted"
+                                v-html="t('modals.delete_concept.actions.level.description')"
+                            />
                         </label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" id="delete-concept-action-top" value="top"
-                            v-model="state.action">
-                        <label class="form-check-label" for="delete-concept-action-top">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            id="delete-concept-action-top"
+                            value="top"
+                            v-model="state.action"
+                        >
+                        <label
+                            class="form-check-label"
+                            for="delete-concept-action-top"
+                        >
                             <div class="d-flex flex-row gap-1 align-items-center">
                                 <i class="fas fa-fw fa-arrow-turn-up text-danger"></i>
                                 <span class="fs-5">
                                     {{ t('modals.delete_concept.actions.top.title') }}
                                 </span>
                             </div>
-                            <p class="text-muted" v-html="t('modals.delete_concept.actions.top.description')" />
+                            <p
+                                class="text-muted"
+                                v-html="t('modals.delete_concept.actions.top.description')"
+                            />
                         </label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" id="delete-concept-action-rerelate" value="rerelate" v-model="state.action">
-                        <label class="form-check-label" for="delete-concept-action-rerelate">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            id="delete-concept-action-rerelate"
+                            value="rerelate"
+                            v-model="state.action"
+                        >
+                        <label
+                            class="form-check-label"
+                            for="delete-concept-action-rerelate"
+                        >
                             <div class="d-flex flex-row gap-1 align-items-center">
                                 <i class="fas fa-fw fa-code-pull-request text-danger"></i>
                                 <span class="fs-5">
                                     {{ t('modals.delete_concept.actions.rerelate.title') }}
                                 </span>
                             </div>
-                            <p class="text-muted mb-0" v-html="t('modals.delete_concept.actions.rerelate.description')" />
+                            <p
+                                class="text-muted mb-0"
+                                v-html="t('modals.delete_concept.actions.rerelate.description')"
+                            />
                         </label>
                         <div v-if="state.action == 'rerelate'">
                             <hr class="my-2" />
-                            <div class="d-flex flex-row align-items-center gap-2 pb-2" v-if="state.relateConcept">
+                            <div
+                                class="d-flex flex-row align-items-center gap-2 pb-2"
+                                v-if="state.relateConcept"
+                            >
                                 <span>
                                     {{ t('modals.delete_concept.actions.rerelate.selection') }}
                                 </span>
@@ -79,7 +136,10 @@
                                     {{ getLabel(state.relateConcept) }}
                                 </span>
                             </div>
-                            <div class="py-1" v-else></div>
+                            <div
+                                class="py-1"
+                                v-else
+                            ></div>
                             <div class="d-flex flex-row align-items-center gap-2">
                                 <div>
                                     <span>
@@ -90,6 +150,7 @@
                                 </div>
                                 <ConceptSearch
                                     class="m-0 w-50"
+                                    :append-to-body="true"
                                     :add-option="false"
                                     :exclude="[state.concept.id]"
                                     :tree-name="state.tree"
@@ -101,10 +162,22 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-outline-danger" :disabled="!state.isValid" form="delete-concept-form">
+                <LoadingButton
+                    type="submit"
+                    :outlined="true"
+                    color="danger"
+                    :disabled="!state.isValid"
+                    :loading="loading"
+                    form="delete-concept-form"
+                >
                     <i class="fas fa-fw fa-trash"></i> {{ t('global.delete') }}
-                </button>
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+                </LoadingButton>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                     <i class="fas fa-fw fa-times"></i> {{ t('global.cancel') }}
                 </button>
             </div>
@@ -115,9 +188,7 @@
 <script>
     import {
         computed,
-        onMounted,
         reactive,
-        toRefs,
         watch,
     } from 'vue';
 
@@ -133,7 +204,12 @@
         getLabel,
     } from '@/helpers/tree.js';
 
+    import { LoadingButton } from "dhc-components";
+
     export default {
+        components: {
+            LoadingButton,
+        },
         props: {
             tree: {
                 type: String,
@@ -143,13 +219,13 @@
                 type: Number,
                 required: false,
             },
+            loading: {
+                type: Boolean,
+                default: false,
+            },
         },
         emits: ['confirm', 'cancel'],
         setup(props, context) {
-            const {
-                tree,
-                conceptId,
-            } = toRefs(props);
             const { t } = useI18n();
             const conceptStore = useConceptStore();
 
@@ -159,7 +235,7 @@
             };
             const onConfirm = _ => {
                 context.emit('confirm', {
-                    nid: state.concept.nid,
+                    nid: state.concept.id,
                     action: state.action,
                     params: state.params,
                 });
@@ -178,12 +254,8 @@
                 action: 'cascade',
                 relateConcept: null,
                 params: {},
-                concept: computed(_ => conceptStore.conceptMap[tree.value][conceptId.value]),
+                concept: computed(_ => conceptStore.dictionary[props.tree][props.conceptId] || {}),
                 isValid: computed(_ => !!state.action && (state.action != 'rerelate' || !!state.relateConcept)),
-            });
-
-            // ON MOUNTED
-            onMounted(_ => {
             });
 
             // WATCHER

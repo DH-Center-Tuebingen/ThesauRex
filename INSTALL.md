@@ -144,6 +144,20 @@ JWT_SECRET=* #same as APP_KEY, run php artisan jwt:secret
 JWT_TTL=* #the time to live (in minutes) of your user tokens. Default is 60 (minutes).
 JWT_REFRESH_TTL=* #the ttl (in minutes) in which you can generate a new token. Default is two weeks
 JWT_BLACKLIST_GRACE_PERIOD=* #a time span in seconds which allows you to use the same token several times in this time span without blacklisting it (good for async api calls)
+
+# Laravel Reverb Options for real time updates
+REVERB_APP_ID=app-id
+REVERB_APP_KEY=app-key
+REVERB_APP_SECRET=app-secret
+REVERB_HOST=localhost
+REVERB_PORT=8080
+REVERB_SCHEME=http
+
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+
 ```
 
 After the `.env` file has been configured you should run the migrations to setup your database. Note: the DB must already exists, so create one if you do this for the first time.
@@ -238,3 +252,17 @@ As you have configured your `.env` file with your DB connection during the insta
 ```bash
 ln -s /var/www/html/spacialist/.env /var/www/html/spacialist/thesaurex/.env
 ```
+
+### Run Reverb Server
+
+To provide real time updates to your users you should run a Reverb Server.
+
+```cmd
+php artisan reverb:start
+```
+
+> [!WARNING]
+> Chrome does not allow connections via `ws://` and automatically upgrades requests
+> to `wss://` making it inconvenient to use during local development. 
+> Firefox and Safari should not have this problem. 
+> [as of 7.5.2025]

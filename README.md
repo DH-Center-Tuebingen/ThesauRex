@@ -21,6 +21,26 @@ ThesauRex is a leightweight, easy to use [SKOS](https://www.w3.org/2004/02/skos/
 ## Installation
 Installation procedures and system requirements are described [here](INSTALL.md).
 
+## Testing
+Thesaurex is using _Laravel Dusk_ for end-to-end testing. The test files can be found in `tests/Browser`
+to run the tests execute the following command:
+
+```shell
+php artisan dusk
+``` 
+
+If you want to run a single test, you can specify that test with the path variable:
+
+```shell
+php artisan dusk .\tests\Browser\BasicTest.php
+```
+
+You can also filter for single tests by setting the `filter`flag:
+
+```shell
+php artisan dusk .\tests\Browser\BasicTest.php --filter="testBasicBrowserConnection"
+```
+
 ## Acknowledgments
 
 Development of Spacialist is co-funded by the Ministry of Science, Research and the Arts Baden-Württemberg in the "E-Science" funding programme.

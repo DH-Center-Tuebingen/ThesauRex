@@ -36,7 +36,7 @@
 }
 
 .sp-modal-content-xs {
-    max-width: 20vw;
+    width: max(320px, 20vw);
 }
 
 .v--modal-overlay {

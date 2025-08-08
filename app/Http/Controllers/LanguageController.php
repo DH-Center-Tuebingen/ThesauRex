@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 use App\ThLanguage;
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 
 class LanguageController extends Controller {
     /**
@@ -63,7 +63,11 @@ class LanguageController extends Controller {
             ], 403);
         }
 
-        ThLanguage::where('id', $id)->delete();
+        try {
+            $language = ThLanguage::findOrFail($id);
+            $language->delete();
+        } catch(ModelNotFoundException $e) {
+        }
 
         return response()->json(null, 204);
     }

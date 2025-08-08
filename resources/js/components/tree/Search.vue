@@ -1,6 +1,7 @@
 <template>
     <multiselect
         v-model="state.entry"
+        :appendToBody="appendToBody"
         :name="state.id"
         :id="state.id"
         :object="true"
@@ -22,7 +23,7 @@
         :ref="el => msRef = el"
         :placeholder="t('tree.search.placeholder')"
         @select="optionSelected"
-        @keyup.enter="selectCurrentOrCreateNew"
+        @keydown.enter="selectCurrentOrCreateNew"
     >
         <template v-slot:singlelabel="{ value }">
             <div class="multiselect-single-label">
@@ -66,7 +67,7 @@
             v-slot:beforelist="{ }"
             v-if="addOption && state.query.length > 0"
         >
-            <div class="d-flex flex-column py-2 px-2-5 fs-6">
+            <div class="d-flex flex-column py-2 px-2-5 fs-6" aria-label="add new concept">
                 <span @click="addOptionSelected()">
                     {{ t('modals.new_concept.add_new_info') }}
                     <span class="fw-bold">{{ state.query }}</span>
@@ -118,6 +119,11 @@
 
     export default {
         props: {
+            appendToBody: {
+                type: Boolean,
+                required: false,
+                default: false,
+            },
             delay: {
                 type: Number,
                 required: false,
@@ -201,7 +207,7 @@
                 // search to prevent the user from creating
                 // a new concept with the same name as an existing one.
                 if(state.searching) return;
-
+                
                 if(msRef.value.filteredOptions.length == 0) {
                     addOptionSelected();
                 }

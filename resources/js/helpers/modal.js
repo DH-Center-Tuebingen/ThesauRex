@@ -29,6 +29,7 @@ import CreateConcept from '@/components/modals/concept/Create.vue';
 import DeleteConcept from '@/components/modals/concept/Delete.vue';
 import AddLanguage from '@/components/modals/lang/Create.vue';
 import DeleteLanguage from '@/components/modals/lang/Delete.vue';
+import { ref } from 'vue';
 
 export function showAbout() {
     const uid = `AboutModal-${getTs()}`;
@@ -62,7 +63,7 @@ export function showDiscard(target, resetData, onBeforeConfirm) {
                 pushRoute();
             },
             onSaveConfirm(e) {
-                if (!!onBeforeConfirm) {
+                if(!!onBeforeConfirm) {
                     onBeforeConfirm().then(_ => {
                         pushRoute();
                     }).catch(e => {
@@ -108,21 +109,15 @@ export function showUserInfo(user) {
     modal.open();
 }
 
-export function showAddUser(onAdded) {
+export function showAddUser() {
     const uid = `AddUser-${getTs()}`;
     const modal = useModal({
         component: AddUser,
         attrs: {
             name: uid,
-            onAdd(e) {
-                if(!can('users_roles_create')) return;
-                useUserStore().addUser(e).then(user => {
-                    if(!!onAdded) {
-                        onAdded(user);
-                    }
-                    modal.destroy();
-                });
-            },
+            onClose(){
+                modal.destroy();
+            }, 
             onCancel(e) {
                 modal.destroy();
             }
@@ -239,6 +234,7 @@ export function showDeleteRole(role, onDeleted) {
 
 export function showCreateConcept(tree, pid, initValue = '') {
     const uid = `CreateConcept-${getTs()}`;
+    const loading = ref(false);
     const modal = useModal({
         component: CreateConcept,
         attrs: {
@@ -246,11 +242,15 @@ export function showCreateConcept(tree, pid, initValue = '') {
             tree: tree,
             parentId: pid,
             initialValue: initValue,
+            loading: loading,
             onAdd(concept) {
                 if(!can('thesaurus_create')) return;
-
+                if(loading.value) return; // Prevent multiple submissions
+                loading.value = true;
                 useConceptStore().addConcept(concept, tree, pid).then(_ => {
                     modal.destroy();
+                }).finally(() => {
+                    loading.value = false;
                 });
             },
             onCancel(e) {
@@ -263,17 +263,21 @@ export function showCreateConcept(tree, pid, initValue = '') {
 
 export function showDeleteConcept(tree, conceptId) {
     const uid = `DeleteConcept-${getTs()}`;
+    const loading = ref(false);
     const modal = useModal({
         component: DeleteConcept,
         attrs: {
             name: uid,
             tree: tree,
+            loading: loading,
             conceptId: conceptId,
             onConfirm(e) {
                 if(!can('thesaurus_delete')) return;
-
+                loading.value = true;
                 useConceptStore().deleteConcept(e.nid, tree, e.action, e.params).then(_ => {
                     modal.destroy();
+                }).finally(() => {
+                    loading.value = false
                 });
             },
             onCancel(e) {

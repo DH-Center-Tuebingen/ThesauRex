@@ -13,7 +13,7 @@ import {
     showError,
 } from '@/helpers/modal.js';
 
-export const multiselectResetClasslist = {clear: 'multiselect-clear multiselect-clear-reset'};
+export const multiselectResetClasslist = { clear: 'multiselect-clear multiselect-clear-reset' };
 
 export function can(permissionString, oneOf) {
     oneOf = oneOf || false;
@@ -21,7 +21,7 @@ export function can(permissionString, oneOf) {
     if(!user) return false;
     const permissions = permissionString.split('|');
     const hasPermission = permission => {
-        return user.permissions[permission] === 1;
+        return user?.permissions?.[permission] && user.permissions[permission] === 1;
     };
 
     if(oneOf) {
@@ -31,8 +31,46 @@ export function can(permissionString, oneOf) {
     }
 };
 
+export function getError(error) {
+    const allErrors = [];
+
+    if(error.response) {
+        const response = error.response;
+        const data = response?.data;
+
+        if(data) {
+            if(data.message) {
+                allErrors.push(data.message);
+            }
+            if(response.data && response.data.error) {
+                allErrors.push(response.data.error);
+            }
+            if(response.data && response.data.errors) {
+                for(let k in response.data.errors) {
+                    allErrors.push(response.data.errors[k]);
+                }
+            }
+        }
+
+    } else if(error.message) {
+        console.alert("FOUND MESSAGE: " + error.message);
+        allErrors.push(error.message);
+    }
+
+    if(allErrors.length === 0) {
+        allErrors.push('An unknown error occurred.');
+    }
+
+    return allErrors.join(';  ');
+}
+
 export function getErrorMessages(error, suffix = '') {
     let msgObject = {};
+    if(!error || !error.response) {
+        msgObject.global = error.message || error;
+        return msgObject;
+    }
+
     const r = error.response;
     if(r.status == 422) {
         if(r.data.errors) {
@@ -120,7 +158,7 @@ export function slugify(s, delimiter = '-') {
     };
 
     // Transliterate characters to ASCII
-    for (var k in char_map) {
+    for(var k in char_map) {
         s = s.replace(RegExp(k, 'g'), char_map[k]);
     }
 
@@ -206,7 +244,7 @@ export function isStandalone() {
 };
 
 export function throwError(error) {
-    if (error.response) {
+    if(error.response) {
         const r = error.response;
         const req = {
             status: r.status,
@@ -214,7 +252,7 @@ export function throwError(error) {
             method: r.config.method.toUpperCase()
         };
         showErrorModal(r.data, r.headers, req);
-    } else if (error.request) {
+    } else if(error.request) {
         showErrorModal(error.request);
     } else {
         showErrorModal(error.message || error);
@@ -234,8 +272,8 @@ export function only(object, allows = []) {
         .filter(key => allows.includes(key))
         .reduce((obj, key) => {
             return {
-            ...obj,
-            [key]: object[key]
+                ...obj,
+                [key]: object[key]
             };
         }, {});
 };
@@ -245,8 +283,8 @@ export function except(object, excepts = []) {
         .filter(key => !excepts.includes(key))
         .reduce((obj, key) => {
             return {
-            ...obj,
-            [key]: object[key]
+                ...obj,
+                [key]: object[key]
             };
         }, {});
 };
@@ -263,6 +301,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import _debounce from 'lodash/debounce';
 import _orderBy from 'lodash/orderBy';
 import _throttle from 'lodash/throttle';
+import useConceptStore from '../bootstrap/stores/concept';
 
 export {
     _cloneDeep,
@@ -277,7 +316,7 @@ export function getValidClass(msgObject, field) {
 
     let isInvalid = false;
     field.split('|').forEach(f => {
-        if (!!msgObject[f]) {
+        if(!!msgObject[f]) {
             isInvalid = true;
         }
     });
@@ -318,8 +357,9 @@ export function languageList() {
     return list;
 };
 
-export function gotoConcept(id, tree = null) {
-    const query = tree ? {...router.currentRoute.value.query, t: tree} : router.currentRoute.value.query;
+export async function gotoConcept(id, tree) {
+    const query = tree ? { ...router.currentRoute.value.query, t: tree } : router.currentRoute.value.query;
+    await useConceptStore().openAllConceptPaths(tree, id);
     router.push({
         name: 'conceptdetail',
         params: {

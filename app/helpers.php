@@ -16,6 +16,15 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+if(!function_exists('ensure_path_is_absolute')) {
+    function ensure_path_is_absolute($path) {
+        if(Str::startsWith($path, "..")) {
+            $path = base_path($path);
+        }
+        return $path;
+    }
+}
+
 if(!function_exists('th_is_part_of_spacialist')) {
     function th_is_part_of_spacialist() {
         if(!Schema::hasTable('migrations')) {
