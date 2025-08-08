@@ -1,7 +1,7 @@
 {
     "private": true,
     "name": "thesaurex",
-    "version": "0.11.0",
+    "version": "0.11.1-beta.1",
     "description": "Web based editor for SKOS based ontologies",
     "type": "module",
     "repository": {
