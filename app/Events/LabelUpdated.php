@@ -18,10 +18,12 @@ class LabelUpdated implements ShouldBroadcast {
      */
     public function __construct(
         public ThConceptLabel $label,
+        public string $oldLabel,
         public string $tree,
         public User $user
     ) {
         $this->label = $label;
+        $this->oldLabel = $oldLabel;
         $this->tree = $tree;
         $this->user = $user;
     }

@@ -33,6 +33,7 @@ class ThConceptObserver {
     public function deleting(ThConceptBase $thConcept): void {
         $conceptClass = get_class($thConcept);
         $tree = $conceptClass == 'App\\ThConceptSandbox' ? 'sandbox' : 'project';
+        $thConcept->load('labels');
         try {
             broadcast(new ConceptDeleted($thConcept, $tree, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {

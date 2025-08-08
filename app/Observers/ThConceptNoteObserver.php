@@ -18,6 +18,7 @@ class ThConceptNoteObserver {
         try {
             $user = auth()->user();
             $note->load('language');
+            $note->load('concept');
             if($note->wasRecentlyCreated) {
                 broadcast(new NoteCreated($note, $tree, $user))->toOthers();
             } else {
@@ -36,6 +37,7 @@ class ThConceptNoteObserver {
         $tree = $noteClass == 'App\\ThConceptNoteSandbox' ? 'sandbox' : 'project';
         try {
             $note->load('language');
+            $note->load('concept');
             broadcast(new NoteDeleted($note, $tree, auth()->user()))->toOthers();
         } catch(BroadcastException $e) {
             info("BroadcastException while handling deleting() event in ThConceptNoteObserver: " . $e->getMessage());

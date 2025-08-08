@@ -24,7 +24,7 @@ class TestUserSeeder extends Seeder
         $adam->name = 'Adam Admin';
         $adam->nickname = 'adam';
         $adam->email = 'adam@mock.com';
-        $adam->password = Hash::make('password');
+        $adam->password = Hash::make('adams-password');
         $adam->save();
         // Adam is an admin
         $adam->assignRole($adminRole);

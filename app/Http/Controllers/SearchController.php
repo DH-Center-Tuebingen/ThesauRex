@@ -68,6 +68,8 @@ class SearchController extends Controller
             ->get();
 
         $concepts = $concepts->concat($foreignConcepts);
+        //Filter concepts with the same id
+        $concepts = $concepts->unique('id');
 
         $concepts->each->setAppends(['parents', 'path']);
 

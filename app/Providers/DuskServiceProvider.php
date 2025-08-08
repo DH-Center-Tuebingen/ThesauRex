@@ -123,19 +123,74 @@ class DuskServiceProvider extends ServiceProvider
         });
         
         Browser::macro("assertTreeMissingTriangle", function (string $treeNodeSelector) {
-            $this->script("document.querySelector('{$treeNodeSelector}.tree-closed,{$treeNodeSelector}.tree-open')")
-            ;
+            $this->script("document.querySelector('{$treeNodeSelector}.tree-closed,{$treeNodeSelector}.tree-open')");
             return $this;
         });
         
+        
+        /**
+         * This requires a tree-item and NOT AN ANCHOR!!!
+         */
         Browser::macro("assertTreeHasTriangle", function (string $treeNodeSelector) {
             // Check if element has either tree-closed OR tree-open class
             $hasTreeClosed = $this->resolver->findOrFail($treeNodeSelector)->getAttribute('class');
-            
+
             if(!str_contains($hasTreeClosed, 'tree-closed') && !str_contains($hasTreeClosed, 'tree-open')) {
                 throw new \Exception("Element '{$treeNodeSelector}' does not have either 'tree-closed' or 'tree-open' class");
             }
             
+            return $this;
+        });
+        
+        Browser::macro("waitForTriangle", function($treeNodeSelector, $waitInSeconds){
+            for($currentWaitTime = 0; $currentWaitTime < $waitInSeconds; $currentWaitTime +=0.5) {
+                try{
+                    $this->assertTreeHasTriangle($treeNodeSelector);
+                    return $this;
+                } catch(\Exception $e) {
+                    $this->pause(500); // Wait for 0.5 seconds
+                }
+            }
+            throw new \Exception("Triangle for '{$treeNodeSelector}' did not appear within {$waitInSeconds} seconds");
+        });
+        
+        /**
+         * This requires a tree-item and NOT AN ANCHOR!!!
+         */
+        Browser::macro("openTreeNode", function (string $treeNodeSelector) {
+            $this->click("{$treeNodeSelector} .tree-icon");
+            return $this;
+        }); 
+        
+        Browser::macro("execTreeContextMenu", function(string $anchor, string $text, int $index, int $wait = 0){
+            $this->rightClick($anchor)
+                ->waitForText($text, $wait)
+                ->click("{$anchor} .dropdown-menu li:nth-child({$index})");
+        });
+        
+        Browser::macro("selectDeleteMode", function ($deleteMode){
+            $availableModes= [
+                "cascade" => "#delete-concept-action-cascade",
+                "level-up" => "#delete-concept-action-level",
+                "top" => "#delete-concept-action-top",
+                "rerelate" => "#delete-concept-action-rerelate"
+            ];
+
+            if(!array_key_exists($deleteMode, $availableModes)) {
+                throw new \Exception("Invalid delete mode: {$deleteMode}");
+            }
+
+            $selectedMode = $availableModes[$deleteMode];
+            $availableModes = array_diff_key($availableModes, [$deleteMode => true]);
+
+            $this
+                ->scrollTo($selectedMode)
+                ->click($selectedMode)
+                ->assertChecked($selectedMode);
+            foreach($availableModes as $mode) {
+                $this->assertNotChecked($mode);
+            }
+
             return $this;
         });
     }
@@ -160,7 +215,7 @@ class DuskServiceProvider extends ServiceProvider
             }
             
             if(!$labelSelector) {
-                $labelSelector = "{$selector} .multiselect-options .multiselect-option span";
+                $labelSelector = "{$dropdownSelector} .multiselect-option span";
             }
             
             $this->mousedown($selector)
@@ -168,8 +223,8 @@ class DuskServiceProvider extends ServiceProvider
                 ->type($selector . " input[type='text']", $searchText)
                 ->waitForTextIn($labelSelector, $searchText, 10)
                 ->scrollTo($dropdownSelector . " .multiselect-option[aria-label='{$targetId}']")
-                ->click($dropdownSelector . " .multiselect-option[aria-label='{$targetId}']");
-
+                ->click($dropdownSelector . " .multiselect-option[aria-label='{$targetId}']")
+            ;
             return $this;
         });
         

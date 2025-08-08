@@ -21,7 +21,8 @@ class ThConceptLabelObserver {
             if($label->wasRecentlyCreated) {
                 broadcast(new LabelCreated($label, $tree, $user))->toOthers();
             } else {
-                broadcast(new LabelUpdated($label, $tree, $user))->toOthers();
+                $oldLabelData = $label->getOriginal();
+                broadcast(new LabelUpdated($label, $oldLabelData['label'], $tree, $user))->toOthers();
             }
         } catch(BroadcastException $e) {
             info("BroadcastException while handling saved() event in ThConceptLabelObserver: " . $e->getMessage());

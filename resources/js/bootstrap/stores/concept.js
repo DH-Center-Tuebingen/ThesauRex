@@ -81,6 +81,9 @@ export const useConceptStore = defineStore('concept', {
     getters: {
     },
     actions: {
+        getConcept(treeName, id) {
+            return this.dictionary[treeName][id];
+        },
         addReference(treeName, node) {
             const nid = node.nid;
             const id = node.id;
@@ -279,11 +282,11 @@ export const useConceptStore = defineStore('concept', {
             });
             // return nodes;
         },
-        async deleteConcept(id, treeName, action, parameters) {
+        async deleteConcept(id, treeName, action, parameters = {}) {
             await deleteConcept(id, treeName, action, parameters);
-            this.conceptDeleted(id, treeName, action, parameters = {});
+            this.conceptDeleted(id, treeName, action, parameters);
         },
-        async conceptDeleted(id, treeName, action) {
+        async conceptDeleted(id, treeName, action, parameters = {}) {
             action = (action == 'level' || action == 'top' || action == 'rerelate') ? action : 'cascade';
 
             const concept = this.dictionary[treeName][id];
@@ -294,12 +297,9 @@ export const useConceptStore = defineStore('concept', {
                 parentRefs.push(-1);
             }
 
-            let keepChildren = false;
             let loadNarrowers = false;
-            const narrowerIds = concept.narrowers.map(narrower => narrower.id);
+            let broaders = null;
             if(action != 'cascade') {
-                keepChildren = true;
-                let broaders = null;
                 if(action == 'level') {
                     broaders = concept.is_top_concept ? [...parentRefs, -1] : parentRefs;
                     loadNarrowers = true;
@@ -314,27 +314,28 @@ export const useConceptStore = defineStore('concept', {
                         return node.hasNarrowers && node?.state?.opened;
                     })
                     broaders = [parameters.p];
-                }
-            }
+                }                
 
-            // Fetch all required narrowers that are not already fetched,
-            for(let i = 0; i < narrowerIds.length; i++) {
-                // because they need to be added to the tree
-                if(loadNarrowers) {
-                    const narrowerId = narrowerIds[i];
-                    if(!this.dictionary[treeName][narrowerId]) {
-                        await this.fetchAndPushConcept(narrowerId, treeName, false);
+                // Fetch all required narrowers that are not already fetched
+                // ONLY WHEN NOT CASCADE (as defined by load narrowers).
+                const narrowerIds = concept.narrowers.map(narrower => narrower.id);
+                for(let i = 0; i < narrowerIds.length; i++) {
+                    // Only add them if it's not a cascade delete
+                    if(loadNarrowers) {
+                        const narrowerId = narrowerIds[i];
+                        if(!this.dictionary[treeName][narrowerId]) {
+                            await this.fetchAndPushConcept(narrowerId, treeName, false);
+                        }
                     }
+                    // Remove all narrower relations from the concept
+                    await this.handleRemoveRelation(narrowerIds[i], concept.id, treeName, true);
                 }
-                // Remove all narrower relations from the concept
-                await this.handleRemoveRelation(narrowerIds[i], concept.id, treeName);
-            }
-
-            // Add all narrower relations to their new parent if needed
-            if(keepChildren) {
+                
+                // Add all narrower relations to their new parent if needed
                 await this.handleAddRelation(narrowerIds, broaders, treeName);
             }
 
+            // Remove all references from the target's parents.
             await this.handleRemoveRelation(id, parentRefs, treeName);
 
             // Unselect the concept if it was selected
@@ -519,7 +520,7 @@ export const useConceptStore = defineStore('concept', {
                 }
             }
         },
-        async handleAddSingleRelation(narrowerId, broaderId, treeName) {
+        async handleAddSingleRelation(narrowerId, broaderId, treeName, preventLoading = false) {
             let narrowerConcept = await this.ensureConcept(narrowerId, treeName);
             if(broaderId !== -1)
                 await this.ensureConcept(broaderId, treeName);
@@ -641,20 +642,23 @@ export const useConceptStore = defineStore('concept', {
         // currently only updating is_top_concept is allowed/handled
         async handleConceptUpdate(conceptId, treeName, isTopConcept) {
             let fetched = false;
-            if(!this.dictionary[treeName][conceptId]) {
+            let concept = this.dictionary[treeName]?.[conceptId]
+            if(!concept) {
                 fetched = true;
-                await this.fetchAndPushConcept(conceptId, treeName);
+                concept = await this.fetchAndPushConcept(conceptId, treeName);
             }
 
             // if we had to fetch concept it is already up to date,
             // no need to add relation
-            if(fetched) return;
-
-            if(isTopConcept) {
-                await this.handleAddRelation(conceptId, -1, treeName);
-            } else {
-                await this.handleRemoveRelation(conceptId, -1, treeName);
+            if(!fetched) {
+                if(isTopConcept) {
+                    await this.handleAddRelation(conceptId, -1, treeName);
+                } else {
+                    await this.handleRemoveRelation(conceptId, -1, treeName);
+                }
             }
+
+            return concept;
         },
         async move(narrower, fromBroader, toBroader) {
             if(narrower.tree != toBroader.tree) {
@@ -684,9 +688,14 @@ export const useConceptStore = defineStore('concept', {
             });
         },
         async openAllConceptPaths(treeName, conceptId) {
-            const paths = await getConceptParentIds(conceptId, treeName);
-            for(const path of paths) {
-                await openPath(path, treeName);
+            try {
+                const paths = await getConceptParentIds(conceptId, treeName);
+                for(const path of paths) {
+                    await openPath(path, treeName);
+                }
+            } catch(e) {
+                // This is to be expected when the concept does not exist anymore.
+                console.warn(e);
             }
         },
     }

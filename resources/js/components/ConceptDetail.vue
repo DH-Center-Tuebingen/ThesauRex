@@ -448,15 +448,6 @@
             const conceptStore = useConceptStore();
             const languageStore = useLanguageStore();
 
-            // FETCH
-
-            // FUNCTIONS
-            // const setConcept = async (id, tree) => {
-            //     state.initialized = false;
-            //     await conceptStore.setSelected(id, tree);
-            //     state.initialized = true;
-            //     console.log("INITIALIZED CONCEPT DETAIL", state.concept);
-            // };
             const resetLanguageToDefault = _ => {
                 state.addLabel.language = languageStore.activeLanguage;
                 state.addNote.language = languageStore.activeLanguage;
