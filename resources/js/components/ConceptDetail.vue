@@ -197,54 +197,50 @@
                         @submit.prevent="addLabel()"
                     >
                         <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button
-                                    class="btn btn-outline-secondary dropdown-toggle"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                >
-                                    <div class="d-inline-flex gap-2">
-                                        <span>
-                                            {{ emojiFlag(state.addLabel.language.short_name) }}
-                                        </span>
-                                        <span>
-                                            {{ state.addLabel.language.display_name }}
-                                        </span>
-                                    </div>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a
-                                        class="dropdown-item d-flex gap-2"
-                                        href=""
-                                        @click.prevent="setLanguageFor('label', language)"
-                                        v-for="language in state.languages"
-                                        :key="`label-language-item-${language.short_name}`"
-                                    >
-                                        <span>
-                                            {{ emojiFlag(language.short_name) }}
-                                        </span>
-                                        <span>
-                                            {{ language.display_name }}
-                                        </span>
-                                    </a>
+                            <button
+                                class="btn btn-outline-secondary dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                            >
+                                <div class="d-inline-flex gap-2">
+                                    <span>
+                                        {{ emojiFlag(state.addLabel.language.short_name) }}
+                                    </span>
+                                    <span>
+                                        {{ state.addLabel.language.display_name }}
+                                    </span>
                                 </div>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a
+                                    class="dropdown-item d-flex gap-2"
+                                    href=""
+                                    @click.prevent="setLanguageFor('label', language)"
+                                    v-for="language in state.languages"
+                                    :key="`label-language-item-${language.short_name}`"
+                                >
+                                    <span>
+                                        {{ emojiFlag(language.short_name) }}
+                                    </span>
+                                    <span>
+                                        {{ language.display_name }}
+                                    </span>
+                                </a>
                             </div>
                             <input
                                 type="text"
                                 class="form-control"
                                 v-model="state.addLabel.value"
                             >
-                            <div class="input-group-append">
-                                <button
-                                    class="btn btn-success"
-                                    type="submit"
-                                    :disabled="!state.addLabelValidated"
-                                >
-                                    <i class="fas fa-fw fa-plus"></i>
-                                </button>
-                            </div>
+                            <button
+                                class="btn btn-success"
+                                type="submit"
+                                :disabled="!state.addLabelValidated"
+                            >
+                                <i class="fas fa-fw fa-plus"></i>
+                            </button>
                         </div>
                     </form>
                     <ul
@@ -283,54 +279,50 @@
                         @submit.prevent="addNote(state.addNote)"
                     >
                         <div class="input-group">
-                            <div class="input-group-prepend">
-                                <button
-                                    class="btn btn-outline-secondary dropdown-toggle"
-                                    type="button"
-                                    data-bs-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false"
-                                >
-                                    <div class="d-inline-flex gap-2">
-                                        <span>
-                                            {{ emojiFlag(state.addNote.language.short_name) }}
-                                        </span>
-                                        <span>
-                                            {{ state.addNote.language.display_name }}
-                                        </span>
-                                    </div>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a
-                                        class="dropdown-item d-flex gap-2"
-                                        href=""
-                                        @click.prevent="setLanguageFor('note', language)"
-                                        v-for="language in state.languages"
-                                        :key="`note-language-item-${language.short_name}`"
-                                    >
-                                        <span>
-                                            {{ emojiFlag(language.short_name) }}
-                                        </span>
-                                        <span>
-                                            {{ language.display_name }}
-                                        </span>
-                                    </a>
+                            <button
+                                class="btn btn-outline-secondary dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                            >
+                                <div class="d-inline-flex gap-2">
+                                    <span>
+                                        {{ emojiFlag(state.addNote.language.short_name) }}
+                                    </span>
+                                    <span>
+                                        {{ state.addNote.language.display_name }}
+                                    </span>
                                 </div>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a
+                                    class="dropdown-item d-flex gap-2"
+                                    href=""
+                                    @click.prevent="setLanguageFor('note', language)"
+                                    v-for="language in state.languages"
+                                    :key="`note-language-item-${language.short_name}`"
+                                >
+                                    <span>
+                                        {{ emojiFlag(language.short_name) }}
+                                    </span>
+                                    <span>
+                                        {{ language.display_name }}
+                                    </span>
+                                </a>
                             </div>
                             <input
                                 type="text"
                                 class="form-control"
                                 v-model="state.addNote.value"
                             >
-                            <div class="input-group-append">
-                                <button
-                                    class="btn btn-success"
-                                    type="submit"
-                                    :disabled="!state.addNoteValidated"
-                                >
-                                    <i class="fas fa-fw fa-plus"></i>
-                                </button>
-                            </div>
+                            <button
+                                class="btn btn-success"
+                                type="submit"
+                                :disabled="!state.addNoteValidated"
+                            >
+                                <i class="fas fa-fw fa-plus"></i>
+                            </button>
                         </div>
                     </form>
                     <ul
