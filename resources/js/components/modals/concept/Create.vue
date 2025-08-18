@@ -35,39 +35,37 @@
                     @submit.prevent="onAdd()"
                 >
                     <div class="input-group">
-                        <div class="input-group-prepend">
-                            <button
-                                class="btn btn-outline-secondary dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                            >
-                                <div class="d-inline-flex gap-2">
-                                    <span>
-                                        {{ emojiFlag(state.concept.language.short_name) }}
-                                    </span>
-                                    <span>
-                                        {{ state.concept.language.display_name }}
-                                    </span>
-                                </div>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a
-                                    class="dropdown-item d-flex gap-2"
-                                    href=""
-                                    @click.prevent="setLanguage(language)"
-                                    v-for="language in state.languages"
-                                    :key="`create-concept-language-item-${language.short_name}`"
-                                >
-                                    <span>
-                                        {{ emojiFlag(language.short_name) }}
-                                    </span>
-                                    <span>
-                                        {{ language.display_name }}
-                                    </span>
-                                </a>
+                        <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                        >
+                            <div class="d-inline-flex gap-2">
+                                <span>
+                                    {{ emojiFlag(state.concept.language.short_name) }}
+                                </span>
+                                <span>
+                                    {{ state.concept.language.display_name }}
+                                </span>
                             </div>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a
+                                class="dropdown-item d-flex gap-2"
+                                href=""
+                                @click.prevent="setLanguage(language)"
+                                v-for="language in state.languages"
+                                :key="`create-concept-language-item-${language.short_name}`"
+                            >
+                                <span>
+                                    {{ emojiFlag(language.short_name) }}
+                                </span>
+                                <span>
+                                    {{ language.display_name }}
+                                </span>
+                            </a>
                         </div>
                         <input
                             ref="inputField"
@@ -120,7 +118,7 @@
     import { useI18n } from 'vue-i18n';
 
     import {LoadingButton} from 'dhc-components';
-    
+
     import useLanguageStore from '@/bootstrap/stores/language.js';
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
