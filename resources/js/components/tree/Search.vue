@@ -25,6 +25,7 @@
         @select="optionSelected"
         @keydown.enter="selectCurrentOrCreateNew"
     >
+
         <template v-slot:singlelabel="{ value }">
             <div class="multiselect-single-label">
                 {{ value.name }}
@@ -65,12 +66,16 @@
         </template>
         <template
             v-slot:beforelist="{ }"
-            v-if="addOption && state.query.length > 0"
+            v-if="addOption && msSearchValue &&  msSearchValue.length > 0"
         >
-            <div class="d-flex flex-column py-2 px-2-5 fs-6" aria-label="add new concept">
+            <div
+                class="d-flex flex-column py-2 px-2-5 fs-6"
+                :class="{'text-primary': msFilteredOptionsCount == 0}"
+                aria-label="add new concept"
+            >
                 <span @click="addOptionSelected()">
                     {{ t('modals.new_concept.add_new_info') }}
-                    <span class="fw-bold">{{ state.query }}</span>
+                    <span class="fw-bold">{{ msSearchValue }}</span>
                 </span>
             </div>
         </template>
@@ -99,9 +104,10 @@
         ref,
         onMounted,
         toRefs,
+        computed,
     } from 'vue';
 
-    import {useI18n} from 'vue-i18n';
+    import { useI18n } from 'vue-i18n';
 
     import {
         searchConcept,
@@ -151,7 +157,7 @@
         },
         emits: ['add'],
         setup(props, context) {
-            const {t} = useI18n();
+            const { t } = useI18n();
             const {
                 delay,
                 limit,
@@ -165,17 +171,17 @@
             // FUNCTIONS
             const search = async query => {
                 state.query = query;
+                state.resultCount = 0;
                 if(!query) {
                     return await new Promise(r => r([]));
                 }
-                state.searching = true;
                 let result = [];
                 try {
                     result = await searchConcept(query, treeName.value, exclude.value);
                 } catch(e) {
                     console.error(e);
                 } finally {
-                    state.searching = false;
+                    state.resultCount = result.length;
                     return result;
                 }
             };
@@ -191,7 +197,15 @@
                 }
             };
             const addOptionSelected = _ => {
-                const content = state.query;
+                // The 'query' coming from the multiselect component
+                // is 'debounced' and therefore not updated immediately.
+                // But when creating a new concept, we want to use
+                // the actual typed value. That's why we must forcefully
+                // access it from the multiselect component, as there is no other
+                // way to get the actual value.
+                if(!msRef.value || !msRef.value.search) return;
+                let content = msRef.value.search.trim();
+                if(!content) return;
                 state.query = '';
                 state.entry = {};
                 msRef.value.close();
@@ -201,14 +215,15 @@
                     content: content,
                 });
             };
+            
 
             const selectCurrentOrCreateNew = _ => {
                 // Disallow to create when there is an active
                 // search to prevent the user from creating
                 // a new concept with the same name as an existing one.
-                if(state.searching) return;
-                
-                if(msRef.value.filteredOptions.length == 0) {
+                if(msIsBusy.value) return;
+
+                if(msFilteredOptionsCount.value == 0) {
                     addOptionSelected();
                 }
             };
@@ -223,7 +238,22 @@
                 id: `multiselect-tree-search-${treeName.value}-${getTs()}`,
                 entry: {},
                 query: '',
-                searching: false,
+                resultCount: 0,
+            });
+            
+            const msFilteredOptionsCount = computed(() => {
+                if(!msRef.value?.filteredOptions) return 0;
+                return msRef.value.filteredOptions.length;
+            });
+
+
+            const msSearchValue = computed(() => {
+                if(!msRef.value) return '';
+                return msRef.value.search;
+            });
+            
+            const msIsBusy = computed(() => {
+                return !msRef.value?.busy ? false : true;
             });
 
             // RETURN
@@ -246,6 +276,9 @@
                 selectCurrentOrCreateNew,
                 // STATE
                 msRef,
+                msIsBusy,
+                msSearchValue,
+                msFilteredOptionsCount,
                 state,
             };
         },
