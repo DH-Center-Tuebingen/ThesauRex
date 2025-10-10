@@ -24,7 +24,8 @@
         "dev": "npx vite",
         "watch": "npm run dev",
         "prod": "npm run production",
-        "production": "npx vite build"
+        "production": "npx vite build",
+        "build": "npx vite build"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.2.3",
