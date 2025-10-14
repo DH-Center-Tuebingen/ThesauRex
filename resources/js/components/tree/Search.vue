@@ -64,19 +64,24 @@
                 </div>
             </div>
         </template>
-        <template
-            v-slot:beforelist="{ }"
-            v-if="addOption && msSearchValue &&  msSearchValue.length > 0"
-        >
+        <template v-slot:beforelist="{ }">
             <div
-                class="d-flex flex-column py-2 px-2-5 fs-6"
-                :class="{'text-primary': msFilteredOptionsCount == 0}"
+                v-if="addOption && msSearchValue && msSearchValue.length > 0"
+                :class="addOptionClasses"
                 aria-label="add new concept"
             >
                 <span @click="addOptionSelected()">
+                    <i class="fas fa-fw fa-plus"></i>
                     {{ t('modals.new_concept.add_new_info') }}
                     <span class="fw-bold">{{ msSearchValue }}</span>
                 </span>
+            </div>
+            <div
+                v-if="state.error"
+                class="bg-danger text-white fw-bold"
+                :class="listItemClasses"
+            >
+                <span>{{ state.error }}</span>
             </div>
         </template>
         <template v-slot:nooptions="{ }">
@@ -114,6 +119,7 @@
     } from '@/api.js';
 
     import {
+        getError,
         getTs,
         gotoConcept,
     } from '@/helpers/helpers.js';
@@ -172,6 +178,7 @@
             const search = async query => {
                 state.query = query;
                 state.resultCount = 0;
+                state.error = '';
                 if(!query) {
                     return await new Promise(r => r([]));
                 }
@@ -179,7 +186,7 @@
                 try {
                     result = await searchConcept(query, treeName.value, exclude.value);
                 } catch(e) {
-                    console.error(e);
+                    state.error = getError(e);
                 } finally {
                     state.resultCount = result.length;
                     return result;
@@ -215,7 +222,6 @@
                     content: content,
                 });
             };
-            
 
             const selectCurrentOrCreateNew = _ => {
                 // Disallow to create when there is an active
@@ -240,7 +246,7 @@
                 query: '',
                 resultCount: 0,
             });
-            
+
             const msFilteredOptionsCount = computed(() => {
                 if(!msRef.value?.filteredOptions) return 0;
                 return msRef.value.filteredOptions.length;
@@ -251,9 +257,19 @@
                 if(!msRef.value) return '';
                 return msRef.value.search;
             });
-            
+
             const msIsBusy = computed(() => {
                 return !msRef.value?.busy ? false : true;
+            });
+
+            const listItemClasses = "d-flex align-items-center py-1 ps-2";
+
+            const addOptionClasses = computed(() => {
+                let classes = listItemClasses;
+                if(msFilteredOptionsCount.value == 0) {
+                    classes += " text-primary";
+                }
+                return classes;
             });
 
             // RETURN
@@ -267,6 +283,8 @@
                 // LOCAL
                 search,
                 optionSelected,
+                listItemClasses,
+                addOptionClasses,
                 // PROPS
                 delay,
                 limit,

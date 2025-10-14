@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Flickering of text after first selection of a concept
 - Highlighting and selection of concept in tree if a concept with the same ID exists in the other tree
+- Show error when preference does not match the ThesauRex language.
 ### Changed
 - Pinia as storage solution
 - Structural changes to match the Spacialist's coding guidelines 

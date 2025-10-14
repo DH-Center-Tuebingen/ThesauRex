@@ -30,7 +30,7 @@ class SearchController extends Controller
             $language = ThLanguage::where('short_name', $langCode)->firstOrFail();
         } catch(ModelNotFoundException $e) {
             return response()->json([
-                'error' => 'Your language does not exist in ThesauRex'
+                'error' => "Your active language '$langCode' does not exist in ThesauRex."
             ], 400);
         }
 
