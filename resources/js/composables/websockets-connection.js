@@ -1,8 +1,3 @@
-/**
- * TODO: DHC: DHC-Components
- * This is a copy of a spacialist composable.
- * This should be moved to the DHC-Components!
- */
 
 import {
     computed,
@@ -16,20 +11,19 @@ import {
     getState,
     getConnection,
 } from '@/helpers/websocket.js';
-import { useToast } from '@/plugins/toast.js';
 
 
-export default function useWebSocketConnectionToast() {
-    const toast = useToast();
+export default function useWebSocketConnection() {
     const t = useI18n().t;
     const status = ref(getState());
     const message = computed(_ => {
         if(isConnected.value) {
-            return t('websockets.service_available_again');
+            return t('websockets.service_available');
         } else {
             return t('websockets.service_unavailable');
         }
     });
+    
     const isConnected = computed(_ => {
         switch(status.value) {
             case 'connected':
@@ -67,30 +61,9 @@ export default function useWebSocketConnectionToast() {
             connection.unbind('state_change ', updateState);
         }
     });
-
-    const bsToast = ref(null);
-    function createToastIfNecessary() {
-        if(!bsToast.value) {
-            bsToast.value = toast.$toast(message.value, '', {
-                autohide: false,
-                channel: isConnected.value ? 'info' : 'danger',
-                simple: true,
-            });
-        }
+    
+    return {
+        message,
+        isConnected,
     }
-
-    if(!isConnected.value) {
-        createToastIfNecessary();
-    }
-
-    watch(isConnected, (newVal, oldVal) => {
-        if(newVal === oldVal) {
-            return;
-        }
-        if(bsToast.value?._element) {
-            bsToast.value._element.remove();
-            bsToast.value = null;
-        }
-        createToastIfNecessary();
-    });
 }

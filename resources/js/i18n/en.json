@@ -373,7 +373,7 @@
         }
     },
     "websockets": {
-        "service_unavailable": "Realtime updates are not available.",
-        "service_available_again": "Realtime updates are available again. Please refresh the page."
+        "service_unavailable": "Live updates are not available.",
+        "service_available": "Live updates active!"
     }
 }

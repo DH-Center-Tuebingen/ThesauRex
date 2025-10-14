@@ -86,8 +86,6 @@
 
     import useSystemChannel from '@/composables/system-channel.js';
 
-    import useWebSocketConnectionToast from '@/composables/websockets-connection.toast.js';
-
     import {
         handleSystemMessageEvent,
         handleConceptAddedEvent,
@@ -114,8 +112,6 @@
         setup(props, context) {
             const { t } = useI18n();
             const conceptStore = useConceptStore();
-
-            useWebSocketConnectionToast();
 
             // FUNCTIONS
             const changeDragTarget = e => {
