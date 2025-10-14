@@ -1,21 +1,18 @@
 <template>
     <vue-final-modal
         class="modal-container modal"
-        name="about-modal">
+        name="about-modal"
+    >
         <div class="sp-modal-content sp-modal-content-sm">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    {{
-                        t('settings.about.title')
-                    }}
-                </h5>
-                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" @click="closeModal()">
-                </button>
-            </div>
             <div class="modal-body">
                 <div class="d-flex">
                     <div class="flex-shrink-0">
-                        <img class="me-3" src="/img/logo.png" alt="spacialist logo" width="64" />
+                        <img
+                            class="me-3"
+                            src="/img/logo.png"
+                            alt="spacialist logo"
+                            width="64"
+                        />
                     </div>
                     <div class="flex-grow-1 ps-3">
                         <h4>ThesauRex</h4>
@@ -26,23 +23,33 @@
                 <dl class="row">
                     <dt class="col-md-6 text-end">{{ t('settings.about.release.name') }}</dt>
                     <dd class="col-md-6">
-                        {{ state.version.name }}
+                        {{ systemStore.version.name }}
                     </dd>
                     <dt class="col-md-6 text-end">{{ t('settings.about.release.time') }}</dt>
                     <dd class="col-md-6">
-                        <span id="version-time" data-bs-toggle="popover" :data-content="datestring(state.version.time)" data-trigger="hover" data-placement="bottom">
-                            {{ date(state.version.time) }}
+                        <span
+                            id="version-time"
+                            data-bs-toggle="popover"
+                            :data-content="datestring(systemStore.version.time)"
+                            data-trigger="hover"
+                            data-placement="bottom"
+                        >
+                            {{ date(systemStore.version.time) }}
                         </span>
                     </dd>
                     <dt class="col-md-6 text-end">{{ t('settings.about.release.full_name') }}</dt>
                     <dd class="col-md-6">
-                        {{ state.version.full }}
+                        {{ systemStore.version.full }}
                     </dd>
                 </dl>
                 <hr />
                 <h5>{{ t('settings.about.contributor', 2) }}</h5>
                 <div class="row gy-1">
-                    <div v-for="contributor in contributors" class="col-md-6 d-flex flex-column align-items-start" :key="contributor.name">
+                    <div
+                        v-for="contributor in contributors"
+                        class="col-md-6 d-flex flex-column align-items-start"
+                        :key="contributor.name"
+                    >
                         <span>
                             {{ contributor.name }}
                         </span>
@@ -51,22 +58,24 @@
                         </span>
                     </div>
                 </div>
-                <hr />
-                <div class="d-flex flex-row justify-content-between">
-                    <span v-html="t('settings.about.build_info')">
-                    </span>
-                    <div>
-                        <a href="https://www.facebook.com/esciencecenter" target="_blank">
-                            <i class="fab fa-facebook-square fa-2x text-primary"></i>
-                        </a>
-                        <a href="https://github.com/DH-Center-Tuebingen/Spacialist" target="_blank" class="ms-2">
-                            <i class="fab fa-github fa-2x text-dark"></i>
-                        </a>
-                    </div>
-                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" @click="closeModal()">
+            <div class="modal-footer d-flex flex-row justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a
+                        href="https://github.com/DH-Center-Tuebingen/Spacialist"
+                        target="_blank"
+                        class="me-3"
+                    >
+                        <i class="fab fa-github fa-2x text-dark"></i>
+                    </a>
+                    <span v-html="t('settings.about.build_info')"></span>
+                </div>
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                    @click="closeModal()"
+                >
                     <i class="fas fa-fw fa-times"></i> {{ t('global.close') }}
                 </button>
             </div>
@@ -110,9 +119,6 @@
 
             // DATA
             const contributors = getContributors();
-            const state = reactive({
-                version: computed(_ => systemStore.version),
-            });
 
             // ON MOUNTED
             onMounted(_ => {
@@ -130,7 +136,7 @@
                 closeModal,
                 transJoin,
                 // STATE
-                state,
+                systemStore,
             }
         },
     }

@@ -9,6 +9,10 @@ export function getContributors() {
             roles: ['development'],
         },
         {
+            name: 'Severin Opel',
+            roles: ['development'],
+        },
+        {
             name: 'Dirk Seidensticker',
             roles: ['support_archaeology'],
         },

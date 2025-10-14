@@ -26,6 +26,13 @@ class VersionInfo {
             $parts = explode('-', $content[0]);
             $this->release = $parts[0];
             $this->releaseName = ucfirst($parts[1]);
+            
+            // Add pre-release info if required.
+            if(preg_match('/^(alpha|beta|rc)/i', $this->releaseName, $matches)) {
+                $preRelease = $matches[1];
+                $releaseName = ucfirst($parts[2]) ?? 'Unreleased';
+                $this->releaseName .=  '-' . ucfirst($preRelease);
+            }
             if(count($parts) >= 4) $this->releaseHash = $parts[3];
             // cut off 'v' for semantic versioning
             $semVer = explode('.', substr($this->release, 1));
