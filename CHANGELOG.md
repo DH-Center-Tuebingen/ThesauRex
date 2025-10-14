@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Pinia as storage solution
 - Structural changes to match the Spacialist's coding guidelines 
 - Cookies now contain the sub-path when Spacialist is not deployed on the domain root
+- Added postfix to XSRF cookie to separate cookies for instances hosted at subpath 
 
 ## 0.10 - Jelling
 ### Added

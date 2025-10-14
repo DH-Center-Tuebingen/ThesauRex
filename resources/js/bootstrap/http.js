@@ -5,15 +5,27 @@ import {
     throwError,
 } from '@/helpers/helpers.js';
 
-axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-axios.defaults.withCredentials = true;
-axios.defaults.withXSRFToken = true;
+/**
+ * Helper function to create always the same axios template.
+ */
+export function createAxios(options = {}) {
+    const instance = axios.create();
+    instance.defaults.baseURL = options.baseURL || '';
+    instance.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    instance.defaults.withCredentials = true;
+    instance.defaults.withXSRFToken = true;
+    instance.defaults.xsrfCookieName = 'XSRF-TOKEN';
 
-export const web_http = axios.create();
+    let appName = import.meta.env.VITE_APP_NAME || '';
+    if(appName !== '') {
+        instance.defaults.xsrfCookieName += `-${appName.toUpperCase()}`;
+        console.log(`Using custom XSRF cookie name: ${instance.defaults.xsrfCookieName}`);
+    }
+    return instance;
+}
 
-const instance = axios.create({
-    baseURL: 'api/v1',
-});
+export const web_http = createAxios();
+export const instance = createAxios({ baseURL: 'api/v1' });
 
 // These errors need to be handled manually.
 export const unhandledErrors = [400, 422];
