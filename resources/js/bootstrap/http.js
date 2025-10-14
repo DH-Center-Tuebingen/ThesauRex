@@ -18,7 +18,8 @@ export function createAxios(options = {}) {
 
     let appName = import.meta.env.VITE_APP_NAME || '';
     if(appName !== '') {
-        instance.defaults.xsrfCookieName += `-${appName.toUpperCase()}`;
+        const tokenPostFix = appName.toUpperCase().replace(/[^A-Z0-9]/g, '-');
+        instance.defaults.xsrfCookieName += `-${tokenPostFix}`;
         console.log(`Using custom XSRF cookie name: ${instance.defaults.xsrfCookieName}`);
     }
     return instance;
