@@ -20,10 +20,8 @@ class VersionInfo {
         exec('git describe --tags', $tag, $exitcode);
         exec('git log -1 --format=%at', $ts, $exitcodeTs);
         if($exitcode === 0 && $exitcodeTs === 0) {
-            $content = [
-                $tag[0], $ts[0]
-            ];
-            $parts = explode('-', $content[0]);
+            $this->time = $ts[0] ?? time();
+            $parts = explode('-', $tag[0]);
             $this->release = $parts[0];
             $this->releaseName = ucfirst($parts[1]);
             
@@ -31,25 +29,29 @@ class VersionInfo {
             if(preg_match('/^(alpha|beta|rc)/i', $this->releaseName, $matches)) {
                 $preRelease = $matches[1];
                 $releaseName = ucfirst($parts[2]) ?? 'Unreleased';
-                $this->releaseName .=  '-' . ucfirst($preRelease);
+                $this->releaseName = $releaseName . '-' . ucfirst($preRelease);
             }
-            if(count($parts) >= 4) $this->releaseHash = $parts[3];
-            // cut off 'v' for semantic versioning
-            $semVer = explode('.', substr($this->release, 1));
-            $this->major = $semVer[0];
-            $this->minor = $semVer[1];
-            $this->patch = $semVer[2];
-
-            $this->time = $content[1];
+            
+            $this->releaseHash = $parts[count($parts)-1] ?? null;
+            $this->parseSemVer($parts[0]);
         } else {
-            $this->major = '0';
-            $this->minor = '0';
-            $this->patch = '0';
             $this->release = 'v0.0.0';
             $this->releaseName = 'Unreleased';
             $this->releaseHash = null;
             $this->time = time();
             return;
+        }
+    }
+
+    private function parseSemVer($versionPart) {
+        if($versionPart && preg_match('/^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?$/', $versionPart, $matches)) {
+            $this->major = $matches[1];
+            $this->minor = $matches[2] ?? '0';
+            $this->patch = $matches[3] ?? '0';
+        } else {
+            $this->major = '0';
+            $this->minor = '0';
+            $this->patch = '0';
         }
     }
 
