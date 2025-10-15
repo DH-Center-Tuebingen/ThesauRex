@@ -128,7 +128,7 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        'thesaurex_'.Str::slug(env('APP_NAME', 'thesaurex_demo'), '_').'_session'
+        Str::slug(env('APP_NAME', 'thesaurex_demo'), '_').'_thesaurex_session'
     ),
 
     /*
@@ -142,7 +142,7 @@ return [
     |
     */
 
-    'path' => UrlUtils::getSubPath(env('APP_URL', '/')),
+    'path' => env('APP_PATH', '/'),
 
     /*
     |--------------------------------------------------------------------------

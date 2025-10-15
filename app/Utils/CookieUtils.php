@@ -21,6 +21,8 @@ class CookieUtils
         if($appName !== ''){
             $xsrfTokenName .= "-$appName";
         }
+        // Add a suffix to avoid conflicts with other applications that might use the same cookie name
+        $xsrfTokenName .= "-THESAUREX";
         return $xsrfTokenName;
     }
 }
