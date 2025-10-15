@@ -22,10 +22,8 @@ export function createAxios(options = {}) {
         const tokenPostFix = appName.toUpperCase().replace(/[^A-Z0-9]/g, '-');
         xsrfTokenName += `-${trim(tokenPostFix, '-')}`;
     }
-    xsrfTokenName += "-SPACIALIST"; 
+    xsrfTokenName += "-THESAUREX"; 
     instance.defaults.xsrfCookieName = xsrfTokenName;
-    
-    instance.defaults.xsrfCookieName = 'XSRF-TOKEN';
     return instance;
 }
 
