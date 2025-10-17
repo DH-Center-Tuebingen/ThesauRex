@@ -235,6 +235,7 @@
         computed,
         onMounted,
         watch,
+        onBeforeUnmount,
     } from 'vue';
 
     import {
@@ -342,7 +343,26 @@
                 }
             });
 
-            // ON MOUNTED
+            async function updateLoginOnVisibilityChange() {
+                if(!document.hidden) {
+                    const wasLoggedIn = userStore.userLoggedIn;
+                    const response = await userStore.checkAuth();
+
+                    // When the actual logged in state does not match the previous state,
+                    // redirect to the appropriate page (e.g. Spacialist was logged in and then
+                    // you visit the ThesauRex tab)
+                    if(wasLoggedIn && response.auth === false) {
+                        router.push({
+                            name: 'login'
+                        });
+                    } else if(!wasLoggedIn && response.auth === true) {
+                        router.push({
+                            name: 'home'
+                        });
+                    }
+                }
+            };
+
             onMounted(_ => {
                 provideToast({
                     duration: 2500,
@@ -354,6 +374,17 @@
                     container: 'toast-container',
                 });
                 useToast();
+
+                if(!systemStore.standalone) {
+                    // When the user returns to the tab, check if they are logged in
+                    document.addEventListener('visibilitychange', updateLoginOnVisibilityChange);
+                }
+            });
+
+            onBeforeUnmount(_ => {
+                if(!systemStore.standalone) {
+                    document.removeEventListener('visibilitychange', updateLoginOnVisibilityChange);
+                }
             });
 
             // RETURN

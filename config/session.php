@@ -128,7 +128,7 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug(env('APP_NAME', 'thesaurex_demo'), '_').'_thesaurex_session'
+        Str::slug(env('APP_NAME', 'thesaurex_demo'), '_').'_session'
     ),
 
     /*

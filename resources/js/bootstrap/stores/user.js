@@ -24,6 +24,7 @@ import {
 } from '@/helpers/helpers.js';
 
 import useSystemStore from './system.js';
+import { checkAuth } from '../../api.js';
 
 export const useUserStore = defineStore('user', {
     state: _ => ({
@@ -82,7 +83,7 @@ export const useUserStore = defineStore('user', {
         getRoles: state => excludePermissions => {
             return excludePermissions ? state.roles.map(r => {
                 // Remove permissions from role
-                let {permissions, ...role} = r;
+                let { permissions, ...role } = r;
                 return role;
             }) : state.roles;
         },
@@ -112,17 +113,33 @@ export const useUserStore = defineStore('user', {
         setPreferences(preferences) {
             this.preferences = preferences;
         },
-        async login(credentials) {
-            await getCsrfCookie();
-            const user = await login(credentials);
+        async initialize(user) {
             this.userLoggedIn = true;
             this.setActiveUser(user);
             await useSystemStore().initialize();
         },
-        async logout() {
-            await logout();
+        unsetUser() {
             this.setLoginState(false);
             this.setActiveUser({});
+        },
+        async login(credentials) {
+            await getCsrfCookie();
+            const user = await login(credentials);
+            this.initialize(user);
+        },
+        async checkAuth() {
+            await getCsrfCookie();
+            const response = await checkAuth();
+            if(response.auth) {
+                this.initialize(response.user);
+            } else {
+                this.unsetUser();
+            }
+            return response;
+        },
+        async logout() {
+            await logout();
+            this.unsetUser();
         },
         setActiveUser(user, merge = false) {
             if(merge) {

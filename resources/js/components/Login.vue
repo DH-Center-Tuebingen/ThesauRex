@@ -112,34 +112,16 @@
                 } else {
                     credentials.nickname = state.user.email;
                 }
-                await userStore.login(credentials)
-                    .then(_ => {
-                        state.error = {};
-                        if(route.query.redirectTo) {
-                            router.push(route.query.redirectTo);
-                        } else {
-                            router.push({
-                                name: 'home',
-                            });
-                        }
-                    })
-                    .catch(e => {
-                        userStore.logout();
-                        state.error = getErrorMessages(e);
-                        return Promise.reject();
-                    }).finally(_ => {
-                        state.submitting = false;
-                    });
-            };
-
-            // ON MOUNTED
-            onMounted(_ => {
-                if(userStore.userLoggedIn) {
-                    router.push({
-                        name: 'home'
-                    });
+                
+                try {
+                    await userStore.login(credentials)
+                    state.error = {};
+                } catch(e) {
+                    userStore.logout();
+                    state.error = getErrorMessages(e);
                 }
-            });
+                state.submitting = false;
+            };
 
             // RETURN
             return {

@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 class UserController extends Controller
 {
     public function __construct() {
-        $this->middleware('auth:sanctum', ['except' => ['login']]);
+        $this->middleware('auth:sanctum', ['except' => ['login', 'checkAuth']]);
     }
 
     // GET
@@ -145,6 +145,19 @@ class UserController extends Controller
 
         return response()
             ->json($user, 200);
+    }
+    
+    public function checkAuth(Request $request) {
+        if(Auth::guard('web')->check()) {
+            return response()->json([
+                'auth' => true,
+                'user' => auth()->user()
+            ]);
+        } else {
+            return response()->json([
+                'auth' => false
+            ]);
+        }
     }
 
     public function addUser(Request $request) {

@@ -124,6 +124,11 @@ export async function exportTree(tree, rootId) {
 export async function login(credentials) {
     return $httpQueue.add(() => http.post('/auth/login', credentials).then(response => response.data));
 }
+
+export async function checkAuth() {
+    return $httpQueue.add(() => http.post('/auth/check').then(response => response.data));
+}
+
 export async function addUser(user) {
     const data = only(user, ['name', 'nickname', 'email', 'password']);
     return $httpQueue.add(
