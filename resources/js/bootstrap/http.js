@@ -1,5 +1,5 @@
 import axios from 'axios';
-import router from './router.js';
+import { toLogin } from './router.js';
 import { trim } from 'lodash';
 
 import {
@@ -60,19 +60,7 @@ instance.interceptors.response.use(response => {
     const code = error.response.status;
     switch(code) {
         case 401:
-            // Only append redirect query if from another route than login
-            // to prevent recursivly appending current route's full path
-            // on reloading login page
-            if(router.currentRoute.value.name != 'login') {
-                const redirectPath = router.currentRoute.value.fullPath;
-                const query = {
-                    redirectTo: redirectPath,
-                };
-                router.push({
-                    name: 'login',
-                    query: query,
-                });
-            }
+            toLogin();
             break;
         default:
             throwError(error);

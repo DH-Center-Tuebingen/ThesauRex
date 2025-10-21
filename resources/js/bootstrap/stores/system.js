@@ -27,7 +27,7 @@ export const useSystemStore = defineStore('system', {
         appInitialized: false,
         preferences: {},
         version: {},
-        standalone: true,
+        standalone: !(import.meta?.env?.VITE_THESAUREX_STANDALONE ?? false),
     }),
     getters: {
         getPreference: state => key => {

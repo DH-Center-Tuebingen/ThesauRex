@@ -118,6 +118,13 @@ class UserController extends Controller
             ], 400);
         }
         
+        // When in an edge case the active user tries to login again we just return the active session.
+        $activeUser = auth()->user();
+        if(isset($activeUser) && $activeUser->{$userProp} === $request->get($userProp)) {
+            return response()->json($activeUser, 200);
+        }
+        
+        
         $user = User::where($userProp, $request->get($userProp))->withoutTrashed()->first();
         if(!isset($user)) {
             Sleep::for(2)->seconds();
@@ -142,6 +149,9 @@ class UserController extends Controller
             $user->login_attempts--;
             $user->save();
         }
+        
+        // Broadcast login event
+        $user->login();
 
         return response()
             ->json($user, 200);
@@ -246,6 +256,13 @@ class UserController extends Controller
     }
 
     public function logout(Request $request) {
+        $user = auth()->user();
+        
+        // Broadcast logout event before actually logging out
+        if($user) {
+            $user->logout();
+        }
+        
         Auth::guard('web')->logout(true);
 
         $request->session()->invalidate();

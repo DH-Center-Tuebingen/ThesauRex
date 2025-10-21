@@ -247,6 +247,9 @@
     } from "@/bootstrap/router.js";
 
     import { useI18n } from 'vue-i18n';
+
+    import { DotIndicator } from "dhc-components";
+
     import { provideToast, useToast } from '@/plugins/toast.js';
 
     import useLanguageStore from '@/bootstrap/stores/language.js';
@@ -266,8 +269,7 @@
 
     import LanguageQuickSelect from '@/components/LanguageQuickSelect.vue';
     import ImportingInfoModal from '@/components/modals/ImportingInfoModal.vue';
-    import { DotIndicator } from "dhc-components";
-    import useWebSocketConnection from './composables/websockets-connection';
+    import useWebSocketConnection from '@/composables/websockets-connection';
 
     export default {
         components: {
@@ -343,23 +345,24 @@
                 }
             });
 
+            let loginCurrentlyUpdating = false;
+            async function updateLogin() {
+                if(loginCurrentlyUpdating) {
+                    return;
+                }
+                loginCurrentlyUpdating = true;
+                try {
+                    await userStore.checkAuth();
+                } catch(e) {
+                    console.error("Error while updating login state:", e);
+                } finally {
+                    loginCurrentlyUpdating = false;
+                }
+            };
+
             async function updateLoginOnVisibilityChange() {
                 if(!document.hidden) {
-                    const wasLoggedIn = userStore.userLoggedIn;
-                    const response = await userStore.checkAuth();
-
-                    // When the actual logged in state does not match the previous state,
-                    // redirect to the appropriate page (e.g. Spacialist was logged in and then
-                    // you visit the ThesauRex tab)
-                    if(wasLoggedIn && response.auth === false) {
-                        router.push({
-                            name: 'login'
-                        });
-                    } else if(!wasLoggedIn && response.auth === true) {
-                        router.push({
-                            name: 'home'
-                        });
-                    }
+                    await updateLogin();
                 }
             };
 

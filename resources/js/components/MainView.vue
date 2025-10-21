@@ -103,6 +103,10 @@
         handleLanguageDeletedEvent,
     } from '@/handlers/system.js';
     
+    import {
+        handleUserLogoutEvent,
+    } from '@/handlers/user.js';
+    
     import { onMounted } from 'vue';
 
     export default {
@@ -142,6 +146,7 @@
             }]);
 
             useSystemChannel([
+                handleUserLogoutEvent,
                 handleSystemMessageEvent,
                 handleConceptAddedEvent,
                 handleConceptDeletedEvent,

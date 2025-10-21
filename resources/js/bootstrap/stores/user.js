@@ -23,6 +23,11 @@ import {
     only,
 } from '@/helpers/helpers.js';
 
+import {
+    toApp,
+    toLogin,
+} from "@/bootstrap/router.js";
+
 import useSystemStore from './system.js';
 import { checkAuth } from '../../api.js';
 
@@ -105,6 +110,9 @@ export const useUserStore = defineStore('user', {
                 }
             };
         },
+        loggedIn(state) {
+            return state.userLoggedIn;
+        }
     },
     actions: {
         setLoginState(value) {
@@ -117,10 +125,13 @@ export const useUserStore = defineStore('user', {
             this.userLoggedIn = true;
             this.setActiveUser(user);
             await useSystemStore().initialize();
+            toApp();
         },
-        unsetUser() {
+        setLoggedOutState() {
+            if(!this.userLoggedIn) return;
             this.setLoginState(false);
             this.setActiveUser({});
+            toLogin();
         },
         async login(credentials) {
             await getCsrfCookie();
@@ -130,16 +141,20 @@ export const useUserStore = defineStore('user', {
         async checkAuth() {
             await getCsrfCookie();
             const response = await checkAuth();
-            if(response.auth) {
-                this.initialize(response.user);
-            } else {
-                this.unsetUser();
+            const wasLoggedIn = this.userLoggedIn;
+            const stateDoesntMatch = wasLoggedIn !== response.auth;
+            if(stateDoesntMatch) {
+                if(response.auth) {
+                    this.initialize(response.user);
+                } else {
+                    this.setLoggedOutState();
+                }
             }
-            return response;
+            return stateDoesntMatch;
         },
         async logout() {
             await logout();
-            this.unsetUser();
+            this.setLoggedOutState();
         },
         setActiveUser(user, merge = false) {
             if(merge) {

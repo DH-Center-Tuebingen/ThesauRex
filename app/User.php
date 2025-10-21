@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Events\UserLogin;
+use App\Events\UserLogout;
 use App\Traits\SoftDeletesWithTrashed;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -44,6 +46,15 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
+    
+        
+    public function login(){
+        UserLogin::dispatch($this);
+    }
+    
+    public function logout(){
+        UserLogout::dispatch($this);
+    }
 
     public function getLanguage() {
         $langObj = Preference::getUserPreference($this->id, 'prefs.gui-language');
@@ -89,5 +100,16 @@ class User extends Authenticatable
 
     public function preferences() {
         return $this->hasMany('App\UserPreference');
+    }
+
+    /**
+     * Get the column name for the "remember me" token.
+     * Returning null disables the remember token functionality.
+     *
+     * @return string
+     */
+    public function getRememberTokenName()
+    {
+        return null;
     }
 }
