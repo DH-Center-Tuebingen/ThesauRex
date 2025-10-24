@@ -98,59 +98,46 @@ class UserController extends Controller
     public function login(Request $request) {
         $this->validate($request, [
             'email' => 'required_without:nickname|email|max:255',
-            'nickname' => 'required_without:email|alpha_num|max:255',
+            'nickname' => 'required_without:email|alpha_dash|max:255',
             'password' => 'required'
         ]);
         
-        $invalidCredentialsError = __('Invalid Credentials');
-
-        $creds = ['password'];
-        $userProp = '';
         if($request->has('nickname')) {
-            $creds[] = 'nickname';
-            $userProp = 'nickname';
-        } else if($request->has('email')) {
-            $creds[] = 'email';
-            $userProp = 'email';
+            $nicknameOrEmail = 'nickname';
+            $user = User::where('nickname', $request->get('nickname'))->withoutTrashed()->first();
         } else {
-            return response()->json([
-                'error' => $invalidCredentialsError
-            ], 400);
+            $nicknameOrEmail = 'email';
+            $user = User::where('email', $request->get('email'))->withoutTrashed()->first();
         }
         
-        // When in an edge case the active user tries to login again we just return the active session.
+        // When the active user tries to login again we just return the active session.
         $activeUser = auth()->user();
-        if(isset($activeUser) && $activeUser->{$userProp} === $request->get($userProp)) {
+        if(isset($activeUser) && $activeUser->{$nicknameOrEmail} === $request->get($nicknameOrEmail)) {
             return response()->json($activeUser, 200);
         }
         
-        
-        $user = User::where($userProp, $request->get($userProp))->withoutTrashed()->first();
+        $invalidCredentialsError = __('Invalid Credentials');
         if(!isset($user)) {
             Sleep::for(2)->seconds();
             return response()->json([
                 'error' => $invalidCredentialsError
             ], 400);
         }
-        if($user->login_attempts === 0) {
+
+        if($user->usesSpacialistsAttemptsLogic()) {
             return response()->json([
-                'error' => __('Password confirmation expired')
+                'error' => __('Your accounts password was reset by an administrator. Please use Spacialist to reset your password.')
             ], 400);
         }
-        $credentials = request($creds);
 
-        if(!Auth::guard('web')->attempt($credentials, true)) {
-            return response()->json(['error' => $invalidCredentialsError], 400);
+        $credentials = request(['password', $nicknameOrEmail]);
+        if(!Auth::guard('web')->attempt($credentials)) {
+            return response()->json([
+                'error' => $invalidCredentialsError
+            ], 400);
         }
 
         $request->session()->regenerate();
-
-        if($user->login_attempts > 0) {
-            $user->login_attempts--;
-            $user->save();
-        }
-        
-        // Broadcast login event
         $user->login();
 
         return response()

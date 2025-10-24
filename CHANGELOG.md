@@ -10,11 +10,13 @@ All notable changes to this project will be documented in this file.
 - Narrower Concepts can be selected or created by pressing with the enter key (create only works if there are no other results)
 - New task 'build' to match Spacialist's behavior
 - Login state is updated automatically when tab becomes visible (multiple login attempts should not break the session)
+- Prevents users from Spacialist to login when their login attempts are limited (Results in an error referencing to Spacialist).
 ### Fixed
 - Flickering of text after first selection of a concept
 - Highlighting and selection of concept in tree if a concept with the same ID exists in the other tree
 - Show error when preference does not match the ThesauRex language.
 - Readabilty of small modals on smaller devices
+- Login button now disabled when logging in
 ### Changed
 - Pinia as storage solution
 - Structural changes to match the Spacialist's coding guidelines 
@@ -22,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - Added postfix to XSRF cookie to separate cookies for instances hosted at subpath
 - Version can now contain prerelease tags (e.g. v0.11-beta.2-kilcrea)
 - Updated contributors
+- Removed "Remember Me" toggle from login screen
 
 ## 0.10 - Jelling
 ### Added

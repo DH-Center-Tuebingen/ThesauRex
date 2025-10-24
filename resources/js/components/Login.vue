@@ -66,7 +66,7 @@
                             class="mb-2"
                             v-if="state.error.global"
                         >
-                            <div class=" text-danger small">
+                            <div class="text-danger small">
                                 {{ state.error.global }}
                             </div>
                         </div>
@@ -76,6 +76,7 @@
                                 <button
                                     type="submit"
                                     class="btn btn-primary"
+                                    :disabled="state.submitting"
                                 >
                                     {{ t('global.login') }}
                                 </button>

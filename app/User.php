@@ -20,7 +20,12 @@ class User extends Authenticatable
     // use Authenticatable;
 
     protected $guard_name = 'web';
-
+    
+    // Disables the remember_web token, as we don't need it using Sanctum authentication
+    // and it would disrupt the session_cookies, as the token is managed in the User table, 
+    // which conflicts when accessed from multiple websites.
+    protected $rememberTokenName = null;
+    
     /**
      * The attributes that are mass assignable.
      *
@@ -46,14 +51,43 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
-    
-        
+       
+    /**
+     * Handles the login logic and broadcasts the login event.
+     * @return void
+     */
     public function login(){
-        UserLogin::dispatch($this);
+        try {
+            UserLogin::dispatch($this);
+        } catch(\Exception $e) {
+            // Fail silently if broadcasting fails (e.g., Reverb server not running)
+            \Log::warning('Failed to broadcast login event: ' . $e->getMessage());
+        }
     }
     
+    /**
+     * Handles the logout logic and broadcasts the logout event.
+     * @return void
+     */
     public function logout(){
-        UserLogout::dispatch($this);
+        try {
+            UserLogout::dispatch($this);
+        } catch(\Exception $e) {
+            // Fail silently if broadcasting fails (e.g., Reverb server not running)
+            \Log::warning('Failed to broadcast logout event: ' . $e->getMessage());
+        }
+    }
+    
+   /**
+     * Checks if the user has attempts from Spacialist set.
+     *
+     * This is a bit ugly, as it knows of the existance of Spacialist. 
+     * But as mainly used as part of Spacialist we need to check this, otherwise this would open
+     * a vulnerablility to Spacialist, as the Thesaurex would allow unlimited login attempts.
+     * @return bool
+     */
+    public function usesSpacialistsAttemptsLogic(): bool {
+        return $this->login_attempts !== null;
     }
 
     public function getLanguage() {
@@ -100,16 +134,5 @@ class User extends Authenticatable
 
     public function preferences() {
         return $this->hasMany('App\UserPreference');
-    }
-
-    /**
-     * Get the column name for the "remember me" token.
-     * Returning null disables the remember token functionality.
-     *
-     * @return string
-     */
-    public function getRememberTokenName()
-    {
-        return null;
     }
 }
