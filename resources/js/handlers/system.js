@@ -41,7 +41,7 @@ function addMessage(e, topic, value) {
 function toastNote(e, action) {
     let username = e?.user?.name || e.user?.nickname || 'Unknown User';
     let concept = e?.concept || e.concept || {};
-    const conceptLabel = "Unknown Concept";
+    let conceptLabel = "Unknown Concept";
     try{
         conceptLabel = getLabel(concept);
     } catch(error) {
@@ -66,7 +66,7 @@ function toastRelationMessage(e, isRemove = false) {
     const conceptStore = useConceptStore();
     const narrowerConcept = conceptStore.getConcept(tree, e.relation.narrower_id);
     const broaderConcept = conceptStore.getConcept(tree, e.relation.broader_id);
-    
+
     const broaderLabel = getLabel(broaderConcept);
     const narrowerLabel = getLabel(narrowerConcept);
     const action = isRemove ? 'removed' : 'added';
