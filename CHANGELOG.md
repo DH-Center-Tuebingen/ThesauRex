@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Internal storage (Pinia)
 - Cookies now contain the sub-path when it is not deployed on the domain root
+- Disable language selection dropdown in Language Input Fields if only one option is available
 
 ## 0.10 - Jelling
 ### Added

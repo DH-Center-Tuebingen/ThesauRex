@@ -34,46 +34,10 @@
                     name="create-concept-form"
                     @submit.prevent="onAdd()"
                 >
-                    <div class="input-group">
-                        <button
-                            class="btn btn-outline-secondary dropdown-toggle"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                        >
-                            <div class="d-inline-flex gap-2">
-                                <span>
-                                    {{ emojiFlag(state.concept.language.short_name) }}
-                                </span>
-                                <span>
-                                    {{ state.concept.language.display_name }}
-                                </span>
-                            </div>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a
-                                class="dropdown-item d-flex gap-2"
-                                href=""
-                                @click.prevent="setLanguage(language)"
-                                v-for="language in state.languages"
-                                :key="`create-concept-language-item-${language.short_name}`"
-                            >
-                                <span>
-                                    {{ emojiFlag(language.short_name) }}
-                                </span>
-                                <span>
-                                    {{ language.display_name }}
-                                </span>
-                            </a>
-                        </div>
-                        <input
-                            ref="inputField"
-                            type="text"
-                            class="form-control"
-                            v-model="state.concept.label"
-                        >
-                    </div>
+                    <LanguageInput
+                        :initial-value="initialValue"
+                        @change="conceptChanged"
+                    />
                 </form>
             </div>
             <div class="modal-footer">
@@ -107,17 +71,14 @@
 <script>
     import {
         computed,
-        nextTick,
-        onMounted,
         reactive,
-        ref,
         toRefs,
-        watch,
     } from 'vue';
 
     import { useI18n } from 'vue-i18n';
 
-    import {LoadingButton} from 'dhc-components';
+    import { LoadingButton } from 'dhc-components';
+    import LanguageInput from '@/components/language/LanguageInput.vue';
 
     import useLanguageStore from '@/bootstrap/stores/language.js';
     import useConceptStore from '@/bootstrap/stores/concept.js';
@@ -133,6 +94,7 @@
     export default {
         components: {
             LoadingButton,
+            LanguageInput,
         },
         props: {
             tree: {
@@ -173,8 +135,9 @@
 
                 context.emit('add', state.concept);
             };
-            const setLanguage = language => {
-                state.concept.language = language;
+            const conceptChanged = data => {
+                state.concept.language = data.language;
+                state.concept.label = data.content;
             };
 
             // DATA
@@ -185,22 +148,8 @@
                 },
                 hasParent: computed(_ => parentId.value > 0),
                 parentConcept: computed(_ => state.hasParent ? conceptStore.dictionary[tree.value][parentId.value] : null),
-                conceptValidated: computed(_ => state.concept.language.short_name && state.concept.label && state.concept.label.length),
+                conceptValidated: computed(_ => state.concept.label && state.concept.label.length),
                 languages: computed(_ => languageStore.languages),
-            });
-
-            const inputField = ref(null);
-
-            // ON MOUNTED
-            onMounted(_ => {
-                state.concept.language = languageStore.activeLanguage;
-                // wrap in two nextTick, to make sure modal is really rendered
-                // using only one nextTick might fail on some systems
-                nextTick(_ => {
-                    nextTick(_ => {
-                        inputField.value.focus();
-                    })
-                })
             });
 
             // RETURN
@@ -213,8 +162,7 @@
                 // LOCAL
                 closeModal,
                 onAdd,
-                setLanguage,
-                inputField,
+                conceptChanged,
                 // STATE
                 state,
             };

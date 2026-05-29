@@ -194,54 +194,12 @@
                     <form
                         role="form"
                         class="mb-2"
-                        @submit.prevent="addLabel()"
                     >
-                        <div class="input-group">
-                            <button
-                                class="btn btn-outline-secondary dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                            >
-                                <div class="d-inline-flex gap-2">
-                                    <span>
-                                        {{ emojiFlag(state.addLabel.language.short_name) }}
-                                    </span>
-                                    <span>
-                                        {{ state.addLabel.language.display_name }}
-                                    </span>
-                                </div>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a
-                                    class="dropdown-item d-flex gap-2"
-                                    href=""
-                                    @click.prevent="setLanguageFor('label', language)"
-                                    v-for="language in state.languages"
-                                    :key="`label-language-item-${language.short_name}`"
-                                >
-                                    <span>
-                                        {{ emojiFlag(language.short_name) }}
-                                    </span>
-                                    <span>
-                                        {{ language.display_name }}
-                                    </span>
-                                </a>
-                            </div>
-                            <input
-                                type="text"
-                                class="form-control"
-                                v-model="state.addLabel.value"
-                            >
-                            <button
-                                class="btn btn-success"
-                                type="submit"
-                                :disabled="!state.addLabelValidated"
-                            >
-                                <i class="fas fa-fw fa-plus"></i>
-                            </button>
-                        </div>
+                        <LanguageInput
+                            :initial-value="state.addLabel.value"
+                            :add-button="true"
+                            @add="addLabel"
+                        />
                     </form>
                     <ul
                         class="list-group list-group-xs col of-hidden pe-0 scroll-y-auto"
@@ -276,54 +234,12 @@
                     <form
                         role="form"
                         class="mb-2"
-                        @submit.prevent="addNote(state.addNote)"
                     >
-                        <div class="input-group">
-                            <button
-                                class="btn btn-outline-secondary dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                            >
-                                <div class="d-inline-flex gap-2">
-                                    <span>
-                                        {{ emojiFlag(state.addNote.language.short_name) }}
-                                    </span>
-                                    <span>
-                                        {{ state.addNote.language.display_name }}
-                                    </span>
-                                </div>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a
-                                    class="dropdown-item d-flex gap-2"
-                                    href=""
-                                    @click.prevent="setLanguageFor('note', language)"
-                                    v-for="language in state.languages"
-                                    :key="`note-language-item-${language.short_name}`"
-                                >
-                                    <span>
-                                        {{ emojiFlag(language.short_name) }}
-                                    </span>
-                                    <span>
-                                        {{ language.display_name }}
-                                    </span>
-                                </a>
-                            </div>
-                            <input
-                                type="text"
-                                class="form-control"
-                                v-model="state.addNote.value"
-                            >
-                            <button
-                                class="btn btn-success"
-                                type="submit"
-                                :disabled="!state.addNoteValidated"
-                            >
-                                <i class="fas fa-fw fa-plus"></i>
-                            </button>
-                        </div>
+                        <LanguageInput
+                            :initial-value="state.addNote.value"
+                            :add-button="true"
+                            @add="addNote"
+                        />
                     </form>
                     <ul
                         class="list-group list-group-xs col of-hidden pe-0 scroll-y-auto"
@@ -428,10 +344,12 @@
     } from '@/helpers/tree.js';
 
     import ConceptLabelInput from '@/components/concept/ConceptLabelInput.vue';
+    import LanguageInput from '@/components/language/LanguageInput.vue';
 
     export default {
         components: {
-            ConceptLabelInput
+            ConceptLabelInput,
+            LanguageInput,
         },
         setup(props, context) {
             const { t } = useI18n();
@@ -499,17 +417,6 @@
                 if(!canRemoveNarrower(narrower)) return;
                 conceptStore.removeRelation(narrower.id, state.concept.id, state.tree);
             };
-            const setLanguageFor = (type, lang) => {
-                let property = '';
-                if(type == 'label') {
-                    property = 'addLabel';
-                } else if(type == 'note') {
-                    property = 'addNote';
-                } else {
-                    return;
-                }
-                state[property].language = lang;
-            };
             const setEditMode = (type, idx, editState) => {
                 if(type == 'note') {
                     if(editState) {
@@ -531,7 +438,9 @@
                 // state.addLabel.language = {};
                 state.addLabel.value = '';
             };
-            const addLabel = _ => {
+            const addLabel = data => {
+                state.addLabel.value = data.content;
+                state.addLabel.language = data.language;
                 conceptStore.addLabel(state.concept.id, state.tree, state.addLabel.value, state.addLabel.language.id).then(_ => {
                     resetLabel();
                 });
@@ -541,7 +450,9 @@
                 // state.addNote.language = {};
                 state.addNote.value = '';
             };
-            const addNote = _ => {
+            const addNote = data => {
+                state.addNote.value = data.content;
+                state.addNote.language = data.language;
                 conceptStore.addNote(state.concept.id, state.tree, state.addNote.value, state.addNote.language.id).then(_ => {
                     resetNote();
                 });
@@ -694,7 +605,6 @@
                 removeNarrower,
                 setEditMode,
                 setHoverState,
-                setLanguageFor,
                 sortByLabels,
                 updateNote,
                 updateTopLevelState,
