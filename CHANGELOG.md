@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Flickering of text after first selection of a concept
 - Highlighting and selection of concept in tree if a concept with the same ID exists in the other tree
+- Removed language still visible in dropdowns in certain cases
 ### Changed
 - Internal storage (Pinia)
 - Cookies now contain the sub-path when it is not deployed on the domain root

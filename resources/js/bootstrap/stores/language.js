@@ -34,6 +34,12 @@ export const useLanguageStore = defineStore('language', {
         removeLanguage(languageId) {
             const idx = this.languages.findIndex(language => language.id == languageId);
             if(idx > -1) {
+                // make sure to switch to another language if removed language
+                // is current active language
+                if(this.activeLanguage.id == languageId) {
+                    const firstAvailableIndex = idx == 0 ? 1 : 0;
+                    this.setActiveLanguage(this.languages[firstAvailableIndex]);
+                }
                 this.languages.splice(idx, 1);
             }
         },
