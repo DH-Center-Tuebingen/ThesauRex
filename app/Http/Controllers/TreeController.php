@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use EasyRdf\Graph;
+use EasyRdf\Literal\XML;
 use EasyRdf\Serialiser\RdfXml;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
@@ -159,6 +160,7 @@ class TreeController extends Controller
 
         $thConcept = 'th_concept' . $suffix;
         $thLabel = 'th_concept_label' . $suffix;
+        $thNotes = 'th_concept_notes' . $suffix;
         $thBroader = 'th_broaders' . $suffix;
 
         if(isset($id)) {
@@ -218,6 +220,18 @@ class TreeController extends Controller
                 } else if($type === 2) {
                     $curr->addLiteral('skos:altLabel', $lbl, $lang);
                 }
+            }
+            $notes = DB::table($thNotes . ' as notes')
+                ->select('content', 'short_name')
+                ->join('th_language as lang', 'notes.language_id', '=', 'lang.id')
+                ->where('concept_id', $concept_id)
+                ->get();
+            foreach($notes as $note) {
+                // Export note content as XML Literal (<skos:note rdf:parseType="Literal">)
+                // to support HTML content in notes
+                $content = new XML($note->content);
+                $lang = $note->short_name;
+                $curr->addLiteral('skos:note', $content, $lang);
             }
             if(!$is_top_concept) {
                 $broaders = DB::table($thBroader)
@@ -562,7 +576,7 @@ class TreeController extends Controller
 
         $treeName = $request->query('t', 'project');
         $addAsRoot = $bid === -1;
-        
+
         if($treeName === 'sandbox') {
             $ThConceptClass = ThConceptSandbox::class;
             $ThBroaderClass = ThBroaderSandbox::class;
@@ -570,7 +584,7 @@ class TreeController extends Controller
             $ThConceptClass = ThConcept::class;
             $ThBroaderClass = ThBroader::class;
         }
-        
+
         try {
             $concept = $ThConceptClass::findOrFail($id);
             $broaderTable = (new $ThBroaderClass())->getTable();
@@ -606,7 +620,7 @@ class TreeController extends Controller
             $concept->save();
         } else {
             $entry = $concept->addBroader($bid);
-            
+
             if(!$entry) {
                 DB::rollBack();
                 return response()->json([
@@ -637,10 +651,10 @@ class TreeController extends Controller
                 'error' => 'You do not have the permission to call this method'
             ], 403);
         }
-        
+
         $removeFromTop = $bid == -1;
         $treeName = $request->query('t', 'project');
-        
+
         $ThClass = $treeName == 'sandbox' ? ThConceptSandbox::class : ThConcept::class;
         try {
             $concept = $ThClass::findOrFail($id);
@@ -658,13 +672,13 @@ class TreeController extends Controller
                 ], 400);
             }
         }
-        
+
         if($concept->relationsCount() <= 1){
             return response()->json([
                 'error' => 'This is the concepts last relation, it cannot be removed. Please use the delete functionality to delete it.'
             ], 400);
         }
-        
+
         $ThBroaderClass = $treeName == 'sandbox' ? ThBroaderSandbox::class : ThBroader::class;
         if($removeFromTop) {
             $concept->is_top_concept = false;
@@ -674,7 +688,7 @@ class TreeController extends Controller
             $result = $query->where('broader_id', $bid)
                 ->where('narrower_id', $id)
                 ->first();
-                
+
             if(!isset($result)) {
                 return response()->json([
                     'error' => 'This relation does not exist'
@@ -682,7 +696,7 @@ class TreeController extends Controller
             } else {
                 $result->delete();
             }
-        } 
+        }
 
         return response()->json(null, 204);
     }
@@ -703,7 +717,7 @@ class TreeController extends Controller
             $ThConceptClass = ThConcept::class;
             $ThBroaderClass = ThBroader::class;
         }
-        
+
         try {
             $concept = $ThConceptClass::findOrFail($id);
         } catch(ModelNotFoundException $e) {
