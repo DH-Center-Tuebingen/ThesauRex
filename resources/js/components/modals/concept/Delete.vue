@@ -162,7 +162,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <LoadingButton
+                <XButton
                     type="submit"
                     :outlined="true"
                     color="danger"
@@ -171,7 +171,7 @@
                     form="delete-concept-form"
                 >
                     <i class="fas fa-fw fa-trash"></i> {{ t('global.delete') }}
-                </LoadingButton>
+                </XButton>
                 <button
                     type="button"
                     class="btn btn-outline-secondary"
@@ -204,11 +204,11 @@
         getLabel,
     } from '@/helpers/tree.js';
 
-    import { LoadingButton } from "dhc-components";
+    import XButton from '@dh-center-tuebingen/dhc-components/Button/XButton';
 
     export default {
         components: {
-            LoadingButton,
+            XButton,
         },
         props: {
             tree: {

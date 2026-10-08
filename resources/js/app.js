@@ -26,7 +26,7 @@ window.$httpQueue = queue;
 // Components
 import App from './App.vue';
 
-import 'dhc-components/css';
+import '@dh-center-tuebingen/dhc-components/css';
 
 // Third-Party Components
 import Multiselect from '@vueform/multiselect';

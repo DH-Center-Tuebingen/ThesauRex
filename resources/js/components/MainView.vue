@@ -78,9 +78,9 @@
         onBeforeRouteUpdate,
         useRoute,
     } from 'vue-router';
-    
+
     import { useI18n } from 'vue-i18n';
-    import { ResizableColumns } from 'dhc-components';
+    import ResizableColumns from '@dh-center-tuebingen/dhc-components/Layout/ResizableColumns';
 
     import useConceptStore from '@/bootstrap/stores/concept.js';
 
@@ -104,7 +104,7 @@
         handleLanguageAddedEvent,
         handleLanguageDeletedEvent,
     } from '@/handlers/system.js';
-    
+
     import { onMounted } from 'vue';
 
     export default {

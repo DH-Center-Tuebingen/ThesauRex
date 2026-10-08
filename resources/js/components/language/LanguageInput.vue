@@ -1,14 +1,49 @@
 <template>
-    <div class="input-group">
-        <template v-if="languages.length > 1">
+    <form
+        @submit.prevent="emitAdd"
+    >
+        <div class="input-group">
+            <template v-if="languages.length > 1">
+                <button
+                    class="btn btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                >
+                    <div class="d-inline-flex gap-2">
+                        <span>
+                            {{ emojiFlag(data.language.short_name) }}
+                        </span>
+                        <span>
+                            {{ data.language.display_name }}
+                        </span>
+                    </div>
+                </button>
+                <div class="dropdown-menu">
+                    <a
+                        class="dropdown-item d-flex gap-2"
+                        href=""
+                        @click.prevent="setLanguage(language)"
+                        v-for="language in languages"
+                        :key="`create-concept-language-item-${language.short_name}`"
+                    >
+                        <span>
+                            {{ emojiFlag(language.short_name) }}
+                        </span>
+                        <span>
+                            {{ language.display_name }}
+                        </span>
+                    </a>
+                </div>
+            </template>
             <button
-                class="btn btn-outline-secondary dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false"
+                v-else
+                class="btn btn-outline-secondary disabled"
             >
-                <div class="d-inline-flex gap-2">
+                <div
+                    class="d-inline-flex gap-2"
+                >
                     <span>
                         {{ emojiFlag(data.language.short_name) }}
                     </span>
@@ -17,55 +52,23 @@
                     </span>
                 </div>
             </button>
-            <div class="dropdown-menu">
-                <a
-                    class="dropdown-item d-flex gap-2"
-                    href=""
-                    @click.prevent="setLanguage(language)"
-                    v-for="language in languages"
-                    :key="`create-concept-language-item-${language.short_name}`"
-                >
-                    <span>
-                        {{ emojiFlag(language.short_name) }}
-                    </span>
-                    <span>
-                        {{ language.display_name }}
-                    </span>
-                </a>
-            </div>
-        </template>
-        <button
-            v-else
-            class="btn btn-outline-secondary disabled"
-        >
-            <div
-                class="d-inline-flex gap-2"
+            <input
+                ref="inputField"
+                type="text"
+                class="form-control"
+                v-model="data.content"
+                @input="labelChanged"
             >
-                <span>
-                    {{ emojiFlag(data.language.short_name) }}
-                </span>
-                <span>
-                    {{ data.language.display_name }}
-                </span>
-            </div>
-        </button>
-        <input
-            ref="inputField"
-            type="text"
-            class="form-control"
-            v-model="data.content"
-            @input="labelChanged"
-        >
-        <button
-            v-if="addButton"
-            class="btn btn-success"
-            type="button"
-            :disabled="!hasContent"
-            @click="emitAdd"
-        >
-            <i class="fas fa-fw fa-plus"></i>
-        </button>
-    </div>
+            <button
+                v-if="addButton"
+                class="btn btn-success"
+                type="submit"
+                :disabled="!hasContent"
+            >
+                <i class="fas fa-fw fa-plus"></i>
+            </button>
+        </div>
+    </form>
 </template>
 
 <script>

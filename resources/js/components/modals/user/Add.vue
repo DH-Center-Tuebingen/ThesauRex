@@ -223,8 +223,8 @@
     import { useI18n } from 'vue-i18n';
     import { useForm, useField } from 'vee-validate';
     import * as yup from 'yup';
-    
-    import { Alert } from "dhc-components";
+
+    import Alert from '@dh-center-tuebingen/dhc-components/Notifications/Alert';
 
     import {
         getError,

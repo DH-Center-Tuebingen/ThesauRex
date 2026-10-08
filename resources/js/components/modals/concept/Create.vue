@@ -32,7 +32,6 @@
                     class="mb-2"
                     id="create-concept-form"
                     name="create-concept-form"
-                    @submit.prevent="onAdd()"
                 >
                     <LanguageInput
                         :initial-value="initialValue"
@@ -41,20 +40,15 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <LoadingButton
-                    color="success"
+                <XButton
+                    button-class="success"
+                    icon="fas fa-fw fa-plus"
                     :outlined="true"
-                    :loading="loading"
                     :disabled="!state.conceptValidated"
-                    form="create-concept-form"
-                >
-                    <template #icon>
-                        <i class="fas fa-fw fa-plus" />
-                    </template>
-                    <span>
-                        {{ t('global.add') }}
-                    </span>
-                </LoadingButton>
+                    :loading="loading"
+                    :text="t('global.add')"
+                    @click.prevent="onAdd()"
+                />
                 <button
                     type="button"
                     class="btn btn-outline-secondary"
@@ -77,7 +71,7 @@
 
     import { useI18n } from 'vue-i18n';
 
-    import { LoadingButton } from 'dhc-components';
+    import XButton from '@dh-center-tuebingen/dhc-components/Button/XButton';
     import LanguageInput from '@/components/language/LanguageInput.vue';
 
     import useLanguageStore from '@/bootstrap/stores/language.js';
@@ -93,7 +87,7 @@
 
     export default {
         components: {
-            LoadingButton,
+            XButton,
             LanguageInput,
         },
         props: {

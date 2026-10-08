@@ -261,11 +261,11 @@
                                     class="d-flex flex-row align-items-center"
                                     @submit.prevent="updateNote()"
                                 >
-                                    <input
-                                        v-model="state.editNote.value"
-                                        type="text"
-                                        class="form-control"
-                                    >
+                                    <Markdown
+                                        classes="milkdown-wrapper h-100 flex-grow-1"
+                                        :data="state.editNote.value"
+                                        @update="updateNoteFromMarkdown"
+                                    />
                                     <button
                                         type="submit"
                                         class="btn btn-outline-success btn-sm ms-2"
@@ -343,11 +343,14 @@
         getLabel,
     } from '@/helpers/tree.js';
 
+    import Markdown from '@dh-center-tuebingen/dhc-components/Display/Markdown';
+
     import ConceptLabelInput from '@/components/concept/ConceptLabelInput.vue';
     import LanguageInput from '@/components/language/LanguageInput.vue';
 
     export default {
         components: {
+            Markdown,
             ConceptLabelInput,
             LanguageInput,
         },
@@ -449,6 +452,9 @@
             const resetNote = _ => {
                 // state.addNote.language = {};
                 state.addNote.value = '';
+            };
+            const updateNoteFromMarkdown = text => {
+                state.editNote.value = text;
             };
             const addNote = data => {
                 state.addNote.value = data.content;
@@ -592,6 +598,7 @@
                 getLabel,
                 // LOCAL
                 addLabel,
+                updateNoteFromMarkdown,
                 addNote,
                 cancelUpdateNote,
                 canRemoveNarrower,
