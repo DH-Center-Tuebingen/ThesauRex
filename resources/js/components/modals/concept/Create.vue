@@ -143,7 +143,7 @@
             // DATA
             const state = reactive({
                 concept: {
-                    language: {},
+                    language: languageStore.activeLanguage,
                     label: initialValue.value,
                 },
                 hasParent: computed(_ => parentId.value > 0),
