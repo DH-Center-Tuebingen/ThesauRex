@@ -196,6 +196,7 @@
                         class="mb-2"
                     >
                         <LanguageInput
+                            ref="addLabelInput"
                             :initial-value="state.addLabel.value"
                             :add-button="true"
                             @add="addLabel"
@@ -236,6 +237,7 @@
                         class="mb-2"
                     >
                         <LanguageInput
+                            ref="addNoteInput"
                             :initial-value="state.addNote.value"
                             :add-button="true"
                             @add="addNote"
@@ -315,6 +317,7 @@
         computed,
         onMounted,
         reactive,
+        useTemplateRef,
         watch,
     } from 'vue';
 
@@ -360,6 +363,9 @@
             const toast = useToast();
             const conceptStore = useConceptStore();
             const languageStore = useLanguageStore();
+            
+            const addLabelInput = useTemplateRef('addLabelInput')
+            const addNoteInput = useTemplateRef('addNoteInput');
 
             const resetLanguageToDefault = _ => {
                 state.addLabel.language = languageStore.activeLanguage;
@@ -577,9 +583,9 @@
             // WATCHER
             watch(_ => languageStore.activeLanguage,
                 (newLang, oldLang) => {
-                    if(newLang == oldLang) return;
-                    state.addLabel.language = newLang;
-                    state.addNote.language = newLang;
+                    if(newLang.id == oldLang.id) return;
+                    addLabelInput.value.setLanguage(newLang);
+                    addNoteInput.value.setLanguage(newLang);
                 }
             );
 
