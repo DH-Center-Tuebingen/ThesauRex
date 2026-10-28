@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Internal storage (Pinia)
 - Cookies now contain the sub-path when it is not deployed on the domain root
 - Disable language selection dropdown in Language Input Fields if only one option is available
+- Removed "Remember Me" functionality as sanctum cookie auth always works like a checked 'remember me'
 
 ## 0.10 - Jelling
 ### Added

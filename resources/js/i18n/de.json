@@ -81,7 +81,6 @@
         "phonenumber": "Telefonnummer",
         "password": "Passwort",
         "confirm_password": "Passwort wiederholen",
-        "remember_me": "Eingeloggt bleiben",
         "description": "Beschreibung",
         "roles": "Rollen",
         "permissions": "Berechtigungen",

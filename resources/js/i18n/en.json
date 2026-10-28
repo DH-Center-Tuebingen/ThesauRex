@@ -81,7 +81,6 @@
         "phonenumber": "Phone number",
         "password": "Password",
         "confirm_password": "Repeat password",
-        "remember_me": "Remember me",
         "description": "Description",
         "roles": "Roles",
         "permissions": "Permissions",
